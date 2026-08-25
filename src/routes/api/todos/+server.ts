@@ -1,0 +1,69 @@
+import { json } from '@sveltejs/kit';
+import type { RequestHandler } from './$types';
+import { db } from '$lib/server/db';
+import * as todoService from '$lib/server/services/todo.service';
+import * as userService from '$lib/server/services/user.service';
+import { handleError, AppError } from '$lib/server/errors';
+import {
+	validateEmail,
+	validateContent,
+	validateNote,
+	validateCategory,
+	validateOptionalDate,
+	validateBoolean,
+	validateStatus,
+	validateLimit
+} from '$lib/server/validation';
+
+export const POST: RequestHandler = async ({ request }) => {
+	try {
+		let body;
+		try {
+			body = await request.json();
+		} catch {
+			throw new AppError('VALIDATION_ERROR', 'Invalid JSON body');
+		}
+
+		const email = validateEmail(body.email);
+		const content = validateContent(body.content);
+		const note = validateNote(body.note);
+		const isNotePublic = validateBoolean(body.isNotePublic, true);
+		const category = validateCategory(body.category);
+		const startDate = validateOptionalDate(body.startDate) ?? undefined;
+		const dueDate = validateOptionalDate(body.dueDate);
+
+		const user = await userService.findOrCreate(db, email);
+		const todo = await todoService.create(db, {
+			content,
+			note,
+			isNotePublic,
+			category,
+			authorId: user.id,
+			startDate,
+			dueDate
+		});
+
+		return json({ todo, author: user }, { status: 201 });
+	} catch (e) {
+		return handleError(e);
+	}
+};
+
+export const GET: RequestHandler = async ({ url }) => {
+	try {
+		const statusParam = url.searchParams.get('status');
+		const categoryParam = url.searchParams.get('category');
+
+		const status = statusParam ? validateStatus(statusParam) : undefined;
+		const category = categoryParam ? (validateCategory(categoryParam) ?? undefined) : undefined;
+		const authorId = url.searchParams.get('authorId') ?? undefined;
+		const cursor = url.searchParams.get('cursor') ?? undefined;
+		const limit = validateLimit(url.searchParams.get('limit') ?? undefined);
+
+		const result = await todoService.list(db, { status, category, authorId, cursor, limit });
+
+		return json(result);
+	} catch (e) {
+		return handleError(e);
+	}
+};

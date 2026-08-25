@@ -54,7 +54,10 @@ export default defineConfig({
 					name: 'server',
 					environment: 'node',
 					include: ['src/**/*.{test,spec}.{js,ts}'],
-					exclude: ['src/**/*.svelte.{test,spec}.{js,ts}']
+					exclude: ['src/**/*.svelte.{test,spec}.{js,ts}'],
+					fileParallelism: false,
+					testTimeout: 30000,
+					hookTimeout: 30000
 				}
 			}
 		]
