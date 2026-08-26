@@ -27,10 +27,11 @@ describe('findOrCreate', () => {
 		expect(user.nickname).toBe('john.doe+test');
 	});
 
-	test('sets createdAt and updatedAt', async () => {
+	test('sets createdAt and updatedAt, with null lastTodoUpdatedAt initially', async () => {
 		const user = await userService.findOrCreate(testDb, 'time@example.com');
 		expect(user.createdAt).toBeInstanceOf(Date);
 		expect(user.updatedAt).toBeInstanceOf(Date);
+		expect(user.lastTodoUpdatedAt).toBeNull();
 	});
 });
 

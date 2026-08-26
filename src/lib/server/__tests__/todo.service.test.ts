@@ -51,6 +51,16 @@ describe('create', () => {
 		});
 		expect(todo.startDate).toBeTruthy();
 	});
+
+	test('updates author lastTodoUpdatedAt on creation', async () => {
+		expect(testUser.lastTodoUpdatedAt).toBeNull();
+		await todoService.create(testDb, {
+			content: 'Timestamp test',
+			authorId: testUser.id
+		});
+		const author = await userService.findById(testDb, testUser.id);
+		expect(author!.lastTodoUpdatedAt).toBeInstanceOf(Date);
+	});
 });
 
 describe('findById', () => {
@@ -282,6 +292,23 @@ describe('update', () => {
 				content: 'X'
 			})
 		).rejects.toThrow(AppError);
+	});
+
+	test('updates author lastTodoUpdatedAt on update', async () => {
+		const todo = await todoService.create(testDb, { content: 'Original', authorId: testUser.id });
+		const authorBefore = await userService.findById(testDb, testUser.id);
+		const timeBefore = authorBefore!.lastTodoUpdatedAt;
+
+		// Wait a small delay to ensure different timestamp
+		await new Promise((resolve) => setTimeout(resolve, 50));
+
+		await todoService.update(testDb, todo.id, 'test@example.com', { content: 'Modified' });
+		const authorAfter = await userService.findById(testDb, testUser.id);
+
+		expect(authorAfter!.lastTodoUpdatedAt).toBeInstanceOf(Date);
+		if (timeBefore) {
+			expect(authorAfter!.lastTodoUpdatedAt!.getTime()).toBeGreaterThanOrEqual(timeBefore.getTime());
+		}
 	});
 });
 

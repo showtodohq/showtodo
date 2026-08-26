@@ -342,7 +342,8 @@
     "nickname": "exc",
     "avatar": null,
     "createdAt": "2026-08-25T16:00:00.000Z",
-    "updatedAt": "2026-08-25T16:00:00.000Z"
+    "updatedAt": "2026-08-25T16:00:00.000Z",
+    "lastTodoUpdatedAt": null
   }
 }
 ```

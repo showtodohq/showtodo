@@ -6,6 +6,7 @@ export interface UserProfile {
 	avatar: string | null;
 	createdAt: string;
 	updatedAt: string;
+	lastTodoUpdatedAt?: string | null;
 }
 
 export interface UpdateUserInput {

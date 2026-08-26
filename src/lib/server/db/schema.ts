@@ -10,7 +10,8 @@ export const users = pgTable('users', {
 	nickname: text('nickname').notNull(),
 	avatar: text('avatar'),
 	createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
-	updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow().$onUpdate(() => new Date())
+	updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow().$onUpdate(() => new Date()),
+	lastTodoUpdatedAt: timestamp('last_todo_updated_at', { withTimezone: true })
 });
 
 export const todos = pgTable('todos', {

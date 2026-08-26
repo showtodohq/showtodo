@@ -104,6 +104,7 @@
 | `avatar` | `text` | `text` | NULL | 自定义头像 URL |
 | `created_at` | `timestamp` | `timestamptz` | NOT NULL, `now()` | 创建时间 |
 | `updated_at` | `timestamp` | `timestamptz` | NOT NULL, `now()`, auto-update | 更新时间 |
+| `last_todo_updated_at` | `timestamp` | `timestamptz` | NULL | 最近一次 Todo 更新时间 |
 
 #### 2. `todos` (待办表)
 | 字段 | Drizzle 类型 | PostgreSQL 类型 | 约束 / 默认值 | 说明 |

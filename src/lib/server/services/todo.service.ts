@@ -72,6 +72,12 @@ export async function create(db: Database, data: CreateTodoData) {
 		.insert(todos)
 		.values(values as typeof todos.$inferInsert)
 		.returning();
+
+	await db
+		.update(users)
+		.set({ lastTodoUpdatedAt: new Date() })
+		.where(eq(users.id, data.authorId));
+
 	return result[0];
 }
 
@@ -191,5 +197,11 @@ export async function update(db: Database, idOrShortId: string, authorEmail: str
 	if (data.dueDate !== undefined) updateData.dueDate = data.dueDate;
 
 	const result = await db.update(todos).set(updateData).where(eq(todos.id, todo.id)).returning();
+
+	await db
+		.update(users)
+		.set({ lastTodoUpdatedAt: new Date() })
+		.where(eq(users.id, todo.authorId));
+
 	return result[0];
 }
