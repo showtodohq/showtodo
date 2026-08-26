@@ -155,6 +155,17 @@ export const api = {
 		return request<{ user: UserProfile }>(`/api/users/${id}`, undefined, customFetch);
 	},
 
+	async syncUser(email: string, customFetch?: typeof fetch): Promise<{ user: UserProfile }> {
+		return request<{ user: UserProfile }>(
+			'/api/users',
+			{
+				method: 'POST',
+				body: JSON.stringify({ email })
+			},
+			customFetch
+		);
+	},
+
 	async updateUser(
 		id: string,
 		input: UpdateUserInput,

@@ -233,6 +233,7 @@
 {#if user}
 	<UserProfileModal
 		isOpen={isProfileModalOpen}
+		currentUser={user}
 		onClose={() => {
 			isProfileModalOpen = false;
 			loadUserData();

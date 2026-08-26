@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { api } from '$lib/services/api';
 	import { toast } from '$lib/stores/toast.svelte';
 	import { userStore } from '$lib/stores/user.svelte';
 	import Avatar from '$lib/components/common/Avatar.svelte';
@@ -11,12 +12,14 @@
 	let isDropdownOpen = $state(false);
 	let emailInput = $state('');
 
+	let isSavingEmail = $state(false);
+
 	export function openEmailModal() {
 		emailInput = userStore.email || '';
 		isEmailModalOpen = true;
 	}
 
-	function handleSaveEmail(e: SubmitEvent) {
+	async function handleSaveEmail(e: SubmitEvent) {
 		e.preventDefault();
 		const email = emailInput.trim().toLowerCase();
 		if (!email || !email.includes('@')) {
@@ -24,12 +27,17 @@
 			return;
 		}
 
-		userStore.setSession({
-			email,
-			nickname: email.split('@')[0]
-		});
-		toast.success(`已设置身份为 ${email}`);
-		isEmailModalOpen = false;
+		isSavingEmail = true;
+		try {
+			const res = await api.syncUser(email);
+			userStore.updateUserFromProfile(res.user);
+			toast.success(`已确认身份：@${res.user.handle}`);
+			isEmailModalOpen = false;
+		} catch (error: any) {
+			toast.error(error.message || '设置身份失败');
+		} finally {
+			isSavingEmail = false;
+		}
 	}
 
 	function handleLogout() {
