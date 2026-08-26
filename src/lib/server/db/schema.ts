@@ -6,6 +6,7 @@ export const todoStatusEnum = pgEnum('todo_status', ['pending', 'in_progress', '
 export const users = pgTable('users', {
 	id: uuid('id').primaryKey().defaultRandom(),
 	email: text('email').notNull().unique(),
+	handle: text('handle').notNull().unique(),
 	nickname: text('nickname').notNull(),
 	avatar: text('avatar'),
 	createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
@@ -14,6 +15,7 @@ export const users = pgTable('users', {
 
 export const todos = pgTable('todos', {
 	id: uuid('id').primaryKey().defaultRandom(),
+	shortId: text('short_id').notNull().unique(),
 	content: text('content').notNull(),
 	note: text('note'),
 	isNotePublic: boolean('is_note_public').notNull().default(true),

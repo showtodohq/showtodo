@@ -2,11 +2,21 @@ import { eq, and, count, inArray } from 'drizzle-orm';
 import { reactions, users, todos } from '../db/schema';
 import type { Database } from '../db';
 import { AppError } from '../errors';
+import { isUUID } from '../validation';
 
-export async function add(db: Database, todoId: string, userId: string, emoji: string) {
-	// Check if todo exists
-	const todo = await db.select({ id: todos.id }).from(todos).where(eq(todos.id, todoId)).limit(1);
-	if (!todo[0]) throw new AppError('NOT_FOUND', 'Todo not found');
+async function resolveTodoUuid(db: Database, idOrShortId: string): Promise<string | null> {
+	if (!idOrShortId) return null;
+	if (isUUID(idOrShortId)) {
+		const todo = await db.select({ id: todos.id }).from(todos).where(eq(todos.id, idOrShortId)).limit(1);
+		return todo[0]?.id ?? null;
+	}
+	const todo = await db.select({ id: todos.id }).from(todos).where(eq(todos.shortId, idOrShortId)).limit(1);
+	return todo[0]?.id ?? null;
+}
+
+export async function add(db: Database, idOrShortId: string, userId: string, emoji: string) {
+	const todoId = await resolveTodoUuid(db, idOrShortId);
+	if (!todoId) throw new AppError('NOT_FOUND', 'Todo not found');
 
 	// Check for duplicate
 	const existing = await db
@@ -25,10 +35,9 @@ export async function add(db: Database, todoId: string, userId: string, emoji: s
 	return result[0];
 }
 
-export async function remove(db: Database, todoId: string, userId: string, emoji: string) {
-	// Check if todo exists
-	const todo = await db.select({ id: todos.id }).from(todos).where(eq(todos.id, todoId)).limit(1);
-	if (!todo[0]) throw new AppError('NOT_FOUND', 'Todo not found');
+export async function remove(db: Database, idOrShortId: string, userId: string, emoji: string) {
+	const todoId = await resolveTodoUuid(db, idOrShortId);
+	if (!todoId) throw new AppError('NOT_FOUND', 'Todo not found');
 
 	const result = await db
 		.delete(reactions)
@@ -44,7 +53,10 @@ export async function remove(db: Database, todoId: string, userId: string, emoji
 	return result[0];
 }
 
-export async function getByTodoId(db: Database, todoId: string) {
+export async function getByTodoId(db: Database, idOrShortId: string) {
+	const todoId = await resolveTodoUuid(db, idOrShortId);
+	if (!todoId) return [];
+
 	const counts = await db
 		.select({
 			emoji: reactions.emoji,
@@ -58,13 +70,15 @@ export async function getByTodoId(db: Database, todoId: string) {
 		.select({
 			emoji: reactions.emoji,
 			userId: users.id,
-			nickname: users.nickname
+			nickname: users.nickname,
+			handle: users.handle,
+			avatar: users.avatar
 		})
 		.from(reactions)
 		.innerJoin(users, eq(reactions.userId, users.id))
 		.where(eq(reactions.todoId, todoId));
 
-	const emojiGroups: Record<string, { count: number; users: { id: string; nickname: string }[] }> =
+	const emojiGroups: Record<string, { count: number; users: { id: string; nickname: string; handle?: string; avatar?: string | null }[] }> =
 		{};
 
 	for (const row of counts) {
@@ -73,7 +87,12 @@ export async function getByTodoId(db: Database, todoId: string) {
 
 	for (const row of details) {
 		if (emojiGroups[row.emoji]) {
-			emojiGroups[row.emoji].users.push({ id: row.userId, nickname: row.nickname });
+			emojiGroups[row.emoji].users.push({
+				id: row.userId,
+				nickname: row.nickname,
+				handle: row.handle,
+				avatar: row.avatar
+			});
 		}
 	}
 
@@ -85,7 +104,8 @@ export async function getByTodoId(db: Database, todoId: string) {
 }
 
 export async function getCountsByTodoIds(db: Database, todoIds: string[]) {
-	if (todoIds.length === 0) return {};
+	const validUuids = todoIds.filter(isUUID);
+	if (validUuids.length === 0) return {};
 
 	const result = await db
 		.select({
@@ -94,11 +114,11 @@ export async function getCountsByTodoIds(db: Database, todoIds: string[]) {
 			count: count()
 		})
 		.from(reactions)
-		.where(inArray(reactions.todoId, todoIds))
+		.where(inArray(reactions.todoId, validUuids))
 		.groupBy(reactions.todoId, reactions.emoji);
 
 	const countsMap: Record<string, Record<string, number>> = {};
-	for (const todoId of todoIds) {
+	for (const todoId of validUuids) {
 		countsMap[todoId] = { '👀': 0, '🔥': 0, '💪': 0, '👏': 0 };
 	}
 	for (const row of result) {

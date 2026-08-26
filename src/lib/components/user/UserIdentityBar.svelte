@@ -74,19 +74,17 @@
 			>
 				<div class="px-3 py-2 border-b border-zinc-100 dark:border-zinc-800">
 					<p class="font-medium truncate text-zinc-900 dark:text-zinc-100">{userStore.nickname}</p>
-					<p class="text-[11px] text-zinc-400 truncate">{userStore.email}</p>
+					<p class="text-[11px] text-zinc-400 font-mono truncate">@{userStore.handle}</p>
 				</div>
 
-				{#if userStore.id}
-					<a
-						href="/{userStore.id}"
-						onclick={() => (isDropdownOpen = false)}
-						class="flex items-center gap-2 px-3 py-2 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
-					>
-						<Icon icon="lucide:user" class="w-3.5 h-3.5 text-zinc-400" />
-						<span>我的公开主页</span>
-					</a>
-				{/if}
+				<a
+					href="/@{userStore.handle}"
+					onclick={() => (isDropdownOpen = false)}
+					class="flex items-center gap-2 px-3 py-2 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
+				>
+					<Icon icon="lucide:user" class="w-3.5 h-3.5 text-zinc-400" />
+					<span>我的公开主页</span>
+				</a>
 
 				<button
 					type="button"

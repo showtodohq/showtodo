@@ -19,12 +19,72 @@ const ALLOWED_TRANSITIONS: Record<TodoStatus, readonly TodoStatus[]> = {
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const DATE_REGEX = /^\d{4}-\d{2}-\d{2}$/;
+const HANDLE_REGEX = /^[a-z0-9][a-z0-9_-]{0,48}[a-z0-9]$|^[a-z0-9]$/;
+
+export function isUUID(value: string | undefined | null): boolean {
+	if (!value || typeof value !== 'string') return false;
+	return UUID_REGEX.test(value.trim());
+}
 
 export function validateEmail(value: unknown): string {
 	if (typeof value !== 'string' || !EMAIL_REGEX.test(value.trim())) {
 		throw new AppError('VALIDATION_ERROR', 'Invalid email format');
 	}
-	return value.trim();
+	return value.trim().toLowerCase();
+}
+
+/**
+ * 将用户输入/邮箱前缀清洗为合法的 URL Handle
+ */
+export function sanitizeHandle(raw: string): string {
+	if (!raw) return 'user';
+	let cleaned = raw
+		.toLowerCase()
+		.trim()
+		.replace(/[@.+=_\s]+/g, '-') // 点、加号、下划线、空格等替换为连字符
+		.replace(/[^a-z0-9-]/g, '') // 移除非字母数字横线的符号（包括中文和 Emoji）
+		.replace(/-+/g, '-') // 连续横线合并
+		.replace(/^-+|-+$/g, ''); // 去除首尾横线
+
+	if (!cleaned || cleaned.length === 0) {
+		cleaned = 'user';
+	}
+	return cleaned.slice(0, 30);
+}
+
+export function validateHandle(value: unknown): string {
+	if (typeof value !== 'string') {
+		throw new AppError('VALIDATION_ERROR', 'handle must be a string');
+	}
+	const handle = value.trim().toLowerCase();
+	if (handle.length < 1 || handle.length > 50 || !HANDLE_REGEX.test(handle)) {
+		throw new AppError(
+			'VALIDATION_ERROR',
+			'handle must be 1-50 characters, containing only lowercase letters, numbers, hyphens and underscores'
+		);
+	}
+	return handle;
+}
+
+const BASE62_CHARS = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+
+export function generateShortId(length = 8): string {
+	let res = '';
+	for (let i = 0; i < length; i++) {
+		const idx = Math.floor(Math.random() * BASE62_CHARS.length);
+		res += BASE62_CHARS[idx];
+	}
+	return res;
+}
+
+export function generateRandomSuffix(length = 4): string {
+	let res = '';
+	const chars = '0123456789abcdefghijklmnopqrstuvwxyz';
+	for (let i = 0; i < length; i++) {
+		const idx = Math.floor(Math.random() * chars.length);
+		res += chars[idx];
+	}
+	return res;
 }
 
 export function validateContent(value: unknown): string {
@@ -97,7 +157,6 @@ export function validateDate(value: unknown): string {
 	if (isNaN(parsed.getTime())) {
 		throw new AppError('VALIDATION_ERROR', 'Invalid date');
 	}
-	// Verify the parsed date components match the input to catch things like 2026-02-30
 	const [y, m, d] = value.split('-').map(Number);
 	if (parsed.getUTCFullYear() !== y || parsed.getUTCMonth() + 1 !== m || parsed.getUTCDate() !== d) {
 		throw new AppError('VALIDATION_ERROR', 'Invalid date');

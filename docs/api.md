@@ -84,39 +84,16 @@
 
 #### 4.1.1 创建 Todo
 - **URL**: `POST /api/todos`
-- **描述**: 创建一条公开 Todo。如果邮箱未注册，将自动创建用户。
-
-**请求体 (JSON)**:
-| 字段 | 类型 | 必填 | 默认值 | 说明 |
-|---|---|---|---|---|
-| `email` | `string` | 是 | - | 用户邮箱（用于关联/创建作者） |
-| `content` | `string` | 是 | - | Todo 主题内容（1-1000 字符） |
-| `note` | `string \| null` | 否 | `null` | 备注详情（最多 5000 字符） |
-| `isNotePublic` | `boolean` | 否 | `true` | 备注是否公开。隐藏时其他人无法查看到具体备注 |
-| `category` | `string \| null` | 否 | `null` | 分类 ID，见常量定义 |
-| `startDate` | `string` | 否 | 当天日期 | 计划开始日期（格式 `YYYY-MM-DD`） |
-| `dueDate` | `string \| null` | 否 | `null` | 计划截止日期（格式 `YYYY-MM-DD`） |
-
-**请求示例**:
-```json
-{
-  "email": "exc@example.com",
-  "content": "完成 SvelteKit Todo 后端文档",
-  "note": "包含架构图与测试报告",
-  "isNotePublic": true,
-  "category": "dev",
-  "startDate": "2026-08-26",
-  "dueDate": "2026-08-28"
-}
-```
+- **描述**: 创建一条公开 Todo。如果邮箱未注册，将自动创建用户并分配唯一 `handle`。
 
 **响应示例 (201 Created)**:
 ```json
 {
   "todo": {
     "id": "78c946e3-f661-4fa3-9f5b-1662991ddf31",
-    "content": "完成 SvelteKit Todo 后端文档",
-    "note": "包含架构图与测试报告",
+    "shortId": "8x2k9a1b",
+    "content": "完成 SvelteKit Todo 架构升级",
+    "note": "包含语义化层级 URL 设计与短 ID 规范",
     "isNotePublic": true,
     "category": "dev",
     "authorId": "a9bf1c17-646e-4401-9f93-5c026e64ec64",
@@ -129,6 +106,7 @@
   "author": {
     "id": "a9bf1c17-646e-4401-9f93-5c026e64ec64",
     "email": "exc@example.com",
+    "handle": "exc",
     "nickname": "exc",
     "avatar": null,
     "createdAt": "2026-08-25T16:00:00.000Z",
@@ -141,17 +119,8 @@
 
 #### 4.1.2 获取 Todo 列表
 - **URL**: `GET /api/todos`
-- **描述**: 分页获取公开 Todo 列表，支持按状态、分类、作者筛选。聚合返回作者信息及 Reaction 计数。
+- **描述**: 分页获取公开 Todo 列表，支持按状态、分类、作者筛选。聚合返回作者信息（含 `handle`）及 Reaction 计数。
 - **隐私逻辑**: 当 `isNotePublic = false` 时，返回的 `note` 字段一律脱敏为 `null`。
-
-**查询参数 (Query Params)**:
-| 参数 | 类型 | 必填 | 默认值 | 说明 |
-|---|---|---|---|---|
-| `status` | `string` | 否 | - | 按状态筛选 (`pending`, `in_progress`, `done`, `abandoned`) |
-| `category` | `string` | 否 | - | 按分类 ID 筛选 |
-| `authorId` | `string` | 否 | - | 按作者 UUID 筛选 |
-| `cursor` | `string` | 否 | - | 游标分页：上一页最后一条 Todo 的 `id` |
-| `limit` | `number` | 否 | `20` | 每页数量 (1 - 100) |
 
 **响应示例 (200 OK)**:
 ```json
@@ -159,8 +128,9 @@
   "todos": [
     {
       "id": "78c946e3-f661-4fa3-9f5b-1662991ddf31",
-      "content": "完成 SvelteKit Todo 后端文档",
-      "note": "包含架构图与测试报告",
+      "shortId": "8x2k9a1b",
+      "content": "完成 SvelteKit Todo 架构升级",
+      "note": "包含语义化层级 URL 设计与短 ID 规范",
       "isNotePublic": true,
       "category": "dev",
       "authorId": "a9bf1c17-646e-4401-9f93-5c026e64ec64",
@@ -171,6 +141,7 @@
       "updatedAt": "2026-08-25T16:00:00.000Z",
       "author": {
         "id": "a9bf1c17-646e-4401-9f93-5c026e64ec64",
+        "handle": "exc",
         "nickname": "exc",
         "avatar": null
       },

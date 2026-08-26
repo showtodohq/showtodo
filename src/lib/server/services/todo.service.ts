@@ -1,21 +1,32 @@
-import { eq, and, desc, lt } from 'drizzle-orm';
+import { eq, desc, lt, and } from 'drizzle-orm';
 import { todos, users } from '../db/schema';
 import type { Database } from '../db';
-import { AppError } from '../errors';
-import { validateStatusTransition, type TodoStatus } from '../validation';
+import type { Category, TodoStatus } from '../validation';
+import { validateStatusTransition, generateShortId, isUUID } from '../validation';
 import * as reactionService from './reaction.service';
+import { AppError } from '../errors';
 
-interface CreateTodoData {
+export interface CreateTodoData {
 	content: string;
 	note?: string | null;
 	isNotePublic?: boolean;
-	category?: string | null;
+	category?: Category | null;
 	authorId: string;
 	startDate?: string;
 	dueDate?: string | null;
 }
 
-interface ListTodosFilters {
+export interface UpdateTodoData {
+	content?: string;
+	note?: string | null;
+	isNotePublic?: boolean;
+	category?: Category | null;
+	status?: TodoStatus;
+	startDate?: string;
+	dueDate?: string | null;
+}
+
+export interface ListTodosFilters {
 	status?: TodoStatus;
 	category?: string;
 	authorId?: string;
@@ -23,25 +34,29 @@ interface ListTodosFilters {
 	limit?: number;
 }
 
-interface UpdateTodoData {
-	content?: string;
-	note?: string | null;
-	isNotePublic?: boolean;
-	category?: string | null;
-	status?: TodoStatus;
-	startDate?: string;
-	dueDate?: string | null;
-}
-
-function sanitizeNote<T extends { note: string | null; isNotePublic: boolean }>(todo: T): T {
+function sanitizeNote(todo: typeof todos.$inferSelect) {
 	if (!todo.isNotePublic) {
 		return { ...todo, note: null };
 	}
 	return todo;
 }
 
+async function generateUniqueShortId(db: Database): Promise<string> {
+	for (let i = 0; i < 10; i++) {
+		const shortId = generateShortId(8);
+		const existing = await db.select().from(todos).where(eq(todos.shortId, shortId)).limit(1);
+		if (!existing[0]) {
+			return shortId;
+		}
+	}
+	return `${generateShortId(6)}${Date.now().toString(36).slice(-2)}`;
+}
+
 export async function create(db: Database, data: CreateTodoData) {
+	const shortId = await generateUniqueShortId(db);
+
 	const values: Record<string, unknown> = {
+		shortId,
 		content: data.content,
 		note: data.note ?? null,
 		isNotePublic: data.isNotePublic ?? true,
@@ -49,7 +64,6 @@ export async function create(db: Database, data: CreateTodoData) {
 		authorId: data.authorId,
 		dueDate: data.dueDate ?? null
 	};
-	// Only set startDate if provided; otherwise let the DB default (CURRENT_DATE) apply
 	if (data.startDate !== undefined) {
 		values.startDate = data.startDate;
 	}
@@ -62,23 +76,32 @@ export async function create(db: Database, data: CreateTodoData) {
 }
 
 export async function findById(db: Database, id: string) {
+	return findByIdOrShortId(db, id);
+}
+
+export async function findByIdOrShortId(db: Database, identifier: string) {
+	if (!identifier) return null;
+
+	const condition = isUUID(identifier)
+		? eq(todos.id, identifier)
+		: eq(todos.shortId, identifier);
+
 	const result = await db
 		.select()
 		.from(todos)
 		.innerJoin(users, eq(todos.authorId, users.id))
-		.where(eq(todos.id, id))
+		.where(condition)
 		.limit(1);
 
 	if (!result[0]) return null;
 
 	const { todos: todo, users: author } = result[0];
-
-	const reactionCounts = await reactionService.getCountsByTodoIds(db, [id]);
+	const reactionCounts = await reactionService.getCountsByTodoIds(db, [todo.id]);
 
 	return {
 		...sanitizeNote(todo),
-		author: { id: author.id, nickname: author.nickname, avatar: author.avatar },
-		reactions: reactionCounts[id] ?? { '👀': 0, '🔥': 0, '💪': 0, '👏': 0 }
+		author: { id: author.id, nickname: author.nickname, handle: author.handle, avatar: author.avatar },
+		reactions: reactionCounts[todo.id] ?? { '👀': 0, '🔥': 0, '💪': 0, '👏': 0 }
 	};
 }
 
@@ -92,10 +115,10 @@ export async function list(db: Database, filters: ListTodosFilters) {
 	if (filters.category) {
 		conditions.push(eq(todos.category, filters.category));
 	}
-	if (filters.authorId) {
+	if (filters.authorId && isUUID(filters.authorId)) {
 		conditions.push(eq(todos.authorId, filters.authorId));
 	}
-	if (filters.cursor) {
+	if (filters.cursor && isUUID(filters.cursor)) {
 		const cursorTodo = await db
 			.select({ createdAt: todos.createdAt })
 			.from(todos)
@@ -108,7 +131,6 @@ export async function list(db: Database, filters: ListTodosFilters) {
 
 	const where = conditions.length > 0 ? and(...conditions) : undefined;
 
-	// Fetch one extra to determine if there's a next page
 	const result = await db
 		.select()
 		.from(todos)
@@ -120,14 +142,13 @@ export async function list(db: Database, filters: ListTodosFilters) {
 	const hasMore = result.length > limit;
 	const items = hasMore ? result.slice(0, limit) : result;
 
-	// Batch-fetch reaction counts
 	const todoIds = items.map((r) => r.todos.id);
 	const allReactionCounts =
 		todoIds.length > 0 ? await reactionService.getCountsByTodoIds(db, todoIds) : {};
 
 	const todoList = items.map(({ todos: todo, users: author }) => ({
 		...sanitizeNote(todo),
-		author: { id: author.id, nickname: author.nickname, avatar: author.avatar },
+		author: { id: author.id, nickname: author.nickname, handle: author.handle, avatar: author.avatar },
 		reactions: allReactionCounts[todo.id] ?? { '👀': 0, '🔥': 0, '💪': 0, '👏': 0 }
 	}));
 
@@ -137,24 +158,27 @@ export async function list(db: Database, filters: ListTodosFilters) {
 	};
 }
 
-export async function update(db: Database, id: string, authorEmail: string, data: UpdateTodoData) {
+export async function update(db: Database, idOrShortId: string, authorEmail: string, data: UpdateTodoData) {
+	const condition = isUUID(idOrShortId)
+		? eq(todos.id, idOrShortId)
+		: eq(todos.shortId, idOrShortId);
+
 	const existing = await db
 		.select()
 		.from(todos)
 		.innerJoin(users, eq(todos.authorId, users.id))
-		.where(eq(todos.id, id))
+		.where(condition)
 		.limit(1);
 
 	if (!existing[0]) throw new AppError('NOT_FOUND', 'Todo not found');
 
-	const { users: author } = existing[0];
-	if (author.email !== authorEmail) {
+	const { todos: todo, users: author } = existing[0];
+	if (author.email.toLowerCase() !== authorEmail.toLowerCase()) {
 		throw new AppError('FORBIDDEN', 'Only the author can update this todo');
 	}
 
-	// Validate status transition
-	if (data.status && data.status !== existing[0].todos.status) {
-		validateStatusTransition(existing[0].todos.status as TodoStatus, data.status);
+	if (data.status && data.status !== todo.status) {
+		validateStatusTransition(todo.status as TodoStatus, data.status);
 	}
 
 	const updateData: Record<string, unknown> = {};
@@ -166,6 +190,6 @@ export async function update(db: Database, id: string, authorEmail: string, data
 	if (data.startDate !== undefined) updateData.startDate = data.startDate;
 	if (data.dueDate !== undefined) updateData.dueDate = data.dueDate;
 
-	const result = await db.update(todos).set(updateData).where(eq(todos.id, id)).returning();
+	const result = await db.update(todos).set(updateData).where(eq(todos.id, todo.id)).returning();
 	return result[0];
 }

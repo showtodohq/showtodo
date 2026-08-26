@@ -25,8 +25,11 @@
 	let isNoteExpanded = $state(false);
 
 	let isMyTodo = $derived(
-		userStore.isAuthor(todo.authorId, todo.author?.email)
+		userStore.isAuthor(todo.authorId, todo.author?.email, todo.author?.handle)
 	);
+
+	let authorHandle = $derived(todo.author?.handle || 'user');
+	let todoIdentifier = $derived(todo.shortId || todo.id);
 
 	let allowedNextStatuses = $derived(
 		ALLOWED_STATUS_TRANSITIONS[todo.status] || []
@@ -77,7 +80,7 @@
 	}
 
 	async function copyShareLink() {
-		const url = `${window.location.origin}/${todo.authorId}/${todo.id}`;
+		const url = `${window.location.origin}/@${authorHandle}/todo/${todoIdentifier}`;
 		try {
 			await navigator.clipboard.writeText(url);
 			toast.success('已复制围观分享链接！');
@@ -159,7 +162,7 @@
 	<!-- Main Content Link -->
 	<div class="mb-3">
 		<a
-			href="/{todo.authorId}/{todo.id}"
+			href="/@{authorHandle}/todo/{todoIdentifier}"
 			class="block group/title text-base font-semibold text-zinc-900 dark:text-zinc-50 hover:text-blue-600 dark:hover:text-blue-400 transition-colors leading-snug break-words"
 		>
 			<span class="{todo.status === 'done' ? 'line-through text-zinc-400 dark:text-zinc-500' : ''}">
@@ -221,7 +224,7 @@
 		<div class="flex items-center gap-2">
 			{#if showAuthorLink}
 				<a
-					href="/{todo.authorId}"
+					href="/@{authorHandle}"
 					class="group/author inline-flex items-center gap-2 hover:opacity-80 transition-opacity"
 				>
 					<Avatar
@@ -233,8 +236,8 @@
 						<span class="text-xs font-medium text-zinc-800 dark:text-zinc-200 group-hover/author:text-blue-600 transition-colors">
 							{todo.author?.nickname || '匿名创作者'}
 						</span>
-						<span class="text-[10px] text-zinc-400">
-							{formatTimeAgo(todo.createdAt)}
+						<span class="text-[10px] text-zinc-400 font-mono">
+							@{authorHandle} · {formatTimeAgo(todo.createdAt)}
 						</span>
 					</div>
 				</a>

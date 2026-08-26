@@ -14,12 +14,14 @@
 	let { isOpen, onClose }: Props = $props();
 
 	let nickname = $state('');
+	let handle = $state('');
 	let avatar = $state('');
 	let isSubmitting = $state(false);
 
 	$effect(() => {
 		if (isOpen) {
 			nickname = userStore.nickname || '';
+			handle = userStore.handle || '';
 			avatar = userStore.avatar || '';
 		}
 	});
@@ -37,32 +39,20 @@
 			return;
 		}
 
+		const cleanHandle = handle.trim().toLowerCase().replace(/^@/, '');
+		if (!cleanHandle) {
+			toast.warning('用户名 Handle 不能为空');
+			return;
+		}
+
 		isSubmitting = true;
 		try {
-			let targetId = userStore.id;
-
-			// 如果本地没有存 user.id，则通过创建一条空查询或创建 Todo 返回的 user
-			if (!targetId) {
-				// 可以使用 userStore 当前的 email 进行更新
-				// 后端 PATCH /api/users/:id 需要 id
-				// 我们尝试在接口中查找或者通过 email 作为 id
-				targetId = userStore.id;
-			}
-
-			if (!targetId) {
-				toast.info('已在本地更新您的显示昵称与头像');
-				userStore.setSession({
-					email,
-					nickname: nickname.trim(),
-					avatar: avatar.trim() ? avatar.trim() : null
-				});
-				onClose();
-				return;
-			}
+			const targetId = userStore.id || userStore.handle || email;
 
 			const res = await api.updateUser(targetId, {
 				email,
 				nickname: nickname.trim(),
+				handle: cleanHandle,
 				avatar: avatar.trim() ? avatar.trim() : null
 			});
 
@@ -103,6 +93,29 @@
 				maxlength={50}
 				class="w-full px-3 py-2 text-xs rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 focus:outline-hidden focus:ring-2 focus:ring-zinc-900 dark:focus:ring-zinc-100"
 			/>
+		</div>
+
+		<!-- Handle / Username -->
+		<div>
+			<label for="profile-handle" class="block text-xs font-medium text-zinc-700 dark:text-zinc-300 mb-1">
+				个性化 Handle (主页唯一标识) <span class="text-rose-500">*</span>
+			</label>
+			<div class="relative flex items-center">
+				<span class="absolute left-3 text-xs text-zinc-400 font-mono">@</span>
+				<input
+					id="profile-handle"
+					type="text"
+					bind:value={handle}
+					required
+					pattern="[a-zA-Z0-9_-]+"
+					maxlength={40}
+					placeholder="your-unique-handle"
+					class="w-full pl-7 pr-3 py-2 text-xs font-mono rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 focus:outline-hidden focus:ring-2 focus:ring-zinc-900 dark:focus:ring-zinc-100"
+				/>
+			</div>
+			<p class="text-[10px] text-zinc-400 mt-1">
+				用于您的专属主页链接：/@{handle.trim().toLowerCase().replace(/^@/, '') || 'handle'}
+			</p>
 		</div>
 
 		<!-- Custom Avatar URL -->

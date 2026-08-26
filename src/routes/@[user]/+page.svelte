@@ -11,7 +11,7 @@
 	import UserProfileModal from '$lib/components/user/UserProfileModal.svelte';
 	import Icon from '@iconify/svelte';
 
-	let userId = $derived(page.params.userId);
+	let userHandle = $derived(page.params.user);
 
 	let user = $state<UserProfile | null>(null);
 	let todos = $state<Todo[]>([]);
@@ -25,17 +25,17 @@
 	let selectedCategory = $state<string | 'all'>('all');
 
 	let isCurrentUser = $derived(
-		userStore.id === userId || (user && userStore.email === user.email)
+		user ? userStore.isAuthor(user.id, user.email, user.handle) : false
 	);
 
 	$effect(() => {
-		if (userId) {
+		if (userHandle) {
 			loadUserData();
 		}
 	});
 
 	$effect(() => {
-		if (userId) {
+		if (user) {
 			const st = selectedStatus;
 			const cat = selectedCategory;
 			loadUserTodos(true);
@@ -43,10 +43,10 @@
 	});
 
 	async function loadUserData() {
-		if (!userId) return;
+		if (!userHandle) return;
 		isLoadingUser = true;
 		try {
-			const res = await api.getUserById(userId);
+			const res = await api.getUserById(userHandle);
 			user = res.user;
 		} catch (error: any) {
 			toast.error('未找到该用户信息');
@@ -56,7 +56,7 @@
 	}
 
 	async function loadUserTodos(reset = false) {
-		if (!userId) return;
+		if (!user) return;
 		if (reset) {
 			isLoadingTodos = true;
 			nextCursor = null;
@@ -66,7 +66,7 @@
 
 		try {
 			const queryParams: any = {
-				authorId: userId,
+				authorId: user.id,
 				limit: 20
 			};
 			if (selectedStatus !== 'all') {
@@ -111,7 +111,7 @@
 </script>
 
 <svelte:head>
-	<title>{user ? `${user.nickname} 的公开目标墙` : '用户个人主页'} — Public Todo</title>
+	<title>{user ? `${user.nickname} (@${user.handle}) 的公开目标墙` : '用户个人主页'} — Public Todo</title>
 </svelte:head>
 
 <div class="space-y-6">
@@ -147,6 +147,9 @@
 							<h1 class="text-xl font-bold text-zinc-900 dark:text-zinc-50">
 								{user.nickname}
 							</h1>
+							<span class="text-xs font-mono font-medium text-zinc-400">
+								@{user.handle}
+							</span>
 							{#if isCurrentUser}
 								<span class="px-2 py-0.5 rounded-full text-[10px] bg-zinc-100 dark:bg-zinc-800 font-medium text-zinc-600 dark:text-zinc-300">
 									我自己

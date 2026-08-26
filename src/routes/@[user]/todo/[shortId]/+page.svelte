@@ -12,8 +12,8 @@
 	import ReactionBar from '$lib/components/todo/ReactionBar.svelte';
 	import Icon from '@iconify/svelte';
 
-	let userId = $derived(page.params.userId);
-	let todoId = $derived(page.params.todoId);
+	let userHandle = $derived(page.params.user);
+	let shortId = $derived(page.params.shortId);
 
 	let todo = $state<Todo | null>(null);
 	let reactionDetails = $state<ReactionDetail[]>([]);
@@ -22,22 +22,24 @@
 	let isChangingStatus = $state(false);
 
 	let isAuthor = $derived(
-		todo ? userStore.isAuthor(todo.authorId, todo.author?.email) : false
+		todo
+			? userStore.isAuthor(todo.authorId, todo.author?.email, todo.author?.handle)
+			: false
 	);
 
 	$effect(() => {
-		if (todoId) {
+		if (shortId) {
 			loadTodoDetail();
 		}
 	});
 
 	async function loadTodoDetail() {
-		if (!todoId) return;
+		if (!shortId) return;
 		isLoading = true;
 		try {
 			const [todoRes, reactionsRes] = await Promise.all([
-				api.getTodoById(todoId),
-				api.getReactions(todoId).catch(() => ({ reactions: [] }))
+				api.getTodoById(shortId),
+				api.getReactions(shortId).catch(() => ({ reactions: [] }))
 			]);
 			todo = todoRes.todo;
 			reactionDetails = reactionsRes.reactions;
@@ -86,14 +88,14 @@
 </script>
 
 <svelte:head>
-	<title>{todo ? `${todo.content} — 公开 Todo 围观` : 'Todo 详情'} — Public Todo</title>
+	<title>{todo ? `${todo.content} — @${todo.author?.handle || userHandle} 的公开 Todo` : 'Todo 详情'} — Public Todo</title>
 </svelte:head>
 
 <div class="space-y-6">
 	<!-- Navigation back -->
 	<div class="flex items-center justify-between">
 		<a
-			href="/{userId}"
+			href="/@{userHandle}"
 			class="inline-flex items-center gap-1.5 text-xs text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors"
 		>
 			<Icon icon="lucide:arrow-left" class="w-3.5 h-3.5" />
@@ -103,7 +105,7 @@
 		<button
 			type="button"
 			onclick={copyShareLink}
-			class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-xs font-medium text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-700 transition-colors cursor-pointer"
+			class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-xs font-medium text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-700 transition-colors cursor-pointer shadow-xs"
 		>
 			<Icon icon="lucide:share-2" class="w-3.5 h-3.5" />
 			<span>分享给好友围观</span>
@@ -227,7 +229,7 @@
 			<!-- Author Card -->
 			<div class="pt-6 border-t border-zinc-100 dark:border-zinc-800 flex items-center justify-between">
 				<a
-					href="/{todo.authorId}"
+					href="/@{todo.author?.handle || userHandle}"
 					class="flex items-center gap-3 group hover:opacity-80 transition-opacity"
 				>
 					<Avatar avatar={todo.author?.avatar} seed={todo.author?.nickname} size="md" />
@@ -235,7 +237,7 @@
 						<p class="text-sm font-semibold text-zinc-900 dark:text-zinc-100 group-hover:text-blue-600 transition-colors">
 							{todo.author?.nickname || '匿名创作者'}
 						</p>
-						<p class="text-xs text-zinc-400">点击进入作者主页 ➔</p>
+						<p class="text-xs text-zinc-400 font-mono">@{todo.author?.handle || userHandle} ➔</p>
 					</div>
 				</a>
 

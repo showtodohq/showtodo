@@ -15,7 +15,7 @@ import {
 
 export const GET: RequestHandler = async ({ params }) => {
 	try {
-		const todo = await todoService.findById(db, params.id);
+		const todo = await todoService.findByIdOrShortId(db, params.id);
 		if (!todo) throw new AppError('NOT_FOUND', 'Todo not found');
 
 		return json({ todo });

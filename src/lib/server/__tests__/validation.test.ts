@@ -11,7 +11,10 @@ import {
 	validateOptionalDate,
 	validateUUID,
 	validateLimit,
-	validateBoolean
+	validateBoolean,
+	validateHandle,
+	sanitizeHandle,
+	generateShortId
 } from '../validation';
 import { AppError } from '../errors';
 
@@ -20,8 +23,8 @@ describe('validateEmail', () => {
 		expect(validateEmail('user@example.com')).toBe('user@example.com');
 	});
 
-	test('trims whitespace', () => {
-		expect(validateEmail('  user@example.com  ')).toBe('user@example.com');
+	test('trims whitespace and lowers case', () => {
+		expect(validateEmail('  User@Example.COM  ')).toBe('user@example.com');
 	});
 
 	test('rejects empty string', () => {
@@ -42,6 +45,40 @@ describe('validateEmail', () => {
 
 	test('rejects null', () => {
 		expect(() => validateEmail(null)).toThrow(AppError);
+	});
+});
+
+describe('sanitizeHandle & validateHandle', () => {
+	test('sanitizes email prefixes and special chars', () => {
+		expect(sanitizeHandle('Exc.Dev+Work')).toBe('exc-dev-work');
+		expect(sanitizeHandle('User_Name 2026!')).toBe('user-name-2026');
+		expect(sanitizeHandle('张三@123')).toBe('123');
+		expect(sanitizeHandle('---')).toBe('user');
+		expect(sanitizeHandle('')).toBe('user');
+	});
+
+	test('validates clean handle', () => {
+		expect(validateHandle('exc')).toBe('exc');
+		expect(validateHandle('exc-8k2f')).toBe('exc-8k2f');
+		expect(validateHandle('user_1')).toBe('user_1');
+	});
+
+	test('rejects invalid handles', () => {
+		expect(() => validateHandle('')).toThrow(AppError);
+		expect(() => validateHandle('-exc')).toThrow(AppError);
+		expect(() => validateHandle('exc#1')).toThrow(AppError);
+		expect(() => validateHandle('a'.repeat(51))).toThrow(AppError);
+	});
+});
+
+describe('generateShortId', () => {
+	test('generates 8-char url safe string', () => {
+		const id1 = generateShortId();
+		const id2 = generateShortId();
+		expect(id1).toHaveLength(8);
+		expect(id2).toHaveLength(8);
+		expect(id1).not.toBe(id2);
+		expect(/^[a-zA-Z0-9]{8}$/.test(id1)).toBe(true);
 	});
 });
 

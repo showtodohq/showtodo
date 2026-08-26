@@ -100,10 +100,11 @@ npm run build
 │   └── routes/
 │       ├── +layout.svelte      # 全局 Header、Footer 与 Toast 容器
 │       ├── +page.svelte        # 公开待办广场主页 (/)
-│       ├── [userId]/
-│       │   ├── +page.svelte    # 用户个人公开主页 (/[userId])
-│       │   └── [todoId]/
-│       │       └── +page.svelte# 单条 Todo 独立详情与围观页 (/[userId]/[todoId])
+│       ├── @[user]/
+│       │   ├── +page.svelte    # 用户个人公开主页 (/@handle)
+│       │   └── todo/
+│       │       └── [shortId]/
+│       │           └── +page.svelte # 单条 Todo 独立详情与围观页 (/@handle/todo/[shortId])
 │       └── api/                # SvelteKit API 路由端点 (+server.ts)
 │           ├── todos/          # Todo CRUD 与 Reaction 路由
 │           ├── users/          # 用户信息查询与维护

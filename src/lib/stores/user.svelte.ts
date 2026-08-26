@@ -42,10 +42,12 @@ class UserStore {
 	setSession(session: CurrentUserSession) {
 		const email = session.email.trim().toLowerCase();
 		const nickname = session.nickname?.trim() || email.split('@')[0];
+		const handle = session.handle?.trim() || nickname.replace(/[^a-z0-9-_]/gi, '').toLowerCase() || 'user';
 		this.current = {
 			...session,
 			email,
-			nickname
+			nickname,
+			handle
 		};
 		this.saveToStorage();
 	}
@@ -54,6 +56,7 @@ class UserStore {
 		this.current = {
 			email: user.email,
 			id: user.id,
+			handle: user.handle,
 			nickname: user.nickname,
 			avatar: user.avatar
 		};
@@ -69,6 +72,11 @@ class UserStore {
 		return this.current?.email;
 	}
 
+	get handle(): string {
+		if (!this.current) return 'guest';
+		return this.current.handle || this.current.nickname || 'guest';
+	}
+
 	get nickname(): string {
 		if (!this.current) return '游客';
 		return this.current.nickname || this.current.email.split('@')[0];
@@ -82,10 +90,11 @@ class UserStore {
 		return this.current?.avatar ?? null;
 	}
 
-	isAuthor(authorId?: string | null, authorEmail?: string | null): boolean {
+	isAuthor(authorId?: string | null, authorEmail?: string | null, authorHandle?: string | null): boolean {
 		if (!this.current) return false;
 		if (authorId && this.current.id && this.current.id === authorId) return true;
 		if (authorEmail && this.current.email.toLowerCase() === authorEmail.toLowerCase()) return true;
+		if (authorHandle && this.current.handle && this.current.handle.toLowerCase() === authorHandle.toLowerCase()) return true;
 		return false;
 	}
 }

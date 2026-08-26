@@ -6,6 +6,7 @@ export type ReactionEmoji = '👀' | '🔥' | '💪' | '👏';
 
 export interface Author {
 	id: string;
+	handle: string;
 	nickname: string;
 	avatar: string | null;
 	email?: string;
@@ -13,6 +14,7 @@ export interface Author {
 
 export interface Todo {
 	id: string;
+	shortId: string;
 	content: string;
 	note: string | null;
 	isNotePublic: boolean;
@@ -32,6 +34,7 @@ export interface ReactionDetail {
 	count: number;
 	users: Array<{
 		id: string;
+		handle?: string;
 		nickname: string;
 		avatar?: string | null;
 	}>;

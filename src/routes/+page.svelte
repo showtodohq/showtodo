@@ -118,6 +118,7 @@
 			...newTodo,
 			author: {
 				id: author.id,
+				handle: author.handle,
 				nickname: author.nickname,
 				avatar: author.avatar
 			},
