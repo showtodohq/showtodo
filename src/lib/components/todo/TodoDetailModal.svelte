@@ -9,6 +9,7 @@
 	import { userStore } from '$lib/stores/user.svelte';
 	import { toast } from '$lib/stores/toast.svelte';
 	import { api } from '$lib/services/api';
+	import { TODO_STATUSES, canTransitionTo } from '$lib/constants/status';
 	import Icon from '@iconify/svelte';
 
 	interface Props {
@@ -124,50 +125,24 @@
 				<div class="pt-2 border-t border-zinc-100 dark:border-zinc-800">
 					<div class="text-[11px] font-medium text-zinc-400 mb-2">更新状态</div>
 					<div class="grid grid-cols-4 gap-1.5">
-						<button
-							type="button"
-							disabled={isUpdatingStatus || todo.status === 'pending'}
-							onclick={() => handleStatusChange('pending')}
-							class="py-1 px-2 rounded-lg text-xs font-medium border transition-colors cursor-pointer disabled:opacity-40 {todo.status ===
-							'pending'
-								? 'bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 border-zinc-900 dark:border-white'
-								: 'bg-zinc-50 dark:bg-zinc-800 hover:bg-zinc-100 text-zinc-700 dark:text-zinc-300 border-zinc-200 dark:border-zinc-700'}"
-						>
-							待办
-						</button>
-						<button
-							type="button"
-							disabled={isUpdatingStatus || todo.status === 'in_progress'}
-							onclick={() => handleStatusChange('in_progress')}
-							class="py-1 px-2 rounded-lg text-xs font-medium border transition-colors cursor-pointer disabled:opacity-40 {todo.status ===
-							'in_progress'
-								? 'bg-blue-600 text-white border-blue-600 shadow-xs'
-								: 'bg-blue-50 dark:bg-blue-950/40 hover:bg-blue-100 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800'}"
-						>
-							进行中
-						</button>
-						<button
-							type="button"
-							disabled={isUpdatingStatus || todo.status === 'done'}
-							onclick={() => handleStatusChange('done')}
-							class="py-1 px-2 rounded-lg text-xs font-medium border transition-colors cursor-pointer disabled:opacity-40 {todo.status ===
-							'done'
-								? 'bg-emerald-600 text-white border-emerald-600 shadow-xs'
-								: 'bg-emerald-50 dark:bg-emerald-950/40 hover:bg-emerald-100 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800'}"
-						>
-							已完成
-						</button>
-						<button
-							type="button"
-							disabled={isUpdatingStatus || todo.status === 'abandoned'}
-							onclick={() => handleStatusChange('abandoned')}
-							class="py-1 px-2 rounded-lg text-xs font-medium border transition-colors cursor-pointer disabled:opacity-40 {todo.status ===
-							'abandoned'
-								? 'bg-zinc-600 text-white border-zinc-600'
-								: 'bg-zinc-50 dark:bg-zinc-800 hover:bg-zinc-100 text-zinc-600 dark:text-zinc-400 border-zinc-200 dark:border-zinc-700'}"
-						>
-							已放弃
-						</button>
+						{#each TODO_STATUSES as st (st.id)}
+							{@const isCurrent = todo.status === st.id}
+							{@const isAllowed = canTransitionTo(todo.status, st.id)}
+							{@const isDisabled = isUpdatingStatus || isCurrent || !isAllowed}
+							<button
+								type="button"
+								disabled={isDisabled}
+								onclick={() => handleStatusChange(st.id)}
+								class="inline-flex items-center justify-center gap-1 py-1.5 px-2 rounded-lg text-xs font-medium border transition-colors select-none {isCurrent
+									? st.activeButtonClass
+									: isAllowed
+										? st.inactiveButtonClass + ' cursor-pointer'
+										: 'opacity-30 bg-zinc-100/50 dark:bg-zinc-900/50 text-zinc-400 dark:text-zinc-600 border-dashed border-zinc-200/60 dark:border-zinc-800 cursor-not-allowed'}"
+							>
+								<Icon icon={st.icon} class="w-3.5 h-3.5 shrink-0" />
+								<span>{st.label}</span>
+							</button>
+						{/each}
 					</div>
 				</div>
 			{/if}
