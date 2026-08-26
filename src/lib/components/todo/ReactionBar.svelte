@@ -32,7 +32,7 @@
 	async function toggleReaction(emoji: ReactionEmoji) {
 		const email = userStore.email;
 		if (!email) {
-			toast.info('请先设置您的邮箱即可参与点赞互动');
+			toast.info('请先设置邮箱');
 			if (onRequestEmail) {
 				onRequestEmail();
 			}
@@ -59,7 +59,7 @@
 			// 回滚
 			userReacted[emoji] = hasReacted;
 			reactionsCount[emoji] = currentCount;
-			toast.error(error.message || '操作失败，请重试');
+			toast.error(error.message || '操作失败');
 		} finally {
 			isSubmitting = null;
 		}
@@ -95,7 +95,7 @@
 					? 'bg-zinc-50 border-zinc-200/90 text-zinc-700 hover:bg-zinc-100 dark:bg-zinc-800/60 dark:border-zinc-700 dark:text-zinc-300'
 					: 'bg-transparent border-dashed border-zinc-200 text-zinc-400 hover:border-zinc-300 hover:text-zinc-600 hover:bg-zinc-50 dark:border-zinc-800 dark:hover:border-zinc-700 dark:text-zinc-500'}"
 			onclick={() => toggleReaction(item.emoji)}
-			title={`${item.label} (${item.description})`}
+			title={item.label}
 		>
 			<span class="text-sm leading-none">{item.emoji}</span>
 			{#if count > 0}
@@ -107,30 +107,30 @@
 	{#if totalReactions > 0}
 		<button
 			type="button"
-			class="inline-flex items-center gap-1 px-1.5 py-1 text-xs text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 rounded-md transition-colors"
+			class="inline-flex items-center gap-1 px-1.5 py-1 text-xs text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 rounded-md transition-colors cursor-pointer"
 			onclick={openDetails}
-			title="查看互动详情"
+			title="互动详情"
 		>
 			<Icon icon="lucide:users" class="w-3.5 h-3.5" />
-			<span class="text-[11px]">{totalReactions} 次围观</span>
+			<span class="text-[11px]">{totalReactions}</span>
 		</button>
 	{/if}
 </div>
 
-<!-- 围观/点赞详情 Modal -->
+<!-- 互动详情 Modal -->
 <Modal
 	isOpen={isDetailsModalOpen}
-	title="围观互动详情"
+	title="互动详情"
 	maxWidth="sm"
 	onClose={() => (isDetailsModalOpen = false)}
 >
 	{#if isLoadingDetails}
 		<div class="py-6 flex flex-col items-center justify-center gap-2 text-zinc-400">
 			<Icon icon="lucide:loader-2" class="w-6 h-6 animate-spin text-zinc-500" />
-			<p class="text-xs">加载互动数据...</p>
+			<p class="text-xs">加载中...</p>
 		</div>
 	{:else if reactionDetails.length === 0}
-		<p class="text-center py-6 text-sm text-zinc-400">暂无互动记录</p>
+		<p class="text-center py-6 text-sm text-zinc-400">暂无互动</p>
 	{:else}
 		<div class="space-y-4 max-h-72 overflow-y-auto pr-1">
 			{#each reactionDetails as r}
@@ -138,7 +138,7 @@
 					<div class="flex items-center gap-2 mb-2">
 						<span class="text-base">{r.emoji}</span>
 						<span class="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
-							{r.count} 人回应
+							{r.count} 人
 						</span>
 					</div>
 					<div class="flex flex-wrap gap-2 pl-4">

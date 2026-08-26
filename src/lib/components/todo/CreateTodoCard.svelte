@@ -13,6 +13,14 @@
 
 	let { onCreated }: Props = $props();
 
+	function getTodayDateString(): string {
+		const now = new Date();
+		const year = now.getFullYear();
+		const month = String(now.getMonth() + 1).padStart(2, '0');
+		const day = String(now.getDate()).padStart(2, '0');
+		return `${year}-${month}-${day}`;
+	}
+
 	let isExpanded = $state(false);
 	let content = $state('');
 	let email = $state('');
@@ -23,17 +31,8 @@
 	let dueDate = $state('');
 	let isSubmitting = $state(false);
 
-	function getTodayDateString(): string {
-		const d = new Date();
-		const year = d.getFullYear();
-		const month = String(d.getMonth() + 1).padStart(2, '0');
-		const day = String(d.getDate()).padStart(2, '0');
-		return `${year}-${month}-${day}`;
-	}
-
-	// 如果 userStore 已经有邮箱，自动填充
 	$effect(() => {
-		if (userStore.email && !email) {
+		if (userStore.email) {
 			email = userStore.email;
 		}
 	});
@@ -42,21 +41,25 @@
 		isExpanded = true;
 	}
 
-	function handleKeydown(e: KeyboardEvent) {
-		if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
-			handleSubmit();
-		}
+	function resetForm() {
+		content = '';
+		note = '';
+		isNotePublic = true;
+		category = null;
+		startDate = getTodayDateString();
+		dueDate = '';
+		isExpanded = false;
 	}
 
 	async function handleSubmit() {
-		const targetEmail = (email || userStore.email || '').trim().toLowerCase();
-		if (!targetEmail) {
-			toast.error('请输入您的邮箱（用于认领与管理您的 Todo）');
+		const targetEmail = (userStore.email || email).trim().toLowerCase();
+		if (!targetEmail || !targetEmail.includes('@')) {
+			toast.error('请输入有效的邮箱');
 			return;
 		}
 
 		if (!content.trim()) {
-			toast.warning('请输入待办目标内容');
+			toast.warning('待办内容不能为空');
 			return;
 		}
 
@@ -75,27 +78,26 @@
 			// 更新本地用户身份
 			userStore.updateUserFromProfile(res.author);
 
-			toast.success('🎉 公开 Todo 发布成功！');
+			toast.success('发布成功！');
 			onCreated(res.todo, res.author);
-
-			// 重置表单
-			content = '';
-			note = '';
-			category = null;
-			startDate = getTodayDateString();
-			dueDate = '';
-			isNotePublic = true;
-			isExpanded = false;
+			resetForm();
 		} catch (error: any) {
-			toast.error(error.message || '发布失败，请检查网络或参数');
+			toast.error(error.message || '发布失败，请重试');
 		} finally {
 			isSubmitting = false;
+		}
+	}
+
+	function handleKeydown(e: KeyboardEvent) {
+		if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+			e.preventDefault();
+			handleSubmit();
 		}
 	}
 </script>
 
 <div
-	class="relative rounded-2xl bg-white dark:bg-zinc-900 border border-zinc-200/90 dark:border-zinc-800 p-4 sm:p-5 shadow-sm transition-all duration-200 focus-within:ring-2 focus-within:ring-zinc-900/10 dark:focus-within:ring-zinc-100/10"
+	class="rounded-2xl bg-white dark:bg-zinc-900 border border-zinc-200/80 dark:border-zinc-800 p-4 shadow-xs transition-all duration-200 focus-within:border-zinc-400 dark:focus-within:border-zinc-600 focus-within:shadow-md"
 >
 	<div class="flex items-start gap-3">
 		<Avatar
@@ -112,7 +114,7 @@
 				bind:value={content}
 				onfocus={handleFocus}
 				onkeydown={handleKeydown}
-				placeholder="有什么公开目标或待办想要分享？（任何人均可见）"
+				placeholder="写下公开目标或待办..."
 				maxlength={1000}
 				class="w-full resize-none bg-transparent border-0 p-0 text-sm font-medium text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 focus:outline-hidden focus:ring-0 leading-relaxed"
 			></textarea>
@@ -124,13 +126,13 @@
 					{#if !userStore.email}
 						<div>
 							<label for="create-email" class="block text-xs font-medium text-zinc-700 dark:text-zinc-300 mb-1">
-								您的邮箱 <span class="text-rose-500">* (免注册，输入即可发布并自动建号)</span>
+								邮箱 <span class="text-rose-500">*</span>
 							</label>
 							<input
 								id="create-email"
 								type="email"
 								bind:value={email}
-								placeholder="yourname@example.com"
+								placeholder="name@example.com"
 								required
 								class="w-full px-3 py-1.5 text-xs rounded-lg border border-zinc-200 dark:border-zinc-700 bg-zinc-50/50 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 focus:outline-hidden focus:ring-2 focus:ring-zinc-900 dark:focus:ring-zinc-100"
 							/>
@@ -140,13 +142,13 @@
 					<!-- Category Selector -->
 					<div>
 						<div class="text-xs font-medium text-zinc-600 dark:text-zinc-400 mb-1.5">
-							分类标签
+							分类
 						</div>
 						<div class="flex flex-wrap gap-1.5">
 							<button
 								type="button"
 								onclick={() => (category = null)}
-								class="px-2.5 py-1 rounded-full text-xs border transition-all {category === null
+								class="px-2.5 py-1 rounded-full text-xs border transition-all cursor-pointer {category === null
 									? 'bg-zinc-900 text-white dark:bg-white dark:text-zinc-900 border-transparent font-medium shadow-xs'
 									: 'bg-zinc-50 dark:bg-zinc-800 border-zinc-200 dark:border-zinc-700 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100'}"
 							>
@@ -156,7 +158,7 @@
 								<button
 									type="button"
 									onclick={() => (category = cat.id)}
-									class="px-2.5 py-1 rounded-full text-xs border transition-all {category === cat.id
+									class="px-2.5 py-1 rounded-full text-xs border transition-all cursor-pointer {category === cat.id
 										? 'ring-2 ring-zinc-900 dark:ring-zinc-100 font-medium ' + cat.bgClass + ' ' + cat.textClass
 										: 'bg-zinc-50 dark:bg-zinc-800 border-zinc-200 dark:border-zinc-700 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100'}"
 								>
@@ -170,7 +172,7 @@
 					<div>
 						<div class="flex items-center justify-between mb-1">
 							<span class="text-xs font-medium text-zinc-600 dark:text-zinc-400">
-								详细备注与计划 (可选)
+								备注
 							</span>
 							<label class="inline-flex items-center gap-1 text-[11px] text-zinc-500 cursor-pointer">
 								<input
@@ -178,14 +180,14 @@
 									bind:checked={isNotePublic}
 									class="rounded border-zinc-300 text-zinc-900 focus:ring-zinc-900 w-3.5 h-3.5"
 								/>
-								<span>公开给围观者</span>
+								<span>公开备注</span>
 							</label>
 						</div>
 						<textarea
 							rows="2"
 							bind:value={note}
 							maxlength={5000}
-							placeholder="写下具体的实现路径或背景..."
+							placeholder="补充具体计划或背景..."
 							class="w-full px-3 py-2 text-xs rounded-lg border border-zinc-200 dark:border-zinc-700 bg-zinc-50/50 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 focus:outline-hidden focus:ring-2 focus:ring-zinc-900 dark:focus:ring-zinc-100"
 						></textarea>
 					</div>
@@ -226,7 +228,7 @@
 							<button
 								type="button"
 								onclick={() => (isExpanded = false)}
-								class="px-3 py-1.5 text-xs text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200 transition-colors"
+								class="px-3 py-1.5 text-xs text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200 transition-colors cursor-pointer"
 							>
 								收起
 							</button>
@@ -241,7 +243,7 @@
 									<span>发布中...</span>
 								{:else}
 									<Icon icon="lucide:send" class="w-3.5 h-3.5" />
-									<span>公开立项</span>
+									<span>发布</span>
 								{/if}
 							</button>
 						</div>

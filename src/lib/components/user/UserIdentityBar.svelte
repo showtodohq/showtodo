@@ -31,10 +31,10 @@
 		try {
 			const res = await api.syncUser(email);
 			userStore.updateUserFromProfile(res.user);
-			toast.success(`已确认身份：@${res.user.handle}`);
+			toast.success(`已设置身份：@${res.user.handle}`);
 			isEmailModalOpen = false;
 		} catch (error: any) {
-			toast.error(error.message || '设置身份失败');
+			toast.error(error.message || '设置失败');
 		} finally {
 			isSavingEmail = false;
 		}
@@ -42,19 +42,19 @@
 
 	function handleLogout() {
 		userStore.clearSession();
-		toast.info('已清除本地身份记忆');
+		toast.info('已退出当前身份');
 		isDropdownOpen = false;
 	}
 </script>
 
 <div class="relative">
 	{#if userStore.email}
-		<!-- User Badge Button -->
-		<div class="flex items-center gap-2">
+		<!-- Logged In / Has Identity Pill -->
+		<div class="flex items-center gap-1.5">
 			<button
 				type="button"
 				onclick={() => (isDropdownOpen = !isDropdownOpen)}
-				class="inline-flex items-center gap-2 pl-1.5 pr-2.5 py-1 rounded-full border border-zinc-200/80 dark:border-zinc-800 bg-white/80 dark:bg-zinc-900/80 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-all cursor-pointer shadow-xs"
+				class="inline-flex items-center gap-2 pl-1.5 pr-2.5 py-1 rounded-full border border-zinc-200 dark:border-zinc-700 hover:border-zinc-300 dark:hover:border-zinc-600 bg-white dark:bg-zinc-900 transition-all cursor-pointer shadow-xs"
 			>
 				<Avatar
 					avatar={userStore.avatar}
@@ -91,7 +91,7 @@
 					class="flex items-center gap-2 px-3 py-2 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
 				>
 					<Icon icon="lucide:user" class="w-3.5 h-3.5 text-zinc-400" />
-					<span>我的公开主页</span>
+					<span>我的主页</span>
 				</a>
 
 				<button
@@ -103,7 +103,7 @@
 					class="w-full text-left flex items-center gap-2 px-3 py-2 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors cursor-pointer"
 				>
 					<Icon icon="lucide:settings" class="w-3.5 h-3.5 text-zinc-400" />
-					<span>编辑个人资料</span>
+					<span>编辑资料</span>
 				</button>
 
 				<button
@@ -115,7 +115,7 @@
 					class="w-full text-left flex items-center gap-2 px-3 py-2 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors cursor-pointer"
 				>
 					<Icon icon="lucide:refresh-cw" class="w-3.5 h-3.5 text-zinc-400" />
-					<span>切换邮箱身份</span>
+					<span>切换邮箱</span>
 				</button>
 
 				<div class="border-t border-zinc-100 dark:border-zinc-800 my-1"></div>
@@ -126,7 +126,7 @@
 					class="w-full text-left flex items-center gap-2 px-3 py-2 text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors cursor-pointer"
 				>
 					<Icon icon="lucide:log-out" class="w-3.5 h-3.5" />
-					<span>退出当前身份</span>
+					<span>退出身份</span>
 				</button>
 			</div>
 		{/if}
@@ -138,7 +138,7 @@
 			class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-zinc-300 dark:border-zinc-700 hover:border-zinc-400 text-xs font-medium text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-all cursor-pointer shadow-xs"
 		>
 			<Icon icon="lucide:mail" class="w-3.5 h-3.5 text-zinc-400" />
-			<span>设置邮箱身份</span>
+			<span>设置邮箱</span>
 		</button>
 	{/if}
 </div>
@@ -146,13 +146,13 @@
 <!-- Email Modal -->
 <Modal
 	isOpen={isEmailModalOpen}
-	title="设置发布与管理身份"
+	title="设置邮箱"
 	maxWidth="sm"
 	onClose={() => (isEmailModalOpen = false)}
 >
 	<form onsubmit={handleSaveEmail} class="space-y-4">
 		<p class="text-xs text-zinc-500 leading-relaxed">
-			Public Todo 采用免密码极简模式。输入您的常用邮箱，即可发布目标、认领已发 Todo 并参与表情互动。
+			输入邮箱即可同步您的公开待办与互动记录。
 		</p>
 		<div>
 			<label for="identity-email" class="block text-xs font-medium text-zinc-700 dark:text-zinc-300 mb-1">
@@ -171,15 +171,21 @@
 			<button
 				type="button"
 				onclick={() => (isEmailModalOpen = false)}
-				class="px-3 py-1.5 text-xs text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors"
+				class="px-3 py-1.5 text-xs text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors cursor-pointer"
 			>
 				取消
 			</button>
 			<button
 				type="submit"
-				class="px-4 py-1.5 text-xs font-medium bg-zinc-900 text-white dark:bg-white dark:text-zinc-900 rounded-lg shadow-xs hover:bg-zinc-800 dark:hover:bg-zinc-100 transition-colors"
+				disabled={isSavingEmail}
+				class="inline-flex items-center gap-1.5 px-4 py-1.5 text-xs font-medium bg-zinc-900 text-white dark:bg-white dark:text-zinc-900 rounded-lg shadow-xs hover:bg-zinc-800 dark:hover:bg-zinc-100 transition-colors disabled:opacity-50 cursor-pointer"
 			>
-				保存身份
+				{#if isSavingEmail}
+					<Icon icon="lucide:loader-2" class="w-3.5 h-3.5 animate-spin" />
+					<span>保存中...</span>
+				{:else}
+					<span>确定</span>
+				{/if}
 			</button>
 		</div>
 	</form>

@@ -49,7 +49,7 @@
 			const res = await api.getUserById(userHandle);
 			user = res.user;
 		} catch (error: any) {
-			toast.error('未找到该用户信息');
+			toast.error('未找到该用户');
 		} finally {
 			isLoadingUser = false;
 		}
@@ -87,7 +87,7 @@
 			}
 			nextCursor = res.nextCursor;
 		} catch (error: any) {
-			toast.error('加载用户 Todo 失败');
+			toast.error('加载待办失败');
 		} finally {
 			isLoadingTodos = false;
 			isLoadingMore = false;
@@ -111,7 +111,7 @@
 </script>
 
 <svelte:head>
-	<title>{user ? `${user.nickname} (@${user.handle}) 的公开目标墙` : '用户个人主页'} — Public Todo</title>
+	<title>{user ? `${user.nickname} (@${user.handle})` : '用户主页'} — Public Todo</title>
 </svelte:head>
 
 <div class="space-y-6">
@@ -122,7 +122,7 @@
 			class="inline-flex items-center gap-1.5 text-xs text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors"
 		>
 			<Icon icon="lucide:arrow-left" class="w-3.5 h-3.5" />
-			<span>返回待办广场</span>
+			<span>返回广场</span>
 		</a>
 	</div>
 
@@ -169,7 +169,7 @@
 						class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl border border-zinc-200 dark:border-zinc-700 hover:bg-zinc-50 dark:hover:bg-zinc-800 text-xs font-medium text-zinc-700 dark:text-zinc-200 transition-colors cursor-pointer self-start sm:self-auto"
 					>
 						<Icon icon="lucide:settings" class="w-3.5 h-3.5 text-zinc-500" />
-						<span>编辑个人资料</span>
+						<span>编辑资料</span>
 					</button>
 				{/if}
 			</div>
@@ -180,7 +180,7 @@
 					<div class="text-base sm:text-lg font-bold text-zinc-900 dark:text-zinc-100 font-mono">
 						{totalTodos}
 					</div>
-					<div class="text-[11px] text-zinc-400">公开目标</div>
+					<div class="text-[11px] text-zinc-400">全部</div>
 				</div>
 				<div class="p-2 rounded-xl bg-blue-50/50 dark:bg-blue-950/30">
 					<div class="text-base sm:text-lg font-bold text-blue-600 dark:text-blue-400 font-mono">
@@ -198,7 +198,7 @@
 					<div class="text-base sm:text-lg font-bold text-orange-600 dark:text-orange-400 font-mono">
 						{totalReactions}
 					</div>
-					<div class="text-[11px] text-zinc-400">收到围观/点赞</div>
+					<div class="text-[11px] text-zinc-400">获赞</div>
 				</div>
 			</div>
 		</section>
@@ -225,7 +225,7 @@
 			hasMore={!!nextCursor}
 			onLoadMore={() => loadUserTodos(false)}
 			onTodoUpdated={handleTodoUpdated}
-			emptyMessage="该用户暂无符合条件的公开 Todo"
+			emptyMessage="暂无待办事项"
 		/>
 	</section>
 </div>

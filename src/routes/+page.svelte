@@ -14,63 +14,62 @@
 	let isLoading = $state(true);
 	let isLoadingMore = $state(false);
 
-	// Filter state
 	let selectedStatus = $state<TodoStatus | 'all'>('all');
 	let selectedCategory = $state<string | 'all'>('all');
 	let onlyMine = $state(false);
 
-	// 从 URL 参数恢复筛选状态
-	$effect(() => {
-		const statusParam = page.url.searchParams.get('status');
-		const categoryParam = page.url.searchParams.get('category');
-		const mineParam = page.url.searchParams.get('mine');
+	let isSyncingFromUrl = false;
 
-		if (statusParam && ['pending', 'in_progress', 'done', 'abandoned'].includes(statusParam)) {
-			selectedStatus = statusParam as TodoStatus;
+	$effect(() => {
+		const searchParams = page.url.searchParams;
+		const statusParam = searchParams.get('status') as TodoStatus | null;
+		const categoryParam = searchParams.get('category');
+		const mineParam = searchParams.get('mine');
+
+		isSyncingFromUrl = true;
+		if (
+			statusParam &&
+			['pending', 'in_progress', 'done', 'abandoned'].includes(statusParam)
+		) {
+			selectedStatus = statusParam;
+		} else {
+			selectedStatus = 'all';
 		}
+
 		if (categoryParam) {
 			selectedCategory = categoryParam;
+		} else {
+			selectedCategory = 'all';
 		}
-		if (mineParam === 'true') {
-			onlyMine = true;
-		}
+
+		onlyMine = mineParam === 'true';
+		isSyncingFromUrl = false;
 	});
 
-	// 当筛选条件变化时重新加载列表并同步 URL
 	$effect(() => {
-		// 收集响应式依赖
-		const status = selectedStatus;
+		const st = selectedStatus;
 		const cat = selectedCategory;
 		const mine = onlyMine;
-		const currentUserId = userStore.id;
 
-		syncUrl(status, cat, mine);
+		if (isSyncingFromUrl) return;
+
+		const currentParams = page.url.searchParams;
+		const nextParams = new URLSearchParams();
+
+		if (st !== 'all') nextParams.set('status', st);
+		if (cat !== 'all') nextParams.set('category', cat);
+		if (mine) nextParams.set('mine', 'true');
+
+		const currentStr = currentParams.toString();
+		const nextStr = nextParams.toString();
+
+		if (currentStr !== nextStr) {
+			const targetUrl = nextStr ? `/?${nextStr}` : '/';
+			goto(targetUrl, { replaceState: true, keepFocus: true, noScroll: true });
+		}
+
 		loadTodos(true);
 	});
-
-	function syncUrl(status: string, cat: string, mine: boolean) {
-		if (typeof window === 'undefined') return;
-		const url = new URL(window.location.href);
-		if (status !== 'all') {
-			url.searchParams.set('status', status);
-		} else {
-			url.searchParams.delete('status');
-		}
-
-		if (cat !== 'all') {
-			url.searchParams.set('category', cat);
-		} else {
-			url.searchParams.delete('category');
-		}
-
-		if (mine) {
-			url.searchParams.set('mine', 'true');
-		} else {
-			url.searchParams.delete('mine');
-		}
-
-		goto(url.pathname + url.search, { replaceState: true, noScroll: true, keepFocus: true });
-	}
 
 	async function loadTodos(reset = false) {
 		if (reset) {
@@ -82,9 +81,8 @@
 
 		try {
 			const queryParams: any = {
-				limit: 15
+				limit: 20
 			};
-
 			if (selectedStatus !== 'all') {
 				queryParams.status = selectedStatus;
 			}
@@ -106,7 +104,7 @@
 			}
 			nextCursor = res.nextCursor;
 		} catch (error: any) {
-			toast.error('加载 Todo 列表失败: ' + (error.message || '请检查网络'));
+			toast.error(error.message || '加载待办列表失败');
 		} finally {
 			isLoading = false;
 			isLoadingMore = false;
@@ -133,23 +131,13 @@
 </script>
 
 <div class="space-y-6">
-	<!-- Hero / Intro -->
-	<section class="space-y-1">
-		<h1 class="text-xl sm:text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100">
-			公开待办广场 🎯
-		</h1>
-		<p class="text-xs sm:text-sm text-zinc-500">
-			围观大家的公开目标，立下自己的 Flag，互相打气与见证！
-		</p>
-	</section>
-
 	<!-- Create Card -->
 	<section>
 		<CreateTodoCard onCreated={handleTodoCreated} />
 	</section>
 
 	<!-- Filter Bar -->
-	<section class="pt-2">
+	<section>
 		<TodoFilter
 			{selectedStatus}
 			{selectedCategory}

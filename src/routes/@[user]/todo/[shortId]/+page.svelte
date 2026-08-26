@@ -44,7 +44,7 @@
 			todo = todoRes.todo;
 			reactionDetails = reactionsRes.reactions;
 		} catch (error: any) {
-			toast.error('未找到该 Todo 或加载失败');
+			toast.error('未找到该待办或加载失败');
 		} finally {
 			isLoading = false;
 		}
@@ -80,15 +80,15 @@
 	async function copyShareLink() {
 		try {
 			await navigator.clipboard.writeText(window.location.href);
-			toast.success('已复制围观链接！');
+			toast.success('已复制分享链接');
 		} catch {
-			toast.error('复制失败，请手动复制');
+			toast.error('复制失败');
 		}
 	}
 </script>
 
 <svelte:head>
-	<title>{todo ? `${todo.content} — @${todo.author?.handle || userHandle} 的公开 Todo` : 'Todo 详情'} — Public Todo</title>
+	<title>{todo ? `${todo.content} — @${todo.author?.handle || userHandle}` : '待办详情'} — Public Todo</title>
 </svelte:head>
 
 <div class="space-y-6">
@@ -99,7 +99,7 @@
 			class="inline-flex items-center gap-1.5 text-xs text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors"
 		>
 			<Icon icon="lucide:arrow-left" class="w-3.5 h-3.5" />
-			<span>查看作者所有目标</span>
+			<span>作者主页</span>
 		</a>
 
 		<button
@@ -108,7 +108,7 @@
 			class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-xs font-medium text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-700 transition-colors cursor-pointer shadow-xs"
 		>
 			<Icon icon="lucide:share-2" class="w-3.5 h-3.5" />
-			<span>分享给好友围观</span>
+			<span>分享</span>
 		</button>
 	</div>
 
@@ -141,33 +141,33 @@
 								type="button"
 								disabled={isChangingStatus}
 								onclick={() => quickChangeStatus('in_progress')}
-								class="px-3 py-1 text-xs rounded-lg bg-blue-50 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300 hover:bg-blue-100 font-medium transition-colors"
+								class="px-3 py-1 text-xs rounded-lg bg-blue-50 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300 hover:bg-blue-100 font-medium transition-colors cursor-pointer"
 							>
-								开始推进
+								进行中
 							</button>
 							<button
 								type="button"
 								disabled={isChangingStatus}
 								onclick={() => quickChangeStatus('done')}
-								class="px-3 py-1 text-xs rounded-lg bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 hover:bg-emerald-100 font-medium transition-colors"
+								class="px-3 py-1 text-xs rounded-lg bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 hover:bg-emerald-100 font-medium transition-colors cursor-pointer"
 							>
-								标记完成
+								已完成
 							</button>
 						{:else if todo.status === 'in_progress'}
 							<button
 								type="button"
 								disabled={isChangingStatus}
 								onclick={() => quickChangeStatus('done')}
-								class="px-3 py-1 text-xs rounded-lg bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 hover:bg-emerald-100 font-medium transition-colors"
+								class="px-3 py-1 text-xs rounded-lg bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 hover:bg-emerald-100 font-medium transition-colors cursor-pointer"
 							>
-								标记完成
+								已完成
 							</button>
 						{/if}
 
 						<button
 							type="button"
 							onclick={() => (isEditModalOpen = true)}
-							class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg border border-zinc-200 dark:border-zinc-700 text-xs font-medium text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors"
+							class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg border border-zinc-200 dark:border-zinc-700 text-xs font-medium text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors cursor-pointer"
 						>
 							<Icon icon="lucide:edit-3" class="w-3.5 h-3.5" />
 							<span>编辑</span>
@@ -193,7 +193,7 @@
 				<div class="rounded-xl bg-zinc-50/80 dark:bg-zinc-800/40 p-4 border border-zinc-100 dark:border-zinc-800 space-y-2">
 					<div class="flex items-center gap-2 text-xs font-semibold text-zinc-700 dark:text-zinc-300">
 						<Icon icon="lucide:file-text" class="w-4 h-4 text-zinc-400" />
-						<span>详细规划与说明</span>
+						<span>备注</span>
 					</div>
 					<p class="text-xs sm:text-sm text-zinc-600 dark:text-zinc-300 leading-relaxed whitespace-pre-wrap">
 						{todo.note}
@@ -202,7 +202,7 @@
 			{:else if !todo.isNotePublic && !isAuthor}
 				<div class="p-3 rounded-xl bg-zinc-50/50 dark:bg-zinc-800/30 text-xs text-zinc-400 italic flex items-center gap-2">
 					<Icon icon="lucide:lock" class="w-3.5 h-3.5" />
-					<span>作者已将该 Todo 的详细备注设置为私密保护</span>
+					<span>备注仅作者可见</span>
 				</div>
 			{/if}
 
@@ -211,18 +211,18 @@
 				{#if todo.startDate}
 					<div class="inline-flex items-center gap-1.5">
 						<Icon icon="lucide:calendar" class="w-3.5 h-3.5 text-zinc-400" />
-						<span>计划开始: {todo.startDate}</span>
+						<span>开始: {todo.startDate}</span>
 					</div>
 				{/if}
 				{#if todo.dueDate}
 					<div class="inline-flex items-center gap-1.5 text-amber-600 dark:text-amber-400">
 						<Icon icon="lucide:calendar-clock" class="w-3.5 h-3.5" />
-						<span>计划截止: {todo.dueDate}</span>
+						<span>截止: {todo.dueDate}</span>
 					</div>
 				{/if}
 				<div class="inline-flex items-center gap-1.5 text-zinc-400">
 					<Icon icon="lucide:clock" class="w-3.5 h-3.5" />
-					<span>立项于: {new Date(todo.createdAt).toLocaleString()}</span>
+					<span>创建于: {new Date(todo.createdAt).toLocaleDateString()}</span>
 				</div>
 			</div>
 
@@ -235,9 +235,9 @@
 					<Avatar avatar={todo.author?.avatar} seed={todo.author?.nickname} size="md" />
 					<div>
 						<p class="text-sm font-semibold text-zinc-900 dark:text-zinc-100 group-hover:text-blue-600 transition-colors">
-							{todo.author?.nickname || '匿名创作者'}
+							{todo.author?.nickname || '匿名'}
 						</p>
-						<p class="text-xs text-zinc-400 font-mono">@{todo.author?.handle || userHandle} ➔</p>
+						<p class="text-xs text-zinc-400 font-mono">@{todo.author?.handle || userHandle}</p>
 					</div>
 				</a>
 
@@ -252,7 +252,7 @@
 			{#if reactionDetails.length > 0}
 				<div class="pt-6 border-t border-zinc-100 dark:border-zinc-800 space-y-3">
 					<h3 class="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
-						围观见证人 ({reactionDetails.reduce((s, r) => s + r.count, 0)} 次互动)
+						互动记录 ({reactionDetails.reduce((s, r) => s + r.count, 0)})
 					</h3>
 					<div class="space-y-3">
 						{#each reactionDetails as r}
@@ -277,8 +277,8 @@
 	{:else}
 		<div class="rounded-2xl bg-white dark:bg-zinc-900 border border-dashed border-zinc-300 dark:border-zinc-800 p-12 text-center space-y-3">
 			<Icon icon="lucide:alert-circle" class="w-8 h-8 text-zinc-400 mx-auto" />
-			<h3 class="text-sm font-medium text-zinc-800 dark:text-zinc-200">目标未找到</h3>
-			<p class="text-xs text-zinc-500">该 Todo 可能已被删除或不存在</p>
+			<h3 class="text-sm font-medium text-zinc-800 dark:text-zinc-200">待办不存在</h3>
+			<p class="text-xs text-zinc-500">内容不存在或已被删除</p>
 			<a
 				href="/"
 				class="inline-block px-4 py-1.5 text-xs font-medium bg-zinc-900 text-white dark:bg-white dark:text-zinc-900 rounded-lg"

@@ -10,10 +10,10 @@
 
 <svelte:head>
 	<link rel="icon" href={favicon} />
-	<title>Public Todo — 公开可围观的 Todo List</title>
+	<title>Public Todo</title>
 	<meta
 		name="description"
-		content="所有人都可以发布、任何人都可以公开围观互动的极简 Todo 目标应用。"
+		content="公开可围观的极简待办清单应用"
 	/>
 </svelte:head>
 
@@ -29,23 +29,13 @@
 				class="flex items-center gap-2.5 group transition-opacity hover:opacity-90"
 			>
 				<div
-					class="w-8 h-8 rounded-xl bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 flex items-center justify-center shadow-xs"
+					class="w-7 h-7 rounded-lg bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 flex items-center justify-center shadow-xs"
 				>
-					<Icon icon="lucide:check-square" class="w-4 h-4" />
+					<Icon icon="lucide:check-square" class="w-3.5 h-3.5" />
 				</div>
-				<div class="flex flex-col">
-					<span class="font-bold text-sm tracking-tight text-zinc-900 dark:text-zinc-100 flex items-center gap-1.5">
-						Public Todo
-						<span
-							class="text-[10px] font-normal px-1.5 py-0.2 rounded-md bg-zinc-100 dark:bg-zinc-800 text-zinc-500"
-						>
-							MVP
-						</span>
-					</span>
-					<span class="text-[10px] text-zinc-400 -mt-0.5 hidden sm:inline">
-						公开可围观的待办清单
-					</span>
-				</div>
+				<span class="font-bold text-sm tracking-tight text-zinc-900 dark:text-zinc-100">
+					Public Todo
+				</span>
 			</a>
 
 			<!-- Right Actions: Identity -->
@@ -61,14 +51,11 @@
 	</main>
 
 	<!-- Footer -->
-	<footer class="border-t border-zinc-200/60 dark:border-zinc-800/60 py-6 text-center text-xs text-zinc-400">
-		<div class="max-w-4xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
-			<p>© 2026 Public Todo. 所有 Todo 均永久公开可见.</p>
-			<p class="flex items-center gap-1">
-				Powered by
-				<span class="font-semibold text-zinc-600 dark:text-zinc-300">Svelte 5</span>
-				&
-				<span class="font-semibold text-zinc-600 dark:text-zinc-300">SvelteKit</span>
+	<footer class="border-t border-zinc-100 dark:border-zinc-800/80 py-6 text-center text-xs text-zinc-400">
+		<div class="max-w-4xl mx-auto px-4 flex items-center justify-between">
+			<p>© 2026 Public Todo</p>
+			<p class="text-[11px] text-zinc-400">
+				公开待办广场
 			</p>
 		</div>
 	</footer>

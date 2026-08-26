@@ -63,7 +63,7 @@
 			});
 
 			userStore.updateUserFromProfile(res.user);
-			toast.success('个人资料已保存！');
+			toast.success('已保存');
 			onClose();
 
 			// 如果当前 URL 是 /@oldHandle 或在其子页面下，且 handle 发生了变更，自动重定向到新的路由
@@ -75,22 +75,22 @@
 				}
 			}
 		} catch (error: any) {
-			toast.error(error.message || '更新个人资料失败');
+			toast.error(error.message || '保存失败');
 		} finally {
 			isSubmitting = false;
 		}
 	}
 </script>
 
-<Modal {isOpen} title="编辑个人资料" maxWidth="sm" {onClose}>
+<Modal {isOpen} title="个人资料" maxWidth="sm" {onClose}>
 	<form onsubmit={handleSave} class="space-y-4">
 		<!-- Avatar Preview -->
 		<div class="flex items-center gap-3.5 pb-2">
 			<Avatar avatar={avatar.trim() || null} seed={nickname || userStore.nickname} size="lg" />
-			<div class="space-y-1">
-				<p class="text-xs font-semibold text-zinc-800 dark:text-zinc-200">头像预览</p>
+			<div class="space-y-0.5">
+				<p class="text-xs font-semibold text-zinc-800 dark:text-zinc-200">头像</p>
 				<p class="text-[11px] text-zinc-400">
-					留空将自动根据昵称生成个性化 DiceBear 头像
+					留空将自动生成默认头像
 				</p>
 			</div>
 		</div>
@@ -98,7 +98,7 @@
 		<!-- Nickname -->
 		<div>
 			<label for="profile-nickname" class="block text-xs font-medium text-zinc-700 dark:text-zinc-300 mb-1">
-				显示昵称 <span class="text-rose-500">*</span>
+				昵称 <span class="text-rose-500">*</span>
 			</label>
 			<input
 				id="profile-nickname"
@@ -113,7 +113,7 @@
 		<!-- Handle / Username -->
 		<div>
 			<label for="profile-handle" class="block text-xs font-medium text-zinc-700 dark:text-zinc-300 mb-1">
-				个性化 Handle (主页唯一标识) <span class="text-rose-500">*</span>
+				用户名 Handle <span class="text-rose-500">*</span>
 			</label>
 			<div class="relative flex items-center">
 				<span class="absolute left-3 text-xs text-zinc-400 font-mono">@</span>
@@ -124,25 +124,25 @@
 					required
 					pattern="[a-zA-Z0-9_-]+"
 					maxlength={40}
-					placeholder="your-unique-handle"
+					placeholder="handle"
 					class="w-full pl-7 pr-3 py-2 text-xs font-mono rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 focus:outline-hidden focus:ring-2 focus:ring-zinc-900 dark:focus:ring-zinc-100"
 				/>
 			</div>
 			<p class="text-[10px] text-zinc-400 mt-1 font-mono">
-				用于您的专属主页链接：/@{handle.trim().toLowerCase().replace(/^@/, '') || 'handle'}
+				专属链接：/@{handle.trim().toLowerCase().replace(/^@/, '') || 'handle'}
 			</p>
 		</div>
 
 		<!-- Custom Avatar URL -->
 		<div>
 			<label for="profile-avatar" class="block text-xs font-medium text-zinc-700 dark:text-zinc-300 mb-1">
-				自定义头像图片链接 (可选)
+				头像图片链接
 			</label>
 			<input
 				id="profile-avatar"
 				type="url"
 				bind:value={avatar}
-				placeholder="https://images.unsplash.com/..."
+				placeholder="https://..."
 				class="w-full px-3 py-2 text-xs rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 focus:outline-hidden focus:ring-2 focus:ring-zinc-900 dark:focus:ring-zinc-100"
 			/>
 		</div>
@@ -152,7 +152,7 @@
 			<button
 				type="button"
 				onclick={onClose}
-				class="px-3.5 py-1.5 text-xs text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors"
+				class="px-3.5 py-1.5 text-xs text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors cursor-pointer"
 			>
 				取消
 			</button>
@@ -165,7 +165,7 @@
 					<Icon icon="lucide:loader-2" class="w-3.5 h-3.5 animate-spin" />
 					<span>保存中...</span>
 				{:else}
-					<span>保存修改</span>
+					<span>保存</span>
 				{/if}
 			</button>
 		</div>

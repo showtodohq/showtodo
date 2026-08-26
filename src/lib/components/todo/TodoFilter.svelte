@@ -37,7 +37,7 @@
 					? 'bg-zinc-900 text-white dark:bg-white dark:text-zinc-900 shadow-xs'
 					: 'text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:text-white dark:hover:bg-zinc-800'}"
 			>
-				全部动态
+				全部
 			</button>
 			{#each TODO_STATUSES as st}
 				<button
@@ -64,7 +64,7 @@
 					: 'bg-transparent border-zinc-200/80 dark:border-zinc-700 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800'}"
 			>
 				<Icon icon={onlyMine ? 'lucide:check' : 'lucide:user'} class="w-3.5 h-3.5" />
-				<span>只看我的 Todo</span>
+				<span>只看我的</span>
 			</button>
 		{/if}
 	</div>
@@ -79,7 +79,7 @@
 				? 'bg-zinc-800 text-white dark:bg-zinc-200 dark:text-zinc-900 font-medium'
 				: 'bg-zinc-100/80 text-zinc-600 hover:bg-zinc-200/80 dark:bg-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-700'}"
 		>
-			所有分类
+			全部分类
 		</button>
 		{#each CATEGORIES as cat}
 			<button
