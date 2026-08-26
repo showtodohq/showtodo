@@ -1,4 +1,4 @@
-import { eq, desc, lt, and } from 'drizzle-orm';
+import { eq, desc, lt, and, inArray, gte, lte } from 'drizzle-orm';
 import { todos, users } from '../db/schema';
 import type { Database } from '../db';
 import type { Category, TodoStatus } from '../validation';
@@ -205,3 +205,45 @@ export async function update(db: Database, idOrShortId: string, authorEmail: str
 
 	return result[0];
 }
+
+export async function listForCalendar(
+	db: Database,
+	options: {
+		authorIds: string[];
+		startDateFrom: string;
+		startDateTo: string;
+		category?: string;
+	}
+) {
+	if (!options.authorIds || options.authorIds.length === 0) {
+		return [];
+	}
+
+	const conditions = [
+		inArray(todos.authorId, options.authorIds),
+		gte(todos.startDate, options.startDateFrom),
+		lte(todos.startDate, options.startDateTo)
+	];
+
+	if (options.category && options.category !== 'all') {
+		conditions.push(eq(todos.category, options.category));
+	}
+
+	const result = await db
+		.select()
+		.from(todos)
+		.innerJoin(users, eq(todos.authorId, users.id))
+		.where(and(...conditions))
+		.orderBy(desc(todos.createdAt));
+
+	const todoIds = result.map((r) => r.todos.id);
+	const allReactionCounts =
+		todoIds.length > 0 ? await reactionService.getCountsByTodoIds(db, todoIds) : {};
+
+	return result.map(({ todos: todo, users: author }) => ({
+		...sanitizeNote(todo),
+		author: { id: author.id, nickname: author.nickname, handle: author.handle, avatar: author.avatar },
+		reactions: allReactionCounts[todo.id] ?? { '👀': 0, '🔥': 0, '💪': 0, '👏': 0 }
+	}));
+}
+

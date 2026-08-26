@@ -22,3 +22,20 @@
 	-ms-overflow-style: none;
 	scrollbar-width: none;
 }
+
+/* 呼吸灯动画效果 (用于 in_progress 状态) */
+@keyframes pulseGlow {
+	0%, 100% {
+		border-color: rgba(59, 130, 246, 0.4);
+		box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.2), 0 1px 3px 0 rgba(59, 130, 246, 0.15);
+	}
+	50% {
+		border-color: rgba(59, 130, 246, 0.95);
+		box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.4), 0 2px 8px 0 rgba(59, 130, 246, 0.35);
+	}
+}
+
+.animate-pulse-glow {
+	animation: pulseGlow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+

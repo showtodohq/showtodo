@@ -1,5 +1,5 @@
-import { eq } from 'drizzle-orm';
-import { users } from '../db/schema';
+import { eq, desc, and, gte, lte } from 'drizzle-orm';
+import { users, todos } from '../db/schema';
 import type { Database } from '../db';
 import { AppError } from '../errors';
 import { generateRandomSuffix, sanitizeHandle, isUUID } from '../validation';
@@ -92,3 +92,76 @@ export async function update(
 	const result = await db.update(users).set(data).where(eq(users.id, user.id)).returning();
 	return result[0];
 }
+
+export async function listActiveUsers(
+	db: Database,
+	options: { limit?: number; offset?: number } = {}
+) {
+	const limit = options.limit ?? 5;
+	const offset = options.offset ?? 0;
+
+	const result = await db
+		.select()
+		.from(users)
+		.orderBy(desc(users.lastTodoUpdatedAt), desc(users.createdAt))
+		.limit(limit + 1)
+		.offset(offset);
+
+	const hasMore = result.length > limit;
+	const items = hasMore ? result.slice(0, limit) : result;
+
+	return {
+		users: items,
+		hasMore
+	};
+}
+
+export async function listUsersWithTodosInWeek(
+	db: Database,
+	options: {
+		startDateFrom: string;
+		startDateTo: string;
+		category?: string;
+		limit?: number;
+		offset?: number;
+	}
+) {
+	const limit = options.limit ?? 20;
+	const offset = options.offset ?? 0;
+
+	const todoConditions = [
+		gte(todos.startDate, options.startDateFrom),
+		lte(todos.startDate, options.startDateTo)
+	];
+
+	if (options.category && options.category !== 'all') {
+		todoConditions.push(eq(todos.category, options.category));
+	}
+
+	const result = await db
+		.selectDistinct({
+			id: users.id,
+			email: users.email,
+			handle: users.handle,
+			nickname: users.nickname,
+			avatar: users.avatar,
+			createdAt: users.createdAt,
+			updatedAt: users.updatedAt,
+			lastTodoUpdatedAt: users.lastTodoUpdatedAt
+		})
+		.from(users)
+		.innerJoin(todos, and(eq(users.id, todos.authorId), ...todoConditions))
+		.orderBy(desc(users.lastTodoUpdatedAt), desc(users.createdAt))
+		.limit(limit + 1)
+		.offset(offset);
+
+	const hasMore = result.length > limit;
+	const items = hasMore ? result.slice(0, limit) : result;
+
+	return {
+		users: items,
+		hasMore
+	};
+}
+
+

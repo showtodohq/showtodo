@@ -85,15 +85,6 @@
 					<p class="text-[11px] text-zinc-400 font-mono truncate">@{userStore.handle}</p>
 				</div>
 
-				<a
-					href="/@{userStore.handle}"
-					onclick={() => (isDropdownOpen = false)}
-					class="flex items-center gap-2 px-3 py-2 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
-				>
-					<Icon icon="lucide:user" class="w-3.5 h-3.5 text-zinc-400" />
-					<span>我的主页</span>
-				</a>
-
 				<button
 					type="button"
 					onclick={() => {

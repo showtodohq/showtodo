@@ -22,7 +22,7 @@
 	<header
 		class="sticky top-0 z-30 w-full border-b border-zinc-200/80 dark:border-zinc-800/80 bg-white/80 dark:bg-zinc-950/80 backdrop-blur-md"
 	>
-		<div class="max-w-4xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between gap-4">
+		<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between gap-4">
 			<!-- Logo -->
 			<a
 				href="/"
@@ -33,7 +33,7 @@
 				>
 					<Icon icon="lucide:check-square" class="w-3.5 h-3.5" />
 				</div>
-				<span class="font-bold text-sm tracking-tight text-zinc-900 dark:text-zinc-100">
+				<span class="font-bold text-sm sm:text-base tracking-tight text-zinc-900 dark:text-zinc-100">
 					Public Todo
 				</span>
 			</a>
@@ -46,16 +46,16 @@
 	</header>
 
 	<!-- Main Body -->
-	<main class="flex-1 max-w-4xl w-full mx-auto px-4 sm:px-6 py-6 sm:py-8">
+	<main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
 		{@render children()}
 	</main>
 
 	<!-- Footer -->
 	<footer class="border-t border-zinc-100 dark:border-zinc-800/80 py-6 text-center text-xs text-zinc-400">
-		<div class="max-w-4xl mx-auto px-4 flex items-center justify-between">
+		<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
 			<p>© 2026 Public Todo</p>
 			<p class="text-[11px] text-zinc-400">
-				公开待办广场
+				公开待办协同日历广场
 			</p>
 		</div>
 	</footer>

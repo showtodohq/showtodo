@@ -63,6 +63,32 @@ async function request<T>(
 }
 
 export const api = {
+	async getCalendarWeekData(
+		params: {
+			startDateFrom: string;
+			startDateTo: string;
+			limit?: number;
+			offset?: number;
+			currentUserId?: string;
+			category?: string;
+		},
+		customFetch?: typeof fetch
+	): Promise<{ users: UserProfile[]; todos: Todo[]; hasMoreUsers: boolean }> {
+		const searchParams = new URLSearchParams();
+		searchParams.set('startDateFrom', params.startDateFrom);
+		searchParams.set('startDateTo', params.startDateTo);
+		if (params.limit) searchParams.set('limit', String(params.limit));
+		if (params.offset) searchParams.set('offset', String(params.offset));
+		if (params.currentUserId) searchParams.set('currentUserId', params.currentUserId);
+		if (params.category && params.category !== 'all') searchParams.set('category', params.category);
+
+		return request<{ users: UserProfile[]; todos: Todo[]; hasMoreUsers: boolean }>(
+			`/api/calendar?${searchParams.toString()}`,
+			undefined,
+			customFetch
+		);
+	},
+
 	async getTodos(query?: TodoListQuery, customFetch?: typeof fetch): Promise<TodoListResponse> {
 		const params = new URLSearchParams();
 		if (query?.status) params.set('status', query.status);
