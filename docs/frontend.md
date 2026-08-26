@@ -10,7 +10,7 @@
 - **样式系统**: Tailwind CSS v4 + `@tailwindcss/forms`
 - **图标体系**: `@iconify/svelte` (Lucide 矢量图标集)
 - **类型安全**: TypeScript 6
-- **头像方案**: 动态 [DiceBear](https://www.dicebear.com/) (未配置自定义头像时，以用户昵称为 seed 自动生成矢量头像)
+- **头像方案**: 动态 [DiceBear](https://www.dicebear.com/) (以用户昵称为 seed 自动生成矢量头像)
 
 ---
 
@@ -84,7 +84,7 @@ src/
   - 存储在浏览器的 `localStorage` 的 `public_todo_user_session` 中。
   - 记录字段：`{ email, id, nickname, avatar }`。
 - **自动建号与关联**：后端若发现该 `email` 不存在会自动创建用户，前端 `userStore` 会自动更新并保持会话。
-- **身份切换与资料管理**：随时在顶部导航下拉菜单中切换邮箱，或修改昵称与自定义头像 URL。
+- **身份切换与资料管理**：随时在顶部导航下拉菜单中切换邮箱，或修改昵称与用户名 `@handle`。
 
 ### 4.2 极简渐进式发布流程 (Progressive Disclosure)
 - **默认收起态**：仅显示一个清爽的单行输入框 `“有什么公开目标或待办想要分享？”`。

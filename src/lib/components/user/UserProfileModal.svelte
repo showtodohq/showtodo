@@ -19,7 +19,6 @@
 
 	let nickname = $state('');
 	let handle = $state('');
-	let avatar = $state('');
 	let isSubmitting = $state(false);
 
 	$effect(() => {
@@ -27,7 +26,6 @@
 			const source = currentUser || userStore.current;
 			nickname = source?.nickname || userStore.nickname || '';
 			handle = source?.handle || userStore.handle || '';
-			avatar = source?.avatar ?? userStore.avatar ?? '';
 		}
 	});
 
@@ -58,8 +56,7 @@
 			const res = await api.updateUser(targetId, {
 				email,
 				nickname: nickname.trim(),
-				handle: cleanHandle,
-				avatar: avatar.trim() ? avatar.trim() : null
+				handle: cleanHandle
 			});
 
 			userStore.updateUserFromProfile(res.user);
@@ -84,13 +81,13 @@
 
 <Modal {isOpen} title="个人资料" maxWidth="sm" {onClose}>
 	<form onsubmit={handleSave} class="space-y-4">
-		<!-- Avatar Preview -->
+		<!-- Avatar Preview (Automatically generated based on nickname) -->
 		<div class="flex items-center gap-3.5 pb-2">
-			<Avatar avatar={avatar.trim() || null} seed={nickname || userStore.nickname} size="lg" />
+			<Avatar seed={nickname || userStore.nickname} size="lg" />
 			<div class="space-y-0.5">
-				<p class="text-xs font-semibold text-zinc-800 dark:text-zinc-200">头像</p>
-				<p class="text-[11px] text-zinc-400">
-					留空将自动生成默认头像
+				<p class="text-xs font-semibold text-zinc-800 dark:text-zinc-200">{nickname || '用户'}</p>
+				<p class="text-[11px] text-zinc-400 font-mono">
+					@{handle.trim().toLowerCase().replace(/^@/, '') || 'handle'}
 				</p>
 			</div>
 		</div>
@@ -129,22 +126,8 @@
 				/>
 			</div>
 			<p class="text-[10px] text-zinc-400 mt-1 font-mono">
-				专属链接：/@{handle.trim().toLowerCase().replace(/^@/, '') || 'handle'}
+				专属主页：/@{handle.trim().toLowerCase().replace(/^@/, '') || 'handle'}
 			</p>
-		</div>
-
-		<!-- Custom Avatar URL -->
-		<div>
-			<label for="profile-avatar" class="block text-xs font-medium text-zinc-700 dark:text-zinc-300 mb-1">
-				头像图片链接
-			</label>
-			<input
-				id="profile-avatar"
-				type="url"
-				bind:value={avatar}
-				placeholder="https://..."
-				class="w-full px-3 py-2 text-xs rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 focus:outline-hidden focus:ring-2 focus:ring-zinc-900 dark:focus:ring-zinc-100"
-			/>
 		</div>
 
 		<!-- Actions -->
