@@ -37,7 +37,7 @@ export const TODO_STATUSES: StatusConfig[] = [
 		id: 'in_progress',
 		label: '进行中',
 		actionLabel: '开始推进',
-		shortActionLabel: '推进',
+		shortActionLabel: '开始',
 		description: '正在积极推进中',
 		bgClass: 'bg-blue-50 dark:bg-blue-950/40',
 		textClass: 'text-blue-700 dark:text-blue-300',
