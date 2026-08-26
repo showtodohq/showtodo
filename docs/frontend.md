@@ -97,8 +97,8 @@ src/
 
 ### 4.3 状态机流转与操作权限
 前端严格执行状态流转校验逻辑：
-- `pending` (待办) ➔ 可变更为 `in_progress` (进行中)、`done` (已完成)、`abandoned` (已放弃)
-- `in_progress` (进行中) ➔ 可变更为 `done` (已完成)、`abandoned` (已放弃)
+- `pending` (待办) ➔ 可变更为 `in_progress` (进行中)、`done` (已完成)、`abandoned` (已归档)
+- `in_progress` (进行中) ➔ 可变更为 `done` (已完成)、`abandoned` (已归档)
 - `done` / `abandoned` ➔ 终态，不可逆向流转
 
 **操作响应**：

@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { page } from '$app/state';
+	import { getStatusConfig } from '$lib/constants/status';
 	import { api } from '$lib/services/api';
 	import { toast } from '$lib/stores/toast.svelte';
 	import { userStore } from '$lib/stores/user.svelte';
@@ -186,13 +187,13 @@
 					<div class="text-base sm:text-lg font-bold text-blue-600 dark:text-blue-400 font-mono">
 						{inProgressCount}
 					</div>
-					<div class="text-[11px] text-zinc-400">进行中</div>
+					<div class="text-[11px] text-zinc-400">{getStatusConfig('in_progress').label}</div>
 				</div>
 				<div class="p-2 rounded-xl bg-emerald-50/50 dark:bg-emerald-950/30">
 					<div class="text-base sm:text-lg font-bold text-emerald-600 dark:text-emerald-400 font-mono">
 						{doneCount}
 					</div>
-					<div class="text-[11px] text-zinc-400">已达成</div>
+					<div class="text-[11px] text-zinc-400">{getStatusConfig('done').label}</div>
 				</div>
 				<div class="p-2 rounded-xl bg-orange-50/50 dark:bg-orange-950/30 col-span-3 sm:col-span-1">
 					<div class="text-base sm:text-lg font-bold text-orange-600 dark:text-orange-400 font-mono">

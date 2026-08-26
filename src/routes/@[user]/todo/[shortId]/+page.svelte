@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { page } from '$app/state';
-	import { ALLOWED_STATUS_TRANSITIONS, getStatusConfig } from '$lib/constants/status';
+	import { getAllowedNextStatuses, getStatusConfig } from '$lib/constants/status';
 	import { api } from '$lib/services/api';
 	import { toast } from '$lib/stores/toast.svelte';
 	import { userStore } from '$lib/stores/user.svelte';
@@ -136,33 +136,18 @@
 
 				{#if isAuthor}
 					<div class="flex items-center gap-2">
-						{#if todo.status === 'pending'}
+						{#each getAllowedNextStatuses(todo.status) as action}
 							<button
 								type="button"
 								disabled={isChangingStatus}
-								onclick={() => quickChangeStatus('in_progress')}
-								class="px-3 py-1 text-xs rounded-lg bg-blue-50 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300 hover:bg-blue-100 font-medium transition-colors cursor-pointer"
+								onclick={() => quickChangeStatus(action.id)}
+								class="inline-flex items-center gap-1.5 px-3 py-1 text-xs rounded-lg font-medium transition-colors cursor-pointer {action.actionButtonClass}"
+								title={action.actionLabel}
 							>
-								进行中
+								<Icon icon={action.actionIcon} class="w-3.5 h-3.5 {action.actionColorClass}" />
+								<span>{action.shortActionLabel}</span>
 							</button>
-							<button
-								type="button"
-								disabled={isChangingStatus}
-								onclick={() => quickChangeStatus('done')}
-								class="px-3 py-1 text-xs rounded-lg bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 hover:bg-emerald-100 font-medium transition-colors cursor-pointer"
-							>
-								已完成
-							</button>
-						{:else if todo.status === 'in_progress'}
-							<button
-								type="button"
-								disabled={isChangingStatus}
-								onclick={() => quickChangeStatus('done')}
-								class="px-3 py-1 text-xs rounded-lg bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 hover:bg-emerald-100 font-medium transition-colors cursor-pointer"
-							>
-								已完成
-							</button>
-						{/if}
+						{/each}
 
 						<button
 							type="button"

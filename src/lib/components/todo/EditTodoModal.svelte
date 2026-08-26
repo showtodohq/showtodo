@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { CATEGORIES } from '$lib/constants/categories';
-	import { ALLOWED_STATUS_TRANSITIONS, TODO_STATUSES } from '$lib/constants/status';
+	import { getAllStatusesWithState } from '$lib/constants/status';
 	import { api } from '$lib/services/api';
 	import { toast } from '$lib/stores/toast.svelte';
 	import { userStore } from '$lib/stores/user.svelte';
@@ -38,10 +38,9 @@
 		}
 	});
 
-	let allowedStatuses = $derived.by(() => {
+	let statusOptions = $derived.by(() => {
 		if (!todo) return [];
-		const nexts = ALLOWED_STATUS_TRANSITIONS[todo.status] || [];
-		return [todo.status, ...nexts];
+		return getAllStatusesWithState(todo.status);
 	});
 
 	async function handleSubmit(e: SubmitEvent) {
@@ -106,27 +105,26 @@
 				/>
 			</div>
 
-			<!-- 状态 -->
+			<!-- 变更状态 -->
 			<div>
 				<div class="block text-xs font-medium text-zinc-700 dark:text-zinc-300 mb-1.5">
-					状态
+					变更状态
 				</div>
 				<div class="grid grid-cols-2 gap-2 sm:grid-cols-4">
-					{#each TODO_STATUSES as st}
-						{@const isAvailable = allowedStatuses.includes(st.id)}
+					{#each statusOptions as st}
+						{@const isSelected = status === st.id}
 						<button
 							type="button"
-							disabled={!isAvailable}
+							disabled={!st.isAllowed}
 							onclick={() => (status = st.id)}
-							class="px-2.5 py-1.5 rounded-lg border text-xs font-medium text-left flex items-center gap-1.5 transition-all {status ===
-							st.id
-								? 'ring-2 ring-zinc-900 dark:ring-zinc-100 ' + st.bgClass + ' ' + st.textClass
-								: isAvailable
+							class="px-2.5 py-2 rounded-xl border text-xs font-medium flex items-center justify-center gap-1.5 transition-all {isSelected
+								? 'ring-2 ring-zinc-900 dark:ring-zinc-100 ' + st.bgClass + ' ' + st.textClass + ' shadow-xs font-semibold'
+								: st.isAllowed
 									? 'bg-zinc-50 dark:bg-zinc-800/50 border-zinc-200 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 cursor-pointer'
 									: 'opacity-40 cursor-not-allowed bg-zinc-100 dark:bg-zinc-800/30 border-transparent text-zinc-400'}"
 						>
-							<span class="w-1.5 h-1.5 rounded-full {st.dotClass}"></span>
-							<span>{st.label}</span>
+							<Icon icon={st.actionIcon} class="w-3.5 h-3.5 {st.actionColorClass}" />
+							<span>{st.actionLabel}</span>
 						</button>
 					{/each}
 				</div>

@@ -3,54 +3,83 @@ import type { TodoStatus } from '$lib/types/todo';
 export interface StatusConfig {
 	id: TodoStatus;
 	label: string;
+	actionLabel: string;
+	shortActionLabel: string;
 	description: string;
 	bgClass: string;
 	textClass: string;
 	borderClass: string;
 	dotClass: string;
 	icon: string;
+	actionIcon: string;
+	actionColorClass: string;
+	actionButtonClass: string;
 }
 
 export const TODO_STATUSES: StatusConfig[] = [
 	{
 		id: 'pending',
 		label: '待办',
+		actionLabel: '设为待办',
+		shortActionLabel: '待办',
 		description: '已规划，尚未开始',
 		bgClass: 'bg-zinc-100 dark:bg-zinc-800',
 		textClass: 'text-zinc-700 dark:text-zinc-300',
 		borderClass: 'border-zinc-200 dark:border-zinc-700',
 		dotClass: 'bg-zinc-400',
-		icon: 'lucide:circle-dashed'
+		icon: 'lucide:circle-dashed',
+		actionIcon: 'lucide:circle-dashed',
+		actionColorClass: 'text-zinc-400 dark:text-zinc-500',
+		actionButtonClass:
+			'bg-zinc-100 text-zinc-700 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700'
 	},
 	{
 		id: 'in_progress',
 		label: '进行中',
+		actionLabel: '开始推进',
+		shortActionLabel: '推进',
 		description: '正在积极推进中',
 		bgClass: 'bg-blue-50 dark:bg-blue-950/40',
 		textClass: 'text-blue-700 dark:text-blue-300',
 		borderClass: 'border-blue-200 dark:border-blue-800/60',
 		dotClass: 'bg-blue-500 animate-pulse',
-		icon: 'lucide:timer'
+		icon: 'lucide:timer',
+		actionIcon: 'lucide:play',
+		actionColorClass: 'text-blue-600 dark:text-blue-400',
+		actionButtonClass:
+			'bg-blue-50 text-blue-700 hover:bg-blue-100 dark:bg-blue-950/60 dark:text-blue-300 dark:hover:bg-blue-900/60'
 	},
 	{
 		id: 'done',
 		label: '已完成',
+		actionLabel: '标记完成',
+		shortActionLabel: '完成',
 		description: '已达成目标',
 		bgClass: 'bg-emerald-50 dark:bg-emerald-950/40',
 		textClass: 'text-emerald-700 dark:text-emerald-300',
 		borderClass: 'border-emerald-200 dark:border-emerald-800/60',
 		dotClass: 'bg-emerald-500',
-		icon: 'lucide:check-circle-2'
+		icon: 'lucide:check-circle-2',
+		actionIcon: 'lucide:check-circle-2',
+		actionColorClass: 'text-emerald-600 dark:text-emerald-400',
+		actionButtonClass:
+			'bg-emerald-50 text-emerald-700 hover:bg-emerald-100 dark:bg-emerald-950/60 dark:text-emerald-300 dark:hover:bg-emerald-900/60'
 	},
 	{
 		id: 'abandoned',
-		label: '已放弃',
-		description: '目标已终止或取消',
-		bgClass: 'bg-rose-50 dark:bg-rose-950/40',
-		textClass: 'text-rose-700 dark:text-rose-300',
-		borderClass: 'border-rose-200 dark:border-rose-800/60',
-		dotClass: 'bg-rose-400',
-		icon: 'lucide:x-circle'
+		label: '已归档',
+		actionLabel: '移至归档',
+		shortActionLabel: '归档',
+		description: '目标已归档或搁置',
+		bgClass: 'bg-zinc-100 dark:bg-zinc-800/60',
+		textClass: 'text-zinc-600 dark:text-zinc-400',
+		borderClass: 'border-zinc-200 dark:border-zinc-700',
+		dotClass: 'bg-zinc-400',
+		icon: 'lucide:archive',
+		actionIcon: 'lucide:archive',
+		actionColorClass: 'text-zinc-500 dark:text-zinc-400',
+		actionButtonClass:
+			'bg-zinc-100 text-zinc-600 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-700'
 	}
 ];
 
@@ -63,12 +92,17 @@ export function getStatusConfig(status: TodoStatus | string): StatusConfig {
 		STATUS_MAP.get(status as TodoStatus) || {
 			id: 'pending',
 			label: status,
+			actionLabel: status,
+			shortActionLabel: status,
 			description: '',
 			bgClass: 'bg-zinc-100',
 			textClass: 'text-zinc-700',
 			borderClass: 'border-zinc-200',
 			dotClass: 'bg-zinc-400',
-			icon: 'lucide:circle'
+			icon: 'lucide:circle',
+			actionIcon: 'lucide:circle',
+			actionColorClass: 'text-zinc-400',
+			actionButtonClass: 'bg-zinc-100 text-zinc-700'
 		}
 	);
 }
@@ -86,4 +120,26 @@ export const ALLOWED_STATUS_TRANSITIONS: Record<TodoStatus, TodoStatus[]> = {
 export function canTransitionTo(current: TodoStatus, target: TodoStatus): boolean {
 	if (current === target) return true;
 	return ALLOWED_STATUS_TRANSITIONS[current]?.includes(target) ?? false;
+}
+
+/**
+ * 获取当前状态下所有可合法执行的动作配置列表（消除组件中硬编码 if 分支）
+ */
+export function getAllowedNextStatuses(current: TodoStatus): StatusConfig[] {
+	const allowedTargetIds = ALLOWED_STATUS_TRANSITIONS[current] || [];
+	return allowedTargetIds
+		.map((id) => STATUS_MAP.get(id))
+		.filter((config): config is StatusConfig => Boolean(config));
+}
+
+/**
+ * 获取所有状态及其相对于当前状态的可用性（供表单/弹窗使用）
+ */
+export function getAllStatusesWithState(current: TodoStatus) {
+	const allowedTargetIds = ALLOWED_STATUS_TRANSITIONS[current] || [];
+	return TODO_STATUSES.map((config) => ({
+		...config,
+		isCurrent: config.id === current,
+		isAllowed: config.id === current || allowedTargetIds.includes(config.id)
+	}));
 }

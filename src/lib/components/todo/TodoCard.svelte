@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { ALLOWED_STATUS_TRANSITIONS, getStatusConfig } from '$lib/constants/status';
+	import { getAllowedNextStatuses, getStatusConfig } from '$lib/constants/status';
 	import { api } from '$lib/services/api';
 	import { toast } from '$lib/stores/toast.svelte';
 	import { userStore } from '$lib/stores/user.svelte';
@@ -31,8 +31,8 @@
 	let authorHandle = $derived(todo.author?.handle || 'user');
 	let todoIdentifier = $derived(todo.shortId || todo.id);
 
-	let allowedNextStatuses = $derived(
-		ALLOWED_STATUS_TRANSITIONS[todo.status] || []
+	let primaryNextAction = $derived(
+		getAllowedNextStatuses(todo.status)[0] ?? null
 	);
 
 	function formatDate(dateStr?: string | null): string {
@@ -104,35 +104,17 @@
 
 		<div class="flex items-center gap-1 opacity-90 group-hover:opacity-100 transition-opacity">
 			{#if isMyTodo}
-				<!-- Quick transition buttons -->
-				{#if todo.status === 'pending'}
+				<!-- Primary Quick transition button -->
+				{#if primaryNextAction}
 					<button
 						type="button"
 						disabled={isChangingStatus}
-						onclick={() => quickChangeStatus('in_progress')}
-						class="px-2 py-0.5 text-xs rounded-md bg-blue-50 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300 hover:bg-blue-100 font-medium transition-colors"
-						title="开始进行"
+						onclick={() => quickChangeStatus(primaryNextAction.id)}
+						class="inline-flex items-center gap-1 px-2 py-0.5 text-xs rounded-md font-medium transition-colors cursor-pointer {primaryNextAction.actionButtonClass}"
+						title={primaryNextAction.actionLabel}
 					>
-						开始
-					</button>
-					<button
-						type="button"
-						disabled={isChangingStatus}
-						onclick={() => quickChangeStatus('done')}
-						class="px-2 py-0.5 text-xs rounded-md bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 hover:bg-emerald-100 font-medium transition-colors"
-						title="直接标记完成"
-					>
-						完成
-					</button>
-				{:else if todo.status === 'in_progress'}
-					<button
-						type="button"
-						disabled={isChangingStatus}
-						onclick={() => quickChangeStatus('done')}
-						class="px-2 py-0.5 text-xs rounded-md bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 hover:bg-emerald-100 font-medium transition-colors"
-						title="标记完成"
-					>
-						完成
+						<Icon icon={primaryNextAction.actionIcon} class="w-3 h-3 {primaryNextAction.actionColorClass}" />
+						<span>{primaryNextAction.shortActionLabel}</span>
 					</button>
 				{/if}
 
@@ -140,8 +122,8 @@
 				<button
 					type="button"
 					onclick={() => (isEditModalOpen = true)}
-					class="p-1 rounded-md text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
-					title="编辑 Todo"
+					class="p-1 rounded-md text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors cursor-pointer"
+					title="编辑"
 				>
 					<Icon icon="lucide:edit-3" class="w-3.5 h-3.5" />
 				</button>

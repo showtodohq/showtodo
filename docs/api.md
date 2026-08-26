@@ -58,7 +58,7 @@
 - `pending`: 待办
 - `in_progress`: 进行中
 - `done`: 已完成
-- `abandoned`: 已放弃
+- `abandoned`: 已归档
 
 ### 3.2 静态分类 (`category`)
 - `study`: 学习
