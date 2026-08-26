@@ -54,7 +54,10 @@ export async function create(db: Database, data: CreateTodoData) {
 		values.startDate = data.startDate;
 	}
 
-	const result = await db.insert(todos).values(values).returning();
+	const result = await db
+		.insert(todos)
+		.values(values as typeof todos.$inferInsert)
+		.returning();
 	return result[0];
 }
 
