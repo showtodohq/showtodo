@@ -48,6 +48,13 @@
 </script>
 
 <div class="relative w-full rounded-2xl border border-zinc-200/90 dark:border-zinc-800 bg-white dark:bg-zinc-950 shadow-xs overflow-hidden">
+	<!-- 顶部高质感加载微进度条 (当加载时流动展示) -->
+	{#if isLoading}
+		<div class="absolute top-0 left-0 right-0 h-0.5 z-30 bg-blue-50 dark:bg-blue-950/60 overflow-hidden">
+			<div class="h-full bg-blue-600 dark:bg-blue-400 w-full animate-indeterminate"></div>
+		</div>
+	{/if}
+
 	<!-- 矩阵主横向滚动容器 -->
 	<div class="w-full overflow-x-auto">
 		<div class="min-w-[820px] sm:min-w-[980px]">
@@ -90,20 +97,28 @@
 				{/each}
 			</div>
 
-			<!-- 用户泳道列表 -->
-			{#if isLoading}
-				<div class="py-20 text-center flex flex-col items-center justify-center gap-3">
-					<Icon icon="lucide:loader-2" class="w-7 h-7 text-blue-500 animate-spin" />
-					<p class="text-xs text-zinc-400">正在同步日历看板...</p>
+			<!-- 用户泳道列表 / 骨架屏 -->
+			{#if isLoading && users.length === 0}
+				<!-- 初次加载拟真骨架屏 (5 行标准泳道) -->
+				<div class="divide-y divide-zinc-100 dark:divide-zinc-800/60">
+					{#each [1, 2, 3, 4, 5] as seed}
+						{@render skeletonRow(seed)}
+					{/each}
 				</div>
 			{:else if users.length === 0}
+				<!-- 空状态 -->
 				<div class="py-20 text-center flex flex-col items-center justify-center gap-2">
 					<Icon icon="lucide:calendar-x-2" class="w-8 h-8 text-zinc-300 dark:text-zinc-700" />
 					<p class="text-sm font-medium text-zinc-500">本周暂无待办记录</p>
 					<p class="text-xs text-zinc-400">点击右下角按钮发布您的公开待办吧</p>
 				</div>
 			{:else}
-				<div class="divide-y divide-zinc-100 dark:divide-zinc-800/60">
+				<!-- 真实数据泳道 (切换加载时平滑微透明过渡) -->
+				<div
+					class="divide-y divide-zinc-100 dark:divide-zinc-800/60 {isLoading
+						? 'opacity-60 pointer-events-none transition-opacity duration-200'
+						: 'transition-opacity duration-200'}"
+				>
 					{#each users as user (user.id)}
 						{@const userTodos = todosByAuthor().get(user.id) || []}
 						<CalendarUserRow
@@ -116,6 +131,12 @@
 							onQuickCreate={(dateStr) => onQuickCreate?.(user, dateStr)}
 						/>
 					{/each}
+
+					<!-- 加载更多创作者时的追加骨架行 -->
+					{#if isLoadingMoreUsers}
+						{@render skeletonRow(4)}
+						{@render skeletonRow(5)}
+					{/if}
 				</div>
 			{/if}
 		</div>
@@ -145,3 +166,39 @@
 		</div>
 	{/if}
 </div>
+
+<!-- 骨架屏泳道片段定义 -->
+{#snippet skeletonRow(seed: number)}
+	<div
+		class="grid grid-cols-[56px_repeat(7,minmax(110px,1fr))] sm:grid-cols-[180px_repeat(7,minmax(130px,1fr))] border-b border-zinc-100 dark:border-zinc-800/80 animate-pulse"
+	>
+		<!-- 左侧创作者信息骨架 -->
+		<div
+			class="sticky left-0 z-10 bg-white dark:bg-zinc-950 p-2 sm:p-4 flex flex-col items-center sm:items-start justify-center border-r border-zinc-200/90 dark:border-zinc-800"
+		>
+			<div class="flex flex-col sm:flex-row items-center gap-2.5 w-full justify-center sm:justify-start">
+				<div class="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-zinc-200 dark:bg-zinc-800 shrink-0"></div>
+				<div class="space-y-1.5 w-full hidden sm:block">
+					<div class="h-3.5 rounded bg-zinc-200 dark:bg-zinc-800 {seed % 2 === 0 ? 'w-24' : 'w-16'}"></div>
+					<div class="h-2.5 rounded bg-zinc-100 dark:bg-zinc-800/60 w-12"></div>
+				</div>
+			</div>
+		</div>
+
+		<!-- 7 天单元格骨架 -->
+		{#each Array(7) as _, colIdx}
+			<div
+				class="min-h-[96px] sm:min-h-[110px] p-2 flex flex-col justify-start gap-1.5 border-r border-zinc-100 dark:border-zinc-800/60 last:border-r-0"
+			>
+				{#if (colIdx + seed) % 3 === 0}
+					<div class="h-6 rounded-lg bg-zinc-100 dark:bg-zinc-800/70 w-5/6"></div>
+					<div class="h-6 rounded-lg bg-blue-50 dark:bg-blue-950/40 w-3/5"></div>
+				{:else if (colIdx + seed) % 2 === 0}
+					<div class="h-6 rounded-lg bg-zinc-100 dark:bg-zinc-800/70 w-4/5"></div>
+				{:else if colIdx === 2}
+					<div class="h-6 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 w-2/3"></div>
+				{/if}
+			</div>
+		{/each}
+	</div>
+{/snippet}

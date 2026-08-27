@@ -9,7 +9,7 @@
 	import { userStore } from '$lib/stores/user.svelte';
 	import { toast } from '$lib/stores/toast.svelte';
 	import { api } from '$lib/services/api';
-	import { TODO_STATUSES, canTransitionTo } from '$lib/constants/status';
+	import { getAllowedNextStatuses, getStatusConfig } from '$lib/constants/status';
 	import Icon from '@iconify/svelte';
 
 	interface Props {
@@ -17,20 +17,33 @@
 		isOpen: boolean;
 		onClose: () => void;
 		onTodoUpdated?: (updatedTodo: Todo) => void;
+		onOpenEdit?: (todo: Todo) => void;
 		onRequestEmail?: () => void;
 	}
 
-	let { todo, isOpen, onClose, onTodoUpdated, onRequestEmail }: Props = $props();
+	let { todo, isOpen, onClose, onTodoUpdated, onOpenEdit, onRequestEmail }: Props = $props();
 
 	let isEditModalOpen = $state(false);
 	let isUpdatingStatus = $state(false);
 
 	const isAuthor = $derived(
-		todo && userStore.id && (todo.authorId === userStore.id || todo.author?.id === userStore.id)
+		todo ? userStore.isAuthor(todo.authorId, todo.author?.email, todo.author?.handle) : false
 	);
 
-	async function handleStatusChange(nextStatus: TodoStatus) {
+	const allowedStatuses = $derived(todo ? getAllowedNextStatuses(todo.status) : []);
+
+	function handleOpenEdit() {
 		if (!todo) return;
+		if (onOpenEdit) {
+			onClose();
+			onOpenEdit(todo);
+		} else {
+			isEditModalOpen = true;
+		}
+	}
+
+	async function handleStatusChange(nextStatus: TodoStatus) {
+		if (!todo || todo.status === nextStatus) return;
 		const email = userStore.email;
 		if (!email) {
 			toast.info('请先设置邮箱');
@@ -48,7 +61,7 @@
 				reactions: todo.reactions
 			};
 			onTodoUpdated?.(updated);
-			toast.success('状态已更新');
+			toast.success(`状态已更新为「${getStatusConfig(nextStatus).label}」`);
 		} catch (error: any) {
 			toast.error(error.message || '更新状态失败');
 		} finally {
@@ -111,7 +124,7 @@
 				{#if isAuthor}
 					<button
 						type="button"
-						onclick={() => (isEditModalOpen = true)}
+						onclick={handleOpenEdit}
 						class="text-xs text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-1 cursor-pointer"
 					>
 						<Icon icon="lucide:edit-2" class="w-3 h-3" />
@@ -120,27 +133,24 @@
 				{/if}
 			</div>
 
-			<!-- 状态快速流转操作栏 (若为创建者) -->
-			{#if isAuthor}
+			<!-- 状态快速流转操作栏 (若为创建者且有合法流转动作) -->
+			{#if isAuthor && allowedStatuses.length > 0}
 				<div class="pt-2 border-t border-zinc-100 dark:border-zinc-800">
-					<div class="text-[11px] font-medium text-zinc-400 mb-2">更新状态</div>
-					<div class="grid grid-cols-4 gap-1.5">
-						{#each TODO_STATUSES as st (st.id)}
-							{@const isCurrent = todo.status === st.id}
-							{@const isAllowed = canTransitionTo(todo.status, st.id)}
-							{@const isDisabled = isUpdatingStatus || isCurrent || !isAllowed}
+					<div class="text-[11px] font-medium text-zinc-400 mb-2">流转状态</div>
+					<div class="flex flex-wrap gap-2">
+						{#each allowedStatuses as st (st.id)}
 							<button
 								type="button"
-								disabled={isDisabled}
+								disabled={isUpdatingStatus}
 								onclick={() => handleStatusChange(st.id)}
-								class="inline-flex items-center justify-center gap-1 py-1.5 px-2 rounded-lg text-xs font-medium border transition-colors select-none {isCurrent
-									? st.activeButtonClass
-									: isAllowed
-										? st.inactiveButtonClass + ' cursor-pointer'
-										: 'opacity-30 bg-zinc-100/50 dark:bg-zinc-900/50 text-zinc-400 dark:text-zinc-600 border-dashed border-zinc-200/60 dark:border-zinc-800 cursor-not-allowed'}"
+								class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-medium bg-zinc-50 dark:bg-zinc-800/60 border-zinc-200 dark:border-zinc-700 text-zinc-700 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-700 shadow-2xs transition-all active:scale-95 disabled:opacity-50 cursor-pointer"
 							>
-								<Icon icon={st.icon} class="w-3.5 h-3.5 shrink-0" />
-								<span>{st.label}</span>
+								{#if isUpdatingStatus}
+									<Icon icon="lucide:loader-2" class="w-3.5 h-3.5 animate-spin {st.actionColorClass}" />
+								{:else}
+									<Icon icon={st.actionIcon} class="w-3.5 h-3.5 {st.actionColorClass}" />
+								{/if}
+								<span>{st.actionLabel}</span>
 							</button>
 						{/each}
 					</div>
@@ -160,8 +170,8 @@
 	{/if}
 </Modal>
 
-<!-- 编辑 Todo 弹窗 -->
-{#if todo}
+<!-- 编辑 Todo 弹窗兜底 (未传 onOpenEdit 时) -->
+{#if !onOpenEdit && todo}
 	<EditTodoModal
 		{todo}
 		isOpen={isEditModalOpen}

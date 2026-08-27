@@ -10,6 +10,7 @@
 	import CalendarMatrix from '$lib/components/calendar/CalendarMatrix.svelte';
 	import CategoryLegend from '$lib/components/calendar/CategoryLegend.svelte';
 	import TodoDetailModal from '$lib/components/todo/TodoDetailModal.svelte';
+	import EditTodoModal from '$lib/components/todo/EditTodoModal.svelte';
 	import DayTodosModal from '$lib/components/todo/DayTodosModal.svelte';
 	import CreateTodoModal from '$lib/components/todo/CreateTodoModal.svelte';
 	import UserProfileModal from '$lib/components/user/UserProfileModal.svelte';
@@ -37,10 +38,21 @@
 	let activeDetailTodo = $state<Todo | null>(null);
 	let isDetailModalOpen = $state(false);
 
+	let activeEditTodo = $state<Todo | null>(null);
+	let isEditModalOpen = $state(false);
+
 	let dayModalUser = $state<UserProfile | null>(null);
 	let dayModalDateStr = $state('');
-	let dayModalTodos = $state<Todo[]>([]);
 	let isDayModalOpen = $state(false);
+
+	const dayModalTodos = $derived.by(() => {
+		if (!dayModalUser || !dayModalDateStr) return [];
+		return todos.filter(
+			(t) =>
+				(t.authorId === dayModalUser?.id || t.author?.id === dayModalUser?.id) &&
+				t.startDate === dayModalDateStr
+		);
+	});
 
 	let isCreateModalOpen = $state(false);
 	let createInitialDate = $state<string | undefined>(undefined);
@@ -122,10 +134,9 @@
 	}
 
 	// 打开单天全部待办
-	function handleOpenDayTodos(user: UserProfile, dateStr: string, dayTodos: Todo[]) {
+	function handleOpenDayTodos(user: UserProfile, dateStr: string) {
 		dayModalUser = user;
 		dayModalDateStr = dateStr;
-		dayModalTodos = dayTodos;
 		isDayModalOpen = true;
 	}
 
@@ -146,6 +157,9 @@
 		todos = todos.map((t) => (t.id === updatedTodo.id ? updatedTodo : t));
 		if (activeDetailTodo?.id === updatedTodo.id) {
 			activeDetailTodo = updatedTodo;
+		}
+		if (activeEditTodo?.id === updatedTodo.id) {
+			activeEditTodo = updatedTodo;
 		}
 	}
 
@@ -241,7 +255,19 @@
 	isOpen={isDetailModalOpen}
 	onClose={() => (isDetailModalOpen = false)}
 	onTodoUpdated={handleTodoUpdated}
+	onOpenEdit={(todo) => {
+		activeEditTodo = todo;
+		isEditModalOpen = true;
+	}}
 	onRequestEmail={() => (isUserProfileModalOpen = true)}
+/>
+
+<!-- 待办编辑弹窗 (顶层独立调度) -->
+<EditTodoModal
+	todo={activeEditTodo}
+	isOpen={isEditModalOpen}
+	onClose={() => (isEditModalOpen = false)}
+	onUpdated={handleTodoUpdated}
 />
 
 <!-- 单天全部待办弹窗 -->

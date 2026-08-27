@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { Author, Todo } from '$lib/types/todo';
 	import Modal from '$lib/components/common/Modal.svelte';
+	import Avatar from '$lib/components/common/Avatar.svelte';
 	import { CATEGORIES } from '$lib/constants/categories';
 	import { userStore } from '$lib/stores/user.svelte';
 	import { toast } from '$lib/stores/toast.svelte';
@@ -24,8 +25,9 @@
 	let selectedCategory = $state<string | null>(null);
 	let startDate = $state(formatDateISO(new Date()));
 	let dueDate = $state('');
-	let showMoreOptions = $state(false);
 	let isSubmitting = $state(false);
+
+	const hasSavedIdentity = $derived(Boolean(userStore.email));
 
 	$effect(() => {
 		if (isOpen) {
@@ -36,14 +38,13 @@
 			isNotePublic = true;
 			selectedCategory = null;
 			dueDate = '';
-			showMoreOptions = false;
 		}
 	});
 
 	async function handleSubmit(e: SubmitEvent) {
 		e.preventDefault();
 		if (!email.trim()) {
-			toast.warning('请填写邮箱');
+			toast.warning('请填写邮箱以关联作者身份');
 			return;
 		}
 		if (!content.trim()) {
@@ -78,22 +79,37 @@
 
 <Modal {isOpen} {onClose} title="发布公开待办" maxWidth="md">
 	<form onsubmit={handleSubmit} class="space-y-4">
-		<!-- Email 身份 -->
-		<div>
-			<label for="create-email" class="block text-xs font-medium text-zinc-700 dark:text-zinc-300 mb-1">
-				邮箱 (用于关联身份)
-			</label>
-			<input
-				id="create-email"
-				type="email"
-				required
-				placeholder="name@example.com"
-				bind:value={email}
-				class="w-full px-3 py-2 text-xs rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-800/50 focus:bg-white dark:focus:bg-zinc-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-zinc-900 dark:text-zinc-100"
-			/>
-		</div>
+		<!-- 身份栏：若已有登录态则紧凑展示，若无则显示邮箱输入 -->
+		{#if hasSavedIdentity}
+			<div class="flex items-center justify-between px-3 py-2 rounded-xl bg-zinc-50 dark:bg-zinc-800/60 border border-zinc-200/60 dark:border-zinc-800 text-xs">
+				<div class="flex items-center gap-2 min-w-0">
+					<Avatar avatar={userStore.avatar} seed={userStore.nickname} size="xs" />
+					<div class="truncate text-zinc-700 dark:text-zinc-300">
+						以 <strong class="font-medium text-zinc-900 dark:text-zinc-100">{userStore.nickname}</strong>
+						<span class="text-zinc-400 font-mono">(@{userStore.handle})</span> 发布
+					</div>
+				</div>
+				<span class="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium shrink-0 flex items-center gap-1">
+					<span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> 已就绪
+				</span>
+			</div>
+		{:else}
+			<div>
+				<label for="create-email" class="block text-xs font-medium text-zinc-700 dark:text-zinc-300 mb-1">
+					作者邮箱 <span class="text-rose-500">*</span>
+				</label>
+				<input
+					id="create-email"
+					type="email"
+					required
+					placeholder="your-email@example.com (自动识别或创建作者档案)"
+					bind:value={email}
+					class="w-full px-3.5 py-2 text-xs rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/60 dark:bg-zinc-800/50 focus:bg-white dark:focus:bg-zinc-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-zinc-900 dark:text-zinc-100"
+				/>
+			</div>
+		{/if}
 
-		<!-- 待办内容 -->
+		<!-- 核心待办内容 -->
 		<div>
 			<label for="create-content" class="block text-xs font-medium text-zinc-700 dark:text-zinc-300 mb-1">
 				待办内容 <span class="text-rose-500">*</span>
@@ -101,14 +117,15 @@
 			<textarea
 				id="create-content"
 				required
-				rows="2"
+				rows="3"
 				placeholder="今天计划完成什么？"
 				bind:value={content}
-				class="w-full px-3 py-2 text-xs rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-800/50 focus:bg-white dark:focus:bg-zinc-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-zinc-900 dark:text-zinc-100 resize-none"
+				maxlength={1000}
+				class="w-full px-3.5 py-2.5 text-sm rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/60 dark:bg-zinc-800/50 focus:bg-white dark:focus:bg-zinc-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-zinc-900 dark:text-zinc-100 resize-none leading-relaxed"
 			></textarea>
 		</div>
 
-		<!-- 分类选择 -->
+		<!-- 选择分类 (Pill 胶囊选择) -->
 		<div>
 			<div class="block text-xs font-medium text-zinc-700 dark:text-zinc-300 mb-1.5">
 				选择分类
@@ -119,9 +136,9 @@
 					<button
 						type="button"
 						onclick={() => (selectedCategory = isSelected ? null : cat.id)}
-						class="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs border transition-all cursor-pointer {isSelected
-							? 'bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 border-zinc-900 dark:border-white shadow-2xs font-medium'
-							: 'bg-zinc-50 dark:bg-zinc-800/60 text-zinc-600 dark:text-zinc-400 border-zinc-200/80 dark:border-zinc-700 hover:bg-zinc-100'}"
+						class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs border transition-all cursor-pointer select-none {isSelected
+							? 'ring-2 ring-blue-500/30 ' + cat.bgClass + ' ' + cat.textClass + ' ' + cat.borderClass + ' font-medium shadow-2xs'
+							: 'bg-zinc-50 dark:bg-zinc-800/60 text-zinc-600 dark:text-zinc-400 border-zinc-200/80 dark:border-zinc-700 hover:bg-zinc-100 hover:text-zinc-900 dark:hover:text-zinc-100'}"
 					>
 						<span class="w-2 h-2 rounded-full {cat.dotClass}"></span>
 						<span>{cat.name}</span>
@@ -130,7 +147,7 @@
 			</div>
 		</div>
 
-		<!-- 日期选择 -->
+		<!-- 起止日期 (2 列网格) -->
 		<div class="grid grid-cols-2 gap-3">
 			<div>
 				<label for="create-start-date" class="block text-xs font-medium text-zinc-700 dark:text-zinc-300 mb-1">
@@ -140,7 +157,7 @@
 					id="create-start-date"
 					type="date"
 					bind:value={startDate}
-					class="w-full px-3 py-2 text-xs rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-800/50 focus:bg-white dark:focus:bg-zinc-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-zinc-900 dark:text-zinc-100"
+					class="w-full px-3 py-2 text-xs rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/60 dark:bg-zinc-800/50 focus:bg-white dark:focus:bg-zinc-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-zinc-900 dark:text-zinc-100"
 				/>
 			</div>
 			<div>
@@ -151,54 +168,39 @@
 					id="create-due-date"
 					type="date"
 					bind:value={dueDate}
-					class="w-full px-3 py-2 text-xs rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-800/50 focus:bg-white dark:focus:bg-zinc-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-zinc-900 dark:text-zinc-100"
+					class="w-full px-3 py-2 text-xs rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/60 dark:bg-zinc-800/50 focus:bg-white dark:focus:bg-zinc-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-zinc-900 dark:text-zinc-100"
 				/>
 			</div>
 		</div>
 
-		<!-- 更多选项开关 -->
+		<!-- 详细备注与隐私公开设置 -->
 		<div>
-			<button
-				type="button"
-				onclick={() => (showMoreOptions = !showMoreOptions)}
-				class="text-[11px] text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300 flex items-center gap-1 cursor-pointer"
-			>
-				<Icon icon={showMoreOptions ? 'lucide:chevron-up' : 'lucide:chevron-down'} class="w-3.5 h-3.5" />
-				<span>{showMoreOptions ? '收起附加选项' : '展开附加备注'}</span>
-			</button>
-		</div>
-
-		{#if showMoreOptions}
-			<div class="space-y-3 pt-2 border-t border-zinc-100 dark:border-zinc-800">
-				<div>
-					<label for="create-note" class="block text-xs font-medium text-zinc-700 dark:text-zinc-300 mb-1">
-						详细备注 (可选)
-					</label>
-					<textarea
-						id="create-note"
-						rows="2"
-						placeholder="补充背景、链接或执行细节"
-						bind:value={note}
-						class="w-full px-3 py-2 text-xs rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-800/50 focus:bg-white dark:focus:bg-zinc-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-zinc-900 dark:text-zinc-100 resize-none"
-					></textarea>
-				</div>
-
-				<div class="flex items-center gap-2">
+			<div class="flex items-center justify-between mb-1">
+				<label for="create-note" class="text-xs font-medium text-zinc-700 dark:text-zinc-300">
+					详细备注 (可选)
+				</label>
+				<label class="inline-flex items-center gap-1.5 text-[11px] text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300 cursor-pointer select-none">
 					<input
-						id="create-note-public"
 						type="checkbox"
 						bind:checked={isNotePublic}
-						class="w-4 h-4 rounded text-blue-600 focus:ring-blue-500 border-zinc-300 dark:border-zinc-700 dark:bg-zinc-800"
+						class="w-3.5 h-3.5 rounded text-blue-600 focus:ring-blue-500 border-zinc-300 dark:border-zinc-700 dark:bg-zinc-800"
 					/>
-					<label for="create-note-public" class="text-xs text-zinc-600 dark:text-zinc-400 select-none">
-						备注公开给所有人可见
-					</label>
-				</div>
+					<Icon icon={isNotePublic ? 'lucide:globe' : 'lucide:lock'} class="w-3 h-3 text-zinc-400" />
+					<span>{isNotePublic ? '公开备注' : '仅自己可见'}</span>
+				</label>
 			</div>
-		{/if}
+			<textarea
+				id="create-note"
+				rows="2"
+				placeholder="补充背景、链接或执行细节..."
+				bind:value={note}
+				maxlength={5000}
+				class="w-full px-3.5 py-2 text-xs rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/60 dark:bg-zinc-800/50 focus:bg-white dark:focus:bg-zinc-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-zinc-900 dark:text-zinc-100 resize-none leading-relaxed"
+			></textarea>
+		</div>
 
-		<!-- 提交按钮 -->
-		<div class="pt-3 border-t border-zinc-100 dark:border-zinc-800 flex justify-end gap-2">
+		<!-- 提交操作栏 -->
+		<div class="pt-3 border-t border-zinc-100 dark:border-zinc-800 flex justify-end gap-2.5">
 			<button
 				type="button"
 				onclick={onClose}
