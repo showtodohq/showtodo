@@ -143,7 +143,7 @@
 >
 	<form onsubmit={handleSaveEmail} class="space-y-4">
 		<p class="text-xs text-zinc-500 leading-relaxed">
-			请确保输入的邮箱是你的常用邮箱
+			输入邮箱即可开始管理你的 TODO
 		</p>
 		<div>
 			<label for="identity-email" class="block text-xs font-medium text-zinc-700 dark:text-zinc-300 mb-1">

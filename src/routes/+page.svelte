@@ -191,7 +191,7 @@
 	<!-- 顶部一体化 Header: 紧凑主标题 + 周导航控制器 (响应式左右排布，大幅节省垂直空间) -->
 	<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pt-1">
 		<h1 class="text-xl sm:text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">
-			What is everyone working on today?
+			What is everyone working on?
 		</h1>
 
 		<!-- 周导航与当前周指示器 -->

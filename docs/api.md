@@ -1,4 +1,4 @@
-# Public Todo — 生产级 RESTful API 规格说明书
+# ptdl-alpha — 生产级 RESTful API 规格说明书
 
 > **文档状态**: 生产就绪 (Production Ready)  
 > **适用对象**: 前端开发工程师、QA 测试工程师、自动化测试脚本编写人员、第三方接入人员  

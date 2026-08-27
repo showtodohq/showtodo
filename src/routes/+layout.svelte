@@ -11,7 +11,7 @@
 
 <svelte:head>
 	<link rel="icon" href={favicon} />
-	<title>Public Todo</title>
+	<title>ptdl-alpha</title>
 	<meta
 		name="description"
 		content="公开可围观的极简待办清单应用"
@@ -35,7 +35,7 @@
 					<Icon icon="lucide:check-square" class="w-3.5 h-3.5" />
 				</div>
 				<span class="font-bold text-sm sm:text-base tracking-tight text-zinc-900 dark:text-zinc-100">
-					Public Todo
+					ptdl-alpha
 				</span>
 			</a>
 
@@ -63,7 +63,7 @@
 	<!-- Footer -->
 	<footer class="border-t border-zinc-100 dark:border-zinc-800/80 py-6 text-center text-xs text-zinc-400">
 		<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
-			<p>© 2026 Public Todo</p>
+			<p>© 2026 ptdl-alpha</p>
 			<p class="text-[11px] text-zinc-400">
 				公开待办协同日历广场
 			</p>
