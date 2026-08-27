@@ -14,6 +14,7 @@
 	import DayTodosModal from '$lib/components/todo/DayTodosModal.svelte';
 	import CreateTodoModal from '$lib/components/todo/CreateTodoModal.svelte';
 	import UserProfileModal from '$lib/components/user/UserProfileModal.svelte';
+	import { uiStore } from '$lib/stores/ui.svelte';
 	import Icon from '@iconify/svelte';
 
 	// 日历时间状态：当前基准日期
@@ -53,9 +54,6 @@
 				t.startDate === dayModalDateStr
 		);
 	});
-
-	let isCreateModalOpen = $state(false);
-	let createInitialDate = $state<string | undefined>(undefined);
 
 	let isUserProfileModalOpen = $state(false);
 
@@ -142,14 +140,7 @@
 
 	// 快速在某天新建
 	function handleQuickCreate(user: UserProfile, dateStr: string) {
-		createInitialDate = dateStr;
-		isCreateModalOpen = true;
-	}
-
-	// FAB 浮动按钮新建
-	function handleFabCreate() {
-		createInitialDate = formatDateISO(new Date());
-		isCreateModalOpen = true;
+		uiStore.openCreateTodo(dateStr);
 	}
 
 	// 待办更新后更新本地状态
@@ -239,16 +230,6 @@
 	</section>
 </div>
 
-<!-- 右下角悬浮发布主操作按钮 (FAB) -->
-<button
-	type="button"
-	onclick={handleFabCreate}
-	aria-label="发布待办"
-	class="fixed bottom-6 right-6 sm:bottom-8 sm:right-8 z-40 w-13 h-13 rounded-full bg-blue-600 hover:bg-blue-500 active:scale-95 text-white shadow-xl hover:shadow-2xl flex items-center justify-center transition-all duration-200 cursor-pointer group"
->
-	<Icon icon="lucide:plus" class="w-6 h-6 transition-transform group-hover:rotate-90" />
-</button>
-
 <!-- 待办详情弹窗 -->
 <TodoDetailModal
 	todo={activeDetailTodo}
@@ -280,11 +261,11 @@
 	onSelectTodo={handleSelectTodo}
 />
 
-<!-- 快捷发布弹窗 -->
+<!-- 快捷发布弹窗 (受全局 uiStore 驱动) -->
 <CreateTodoModal
-	isOpen={isCreateModalOpen}
-	initialDate={createInitialDate}
-	onClose={() => (isCreateModalOpen = false)}
+	isOpen={uiStore.isCreateModalOpen}
+	initialDate={uiStore.createInitialDate}
+	onClose={() => uiStore.closeCreateTodo()}
 	onCreated={handleTodoCreated}
 />
 

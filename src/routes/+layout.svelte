@@ -3,6 +3,7 @@
 	import favicon from '$lib/assets/favicon.svg';
 	import ToastContainer from '$lib/components/common/ToastContainer.svelte';
 	import UserIdentityBar from '$lib/components/user/UserIdentityBar.svelte';
+	import { uiStore } from '$lib/stores/ui.svelte';
 	import Icon from '@iconify/svelte';
 
 	let { children } = $props();
@@ -38,8 +39,17 @@
 				</span>
 			</a>
 
-			<!-- Right Actions: Identity -->
-			<div class="flex items-center gap-3">
+			<!-- Right Actions: Add Todo Button + User Identity -->
+			<div class="flex items-center gap-2.5 sm:gap-3">
+				<button
+					type="button"
+					onclick={() => uiStore.openCreateTodo()}
+					class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-blue-600 hover:bg-blue-500 active:bg-blue-700 text-white text-xs font-semibold shadow-xs hover:shadow-md transition-all duration-200 cursor-pointer active:scale-95 group"
+				>
+					<Icon icon="lucide:plus" class="w-3.5 h-3.5 transition-transform group-hover:rotate-90" />
+					<span>发布待办</span>
+				</button>
+
 				<UserIdentityBar />
 			</div>
 		</div>
