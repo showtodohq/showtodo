@@ -39,15 +39,13 @@
 </script>
 
 <div
-	class="grid grid-cols-[56px_repeat(7,minmax(110px,1fr))] sm:grid-cols-[180px_repeat(7,minmax(130px,1fr))] border-b border-zinc-100 dark:border-zinc-800/80 transition-colors"
+	class="grid grid-cols-[64px_repeat(7,minmax(105px,1fr))] sm:grid-cols-[110px_repeat(7,minmax(120px,1fr))] border-b border-zinc-100 dark:border-zinc-800/80 transition-colors"
 >
-	<!-- 左侧用户固定列 (Sticky Left Column: 移动端 56px 仅头像，桌面端 180px 完整信息) -->
+	<!-- 左侧用户固定列 (Sticky Left Column: 垂直居中展示头像与昵称) -->
 	<div
-		class="sticky left-0 z-10 bg-white dark:bg-zinc-950 p-2 sm:p-4 flex flex-col items-center sm:items-start justify-center border-r border-zinc-200/90 dark:border-zinc-800 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.05)] dark:shadow-[2px_0_5px_-2px_rgba(0,0,0,0.3)]"
+		class="sticky left-0 z-10 bg-white dark:bg-zinc-950 px-1.5 py-3 flex flex-col items-center justify-center border-r border-zinc-200/90 dark:border-zinc-800 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.05)] dark:shadow-[2px_0_5px_-2px_rgba(0,0,0,0.3)] text-center select-none"
 	>
-		<div
-			class="flex flex-col sm:flex-row items-center sm:items-center gap-2.5 group w-full justify-center sm:justify-start"
-		>
+		<div class="flex flex-col items-center gap-1.5 group w-full max-w-[96px]">
 			<div class="relative shrink-0">
 				<Avatar
 					avatar={user.avatar}
@@ -56,32 +54,33 @@
 					alt={user.nickname}
 					class="ring-2 ring-zinc-100 dark:ring-zinc-800 group-hover:ring-blue-400 transition-all"
 				/>
-				<!-- 移动端当前登录用户小标记 -->
+				<!-- 当前登录用户小标记 -->
 				{#if isCurrentUser}
 					<span
-						class="sm:hidden absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-blue-600 ring-2 ring-white dark:ring-zinc-950"
+						class="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-blue-600 ring-2 ring-white dark:ring-zinc-950"
 						title="我"
 					></span>
 				{/if}
 			</div>
 
-			<!-- 桌面端才显示昵称与 handle (移动端隐藏以节省空间) -->
-			<div class="min-w-0 flex-1 hidden sm:block">
-				<div class="flex items-center justify-start gap-1.5">
+			<!-- 昵称与 handle 居中排布在头像下方 -->
+			<div class="w-full flex flex-col items-center">
+				<div class="flex items-center justify-center gap-1 max-w-full">
 					<span
-						class="text-xs sm:text-sm font-semibold text-zinc-900 dark:text-zinc-100 truncate"
+						class="text-xs font-semibold text-zinc-900 dark:text-zinc-100 truncate"
+						title={user.nickname}
 					>
 						{user.nickname}
 					</span>
 					{#if isCurrentUser}
 						<span
-							class="text-[10px] px-1 py-0.2 rounded bg-blue-50 text-blue-600 dark:bg-blue-950/60 dark:text-blue-400 font-medium"
+							class="text-[9px] px-1 py-0.2 rounded bg-blue-50 text-blue-600 dark:bg-blue-950/60 dark:text-blue-400 font-medium shrink-0"
 						>
 							我
 						</span>
 					{/if}
 				</div>
-				<p class="text-[11px] text-zinc-400 truncate">
+				<p class="text-[10px] text-zinc-400 font-mono truncate max-w-full" title={`@${user.handle}`}>
 					@{user.handle}
 				</p>
 			</div>

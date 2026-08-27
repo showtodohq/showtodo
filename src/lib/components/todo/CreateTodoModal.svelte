@@ -44,7 +44,7 @@
 	async function handleSubmit(e: SubmitEvent) {
 		e.preventDefault();
 		if (!email.trim()) {
-			toast.warning('请填写邮箱以关联作者身份');
+			toast.warning('请先设置邮箱');
 			return;
 		}
 		if (!content.trim()) {
@@ -96,13 +96,13 @@
 		{:else}
 			<div>
 				<label for="create-email" class="block text-xs font-medium text-zinc-700 dark:text-zinc-300 mb-1">
-					作者邮箱 <span class="text-rose-500">*</span>
+					你的邮箱 <span class="text-rose-500">*</span>
 				</label>
 				<input
 					id="create-email"
 					type="email"
 					required
-					placeholder="your-email@example.com (自动识别或创建作者档案)"
+					placeholder="name@example.com"
 					bind:value={email}
 					class="w-full px-3.5 py-2 text-xs rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/60 dark:bg-zinc-800/50 focus:bg-white dark:focus:bg-zinc-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-zinc-900 dark:text-zinc-100"
 				/>

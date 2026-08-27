@@ -57,18 +57,17 @@
 
 	<!-- 矩阵主横向滚动容器 -->
 	<div class="w-full overflow-x-auto">
-		<div class="min-w-[820px] sm:min-w-[980px]">
+		<div class="min-w-[760px] sm:min-w-[920px]">
 			<!-- 表头 (Sticky Header Row) -->
 			<div
-				class="grid grid-cols-[56px_repeat(7,minmax(110px,1fr))] sm:grid-cols-[180px_repeat(7,minmax(130px,1fr))] border-b border-zinc-200 dark:border-zinc-800 bg-zinc-50/80 dark:bg-zinc-900/60"
+				class="grid grid-cols-[64px_repeat(7,minmax(105px,1fr))] sm:grid-cols-[110px_repeat(7,minmax(120px,1fr))] border-b border-zinc-200 dark:border-zinc-800 bg-zinc-50/80 dark:bg-zinc-900/60"
 			>
 				<!-- 左上角用户列表头 (Sticky Left) -->
 				<div
-					class="sticky left-0 z-20 bg-zinc-50/95 dark:bg-zinc-900/95 p-2 sm:p-4 border-r border-zinc-200/90 dark:border-zinc-800 flex items-center justify-center sm:justify-between"
+					class="sticky left-0 z-20 bg-zinc-50/95 dark:bg-zinc-900/95 px-1 py-2 sm:py-3 border-r border-zinc-200/90 dark:border-zinc-800 flex flex-col items-center justify-center text-center"
 				>
-					<span class="text-xs font-semibold text-zinc-500 dark:text-zinc-400 hidden sm:inline">创作者</span>
-					<Icon icon="lucide:users" class="w-4 h-4 text-zinc-400 sm:hidden" />
-					<span class="text-[10px] text-zinc-400 hidden sm:inline">周待办</span>
+					<span class="text-xs font-semibold text-zinc-600 dark:text-zinc-300">行动者</span>
+					<span class="text-[10px] text-zinc-400">周待办</span>
 				</div>
 
 				<!-- 7 天日期列头 -->
@@ -154,14 +153,14 @@
 				>
 					{#if isLoadingMoreUsers}
 						<Icon icon="lucide:loader-2" class="w-3.5 h-3.5 animate-spin" />
-						<span>加载更多创作者...</span>
+						<span>加载更多行动者...</span>
 					{:else}
-						<span>已展示前 {users.length} 位创作者</span>
+						<span>已展示前 {users.length} 位行动者</span>
 						<Icon icon="lucide:chevron-down" class="w-3.5 h-3.5" />
 					{/if}
 				</button>
 			{:else}
-				<span class="text-[11px] text-zinc-400">已显示全部 {users.length} 位活跃创作者</span>
+				<span class="text-[11px] text-zinc-400">已显示全部 {users.length} 位活跃行动者</span>
 			{/if}
 		</div>
 	{/if}
@@ -170,17 +169,17 @@
 <!-- 骨架屏泳道片段定义 -->
 {#snippet skeletonRow(seed: number)}
 	<div
-		class="grid grid-cols-[56px_repeat(7,minmax(110px,1fr))] sm:grid-cols-[180px_repeat(7,minmax(130px,1fr))] border-b border-zinc-100 dark:border-zinc-800/80 animate-pulse"
+		class="grid grid-cols-[64px_repeat(7,minmax(105px,1fr))] sm:grid-cols-[110px_repeat(7,minmax(120px,1fr))] border-b border-zinc-100 dark:border-zinc-800/80 animate-pulse"
 	>
-		<!-- 左侧创作者信息骨架 -->
+		<!-- 左侧行动者信息骨架 (垂直居中) -->
 		<div
-			class="sticky left-0 z-10 bg-white dark:bg-zinc-950 p-2 sm:p-4 flex flex-col items-center sm:items-start justify-center border-r border-zinc-200/90 dark:border-zinc-800"
+			class="sticky left-0 z-10 bg-white dark:bg-zinc-950 px-1.5 py-3 flex flex-col items-center justify-center border-r border-zinc-200/90 dark:border-zinc-800"
 		>
-			<div class="flex flex-col sm:flex-row items-center gap-2.5 w-full justify-center sm:justify-start">
-				<div class="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-zinc-200 dark:bg-zinc-800 shrink-0"></div>
-				<div class="space-y-1.5 w-full hidden sm:block">
-					<div class="h-3.5 rounded bg-zinc-200 dark:bg-zinc-800 {seed % 2 === 0 ? 'w-24' : 'w-16'}"></div>
-					<div class="h-2.5 rounded bg-zinc-100 dark:bg-zinc-800/60 w-12"></div>
+			<div class="flex flex-col items-center gap-1.5 w-full">
+				<div class="w-8 h-8 rounded-full bg-zinc-200 dark:bg-zinc-800 shrink-0"></div>
+				<div class="space-y-1 w-full flex flex-col items-center">
+					<div class="h-3 rounded bg-zinc-200 dark:bg-zinc-800 {seed % 2 === 0 ? 'w-12' : 'w-10'}"></div>
+					<div class="h-2 rounded bg-zinc-100 dark:bg-zinc-800/60 w-8"></div>
 				</div>
 			</div>
 		</div>

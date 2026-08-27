@@ -43,7 +43,7 @@ describe('calendar utils', () => {
 		const date = new Date('2026-08-24T12:00:00');
 		const header = formatDayHeader(date);
 		expect(header.dayName).toBe('Mon');
-		expect(header.dateLabel).toBe('Aug 24');
+		expect(header.dateLabel).toBe('24');
 	});
 
 	it('sortTodosForCell orders by status priority then createdAt ASC', () => {

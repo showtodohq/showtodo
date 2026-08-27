@@ -55,7 +55,7 @@
 	async function quickChangeStatus(newStatus: TodoStatus) {
 		const email = userStore.email;
 		if (!email) {
-			toast.error('未找到作者邮箱');
+			toast.warning('请先设置邮箱');
 			return;
 		}
 

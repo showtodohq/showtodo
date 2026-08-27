@@ -43,7 +43,7 @@
 
 		const email = userStore.email;
 		if (!email) {
-			toast.error('未找到作者身份');
+			toast.warning('请先设置邮箱');
 			return;
 		}
 

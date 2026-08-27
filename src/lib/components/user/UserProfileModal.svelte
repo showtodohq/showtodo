@@ -33,7 +33,7 @@
 		e.preventDefault();
 		const email = userStore.email;
 		if (!email) {
-			toast.error('未找到当前邮箱');
+			toast.warning('请先设置邮箱');
 			return;
 		}
 

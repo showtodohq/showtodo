@@ -31,7 +31,7 @@
 		try {
 			const res = await api.syncUser(email);
 			userStore.updateUserFromProfile(res.user);
-			toast.success(`已设置身份：@${res.user.handle}`);
+			toast.success(`欢迎回来，@${res.user.handle}！`);
 			isEmailModalOpen = false;
 		} catch (error: any) {
 			toast.error(error.message || '设置失败');
@@ -42,7 +42,7 @@
 
 	function handleLogout() {
 		userStore.clearSession();
-		toast.info('已退出当前身份');
+		toast.info('已退出登录');
 		isDropdownOpen = false;
 	}
 </script>
@@ -117,19 +117,19 @@
 					class="w-full text-left flex items-center gap-2 px-3 py-2 text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors cursor-pointer"
 				>
 					<Icon icon="lucide:log-out" class="w-3.5 h-3.5" />
-					<span>退出身份</span>
+					<span>退出登录</span>
 				</button>
 			</div>
 		{/if}
 	{:else}
-		<!-- Guest Login Button -->
+		<!-- Guest Button -->
 		<button
 			type="button"
 			onclick={openEmailModal}
 			class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-zinc-300 dark:border-zinc-700 hover:border-zinc-400 text-xs font-medium text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-all cursor-pointer shadow-xs"
 		>
-			<Icon icon="lucide:mail" class="w-3.5 h-3.5 text-zinc-400" />
-			<span>设置邮箱</span>
+			<Icon icon="lucide:user" class="w-3.5 h-3.5 text-zinc-400" />
+			<span>游客</span>
 		</button>
 	{/if}
 </div>
@@ -143,11 +143,11 @@
 >
 	<form onsubmit={handleSaveEmail} class="space-y-4">
 		<p class="text-xs text-zinc-500 leading-relaxed">
-			输入邮箱即可同步您的公开待办与互动记录。
+			请确保输入的邮箱是你的常用邮箱
 		</p>
 		<div>
 			<label for="identity-email" class="block text-xs font-medium text-zinc-700 dark:text-zinc-300 mb-1">
-				电子邮箱
+				你的邮箱
 			</label>
 			<input
 				id="identity-email"

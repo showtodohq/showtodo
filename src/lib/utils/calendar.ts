@@ -107,7 +107,7 @@ export function formatDayHeader(date: Date) {
 		dayName,
 		monthShort,
 		dayNum,
-		dateLabel: `${monthShort} ${dayNum}`,
+		dateLabel: `${dayNum}`,
 		isToday,
 		isoString: formatDateISO(date)
 	};
