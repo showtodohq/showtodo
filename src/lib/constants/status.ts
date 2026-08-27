@@ -49,7 +49,7 @@ export const TODO_STATUSES: StatusConfig[] = [
 		bgClass: 'bg-blue-50 dark:bg-blue-950/40',
 		textClass: 'text-blue-700 dark:text-blue-300',
 		borderClass: 'border-blue-200 dark:border-blue-800/60',
-		dotClass: 'bg-blue-500 animate-pulse',
+		dotClass: 'bg-blue-500',
 		icon: 'lucide:timer',
 		actionIcon: 'lucide:play',
 		actionColorClass: 'text-blue-600 dark:text-blue-400',

@@ -11,7 +11,6 @@
 
 	const categoryConfig = $derived(getCategoryConfig(todo.category));
 	const isDone = $derived(todo.status === 'done' || todo.status === 'abandoned');
-	const isInProgress = $derived(todo.status === 'in_progress');
 
 	const pillClasses = $derived(() => {
 		const base =
@@ -21,10 +20,6 @@
 		const colorClass =
 			categoryConfig?.pillClass ||
 			'bg-zinc-100 hover:bg-zinc-200/80 text-zinc-800 dark:bg-zinc-800/60 dark:hover:bg-zinc-700/60 dark:text-zinc-200 border-zinc-200/80 dark:border-zinc-700';
-
-		if (isInProgress) {
-			return `${base} ${colorClass} animate-pulse-glow ring-1 ring-blue-400/40`;
-		}
 
 		if (isDone) {
 			return `${base} ${colorClass} line-through opacity-60 saturate-50`;
