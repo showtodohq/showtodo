@@ -1,0 +1,92 @@
+[
+  {
+    "email": "sophia.zhang@gmail.com",
+    "content": "精读《设计数据密集型应用》第 7 章事务机制",
+    "category": "study",
+    "startDate": "2026-08-29",
+    "dueDate": "2026-08-31",
+    "note": "重点梳理两阶段锁、快照隔离与 SSI 可串行化快照隔离",
+    "isNotePublic": true
+  },
+  {
+    "email": "alex.chen.dev@outlook.com",
+    "content": "重构公共组件库 Modal 与 Toast 无障碍访问支持 (A11y)",
+    "category": "dev",
+    "startDate": "2026-08-29",
+    "dueDate": "2026-08-30",
+    "note": "补充 ARIA 属性和键盘焦点捕获逻辑",
+    "isNotePublic": true
+  },
+  {
+    "email": "lucas.wang@qq.com",
+    "content": "奥林匹克森林公园 10 公里夜跑拉练",
+    "category": "fitness",
+    "startDate": "2026-08-29",
+    "dueDate": "2026-08-29",
+    "note": "目标配速 5 分 15 秒以内，心率控制在 160 以下",
+    "isNotePublic": true
+  },
+  {
+    "email": "emma.liu@163.com",
+    "content": "8 月度家庭现金流对账与 9 月预算制定",
+    "category": "finance",
+    "startDate": "2026-08-30",
+    "dueDate": "2026-08-31",
+    "note": "核对各银行卡账单与定投基金收益表现",
+    "isNotePublic": false
+  },
+  {
+    "email": "david.miller@proton.me",
+    "content": "配置 SQLite 增量备份脚本与 S3 远程异地同步",
+    "category": "dev",
+    "startDate": "2026-08-29",
+    "dueDate": "2026-09-01",
+    "note": "编写 GitHub Actions 定时触发与失败告警 Webhook",
+    "isNotePublic": true
+  },
+  {
+    "email": "lin.wei@foxmail.com",
+    "content": "去宜家采购新书房人体工学椅与升降桌配件",
+    "category": "life",
+    "startDate": "2026-08-30",
+    "dueDate": "2026-08-30",
+    "note": "测量好书房角落实际尺寸（长 160cm 宽 80cm）",
+    "isNotePublic": true
+  },
+  {
+    "email": "chloe.tan@icloud.com",
+    "content": "练习雅思大作文 Task 2：科技对人际交往的影响",
+    "category": "study",
+    "startDate": "2026-08-29",
+    "dueDate": "2026-08-30",
+    "note": "40 分钟限时完成并用 DeepSeek/ChatGPT 进行语法润色",
+    "isNotePublic": true
+  },
+  {
+    "email": "kevin.zhao@gmail.com",
+    "content": "背部与肱二头肌抗阻力量训练 (60分钟)",
+    "category": "fitness",
+    "startDate": "2026-08-30",
+    "dueDate": "2026-08-30",
+    "note": "引体向上 4 组 + 杠铃划船 4 组 + 高位下拉 4 组",
+    "isNotePublic": true
+  },
+  {
+    "email": "hannah.wu@live.com",
+    "content": "给阳台绿植修剪换盆，补充缓释肥与杀虫喷雾",
+    "category": "life",
+    "startDate": "2026-08-31",
+    "dueDate": "2026-08-31",
+    "note": "重点处理龟背竹和琴叶榕的黄叶",
+    "isNotePublic": true
+  },
+  {
+    "email": "ryan.gao@corp.tech",
+    "content": "调研 Svelte 5 Runes 响应式系统在复杂日历拖拽场景下的性能",
+    "category": "dev",
+    "startDate": "2026-08-29",
+    "dueDate": "2026-09-02",
+    "note": "对比 $state.raw / $derived.by 在大数据量矩阵下的重渲染开销",
+    "isNotePublic": true
+  }
+]
