@@ -1,1 +1,59 @@
 @import "tailwindcss";
+
+@layer base {
+	:root {
+		--color-bg-canvas: #fafafa;
+		--color-bg-surface: #ffffff;
+		--color-text-main: #18181b;
+		--color-text-muted: #71717a;
+		--color-border: #e4e4e7;
+	}
+
+	.dark {
+		--color-bg-canvas: #09090b;
+		--color-bg-surface: #18181b;
+		--color-text-main: #fafafa;
+		--color-text-muted: #a1a1aa;
+		--color-border: #27272a;
+	}
+
+	* {
+		border-color: var(--color-border);
+	}
+
+	body {
+		background-color: var(--color-bg-canvas);
+		color: var(--color-text-main);
+		font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+		text-rendering: optimizeLegibility;
+		-webkit-font-smoothing: antialiased;
+		-moz-osx-font-smoothing: grayscale;
+	}
+}
+
+/* 统一轻量细滚动条 */
+::-webkit-scrollbar {
+	width: 6px;
+	height: 6px;
+}
+
+::-webkit-scrollbar-track {
+	background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+	background: #d4d4d8;
+	border-radius: 9999px;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+	background: #3f3f46;
+}
+
+::-webkit-scrollbar-thumb:hover {
+	background: #a1a1aa;
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+	background: #52525b;
+}
