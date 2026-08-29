@@ -9,6 +9,7 @@
 - 💡 **需求与产品设计**: [`idea/0826.md`](./idea/0826.md)
 - 🔌 **REST API 规范文档**: [`docs/api.md`](./docs/api.md)
 - 🏗️ **后端架构与开发指南**: [`docs/architecture.md`](./docs/architecture.md)
+- 🎨 **前端架构与开发规范**: [`docs/frontend-architecture.md`](./docs/frontend-architecture.md)
 
 ---
 

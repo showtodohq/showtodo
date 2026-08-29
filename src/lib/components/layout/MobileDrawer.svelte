@@ -5,7 +5,6 @@
 	import { userStore } from '$lib/stores/user.svelte';
 	import { theme } from '$lib/stores/theme.svelte';
 	import { toast } from '$lib/stores/toast.svelte';
-	import { cn } from '$lib/utils/cn';
 
 	interface Props {
 		open?: boolean;
@@ -15,9 +14,11 @@
 	let { open = $bindable(false), onclose }: Props = $props();
 
 	let emailInput = $state('');
+	let isChangingEmail = $state(false);
 
 	function handleClose() {
 		open = false;
+		isChangingEmail = false;
 		if (onclose) onclose();
 	}
 
@@ -27,25 +28,33 @@
 		}
 	}
 
-	function handleSwitchUser(e: SubmitEvent) {
+	function handleSaveUser(e: SubmitEvent) {
 		e.preventDefault();
 		const clean = emailInput.trim().toLowerCase();
 		if (!clean) return;
+
+		// 简单的邮箱格式校验
+		const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+		if (!emailRegex.test(clean)) {
+			toast.error('请输入有效的电子邮箱地址');
+			return;
+		}
 
 		userStore.setSession({
 			email: clean,
 			nickname: clean.split('@')[0],
 			handle: clean.split('@')[0].replace(/[^a-z0-9-_]/gi, '').toLowerCase() || 'user'
 		});
-		toast.success(`已切换为: ${clean.split('@')[0]}`);
+		toast.success('身份已设置');
 		emailInput = '';
+		isChangingEmail = false;
 	}
 
-	const PRESET_USERS = [
-		{ email: 'alex@example.com', name: 'Alex' },
-		{ email: 'sarah@example.com', name: 'Sarah' },
-		{ email: 'chen@example.com', name: '陈晨' }
-	];
+	function handleLogout() {
+		userStore.clearSession();
+		toast.info('已退出当前身份');
+		isChangingEmail = false;
+	}
 </script>
 
 <svelte:window onkeydown={handleKeydown} />
@@ -67,9 +76,9 @@
 			onclick={(e) => e.stopPropagation()}
 			class="fixed inset-y-0 right-0 z-50 flex w-72 flex-col border-l border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950 p-6 shadow-2xl transition-transform duration-200 animate-in slide-in-from-right"
 		>
-			<!-- 顶部关闭按钮 -->
+			<!-- 顶部标题与关闭按钮 -->
 			<div class="flex items-center justify-between border-b border-zinc-100 dark:border-zinc-800/80 pb-4">
-				<h3 class="text-sm font-bold text-zinc-900 dark:text-zinc-100">设置与个人</h3>
+				<h3 class="text-sm font-bold text-zinc-900 dark:text-zinc-100">个人与偏好设置</h3>
 				<button
 					type="button"
 					onclick={handleClose}
@@ -82,63 +91,93 @@
 				</button>
 			</div>
 
-			<!-- 用户身份卡片 -->
-			<div class="my-5 flex items-center gap-3 rounded-xl border border-zinc-200/80 bg-zinc-50/60 p-3.5 dark:border-zinc-800 dark:bg-zinc-900/60">
-				<Avatar src={userStore.avatar} name={userStore.nickname} size="md" />
-				<div class="overflow-hidden text-left">
-					<div class="text-xs font-bold text-zinc-900 dark:text-zinc-100 truncate">
-						{userStore.nickname}
+			<!-- 用户身份区 -->
+			<div class="my-5">
+				{#if userStore.current && !isChangingEmail}
+					<!-- 已设置身份状态 -->
+					<div class="flex items-center gap-3 rounded-xl border border-zinc-200/80 bg-zinc-50/60 p-3.5 dark:border-zinc-800 dark:bg-zinc-900/60">
+						<Avatar src={userStore.avatar} name={userStore.nickname} size="md" />
+						<div class="min-w-0 flex-1 text-left">
+							<div class="text-xs font-bold text-zinc-900 dark:text-zinc-100 truncate">
+								{userStore.nickname}
+							</div>
+							<div class="text-[11px] text-zinc-400 font-mono truncate">
+								{userStore.email}
+							</div>
+						</div>
 					</div>
-					<div class="text-[11px] text-zinc-400 font-mono truncate">
-						{userStore.email || '未设置身份'}
-					</div>
-				</div>
-			</div>
 
-			<!-- 切换身份表单 -->
-			<div class="space-y-3 text-left">
-				<span class="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider">
-					免密身份切换
-				</span>
-
-				<form onsubmit={handleSwitchUser} class="space-y-2">
-					<Input
-						size="sm"
-						type="email"
-						placeholder="输入任意邮箱..."
-						bind:value={emailInput}
-					/>
-					<Button type="submit" size="xs" variant="primary" class="w-full" disabled={!emailInput.trim()}>
-						切换身份
-					</Button>
-				</form>
-
-				<!-- 快捷预设 -->
-				<div class="flex flex-wrap gap-1.5 pt-1">
-					{#each PRESET_USERS as u}
-						<button
-							type="button"
+					<div class="mt-3 flex gap-2">
+						<Button
+							size="xs"
+							variant="outline"
+							class="flex-1"
 							onclick={() => {
-								userStore.setSession({ email: u.email, nickname: u.name, handle: u.email.split('@')[0] });
-								toast.success(`已切换为: ${u.name}`);
+								emailInput = userStore.email || '';
+								isChangingEmail = true;
 							}}
-							class={cn(
-								'rounded-md px-2 py-0.5 text-[11px] font-medium transition-colors',
-								userStore.email === u.email
-									? 'bg-zinc-900 text-white dark:bg-white dark:text-zinc-900'
-									: 'bg-zinc-100 text-zinc-600 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-300'
-							)}
 						>
-							{u.name}
-						</button>
-					{/each}
-				</div>
+							更换邮箱
+						</Button>
+						<Button
+							size="xs"
+							variant="ghost"
+							class="text-red-600 hover:text-red-700 dark:text-red-400"
+							onclick={handleLogout}
+						>
+							退出
+						</Button>
+					</div>
+				{:else}
+					<!-- 未设置身份或正在更换身份 -->
+					<div class="space-y-3 text-left">
+						<div>
+							<h4 class="text-xs font-bold text-zinc-800 dark:text-zinc-200">
+								{isChangingEmail ? '更换身份邮箱' : '设置您的发布身份'}
+							</h4>
+							<p class="text-[11px] text-zinc-400 mt-0.5">
+								输入邮箱即可自动关联您的公开待办与互动。
+							</p>
+						</div>
+
+						<form onsubmit={handleSaveUser} class="space-y-2">
+							<Input
+								size="sm"
+								type="email"
+								placeholder="yourname@example.com"
+								bind:value={emailInput}
+								required
+							/>
+							<div class="flex gap-2">
+								{#if isChangingEmail}
+									<Button
+										type="button"
+										size="xs"
+										variant="secondary"
+										onclick={() => (isChangingEmail = false)}
+									>
+										取消
+									</Button>
+								{/if}
+								<Button
+									type="submit"
+									size="xs"
+									variant="primary"
+									class="flex-1"
+									disabled={!emailInput.trim()}
+								>
+									确认保存
+								</Button>
+							</div>
+						</form>
+					</div>
+				{/if}
 			</div>
 
-			<!-- 主题设置 -->
+			<!-- 主题偏好设置 -->
 			<div class="mt-auto border-t border-zinc-100 dark:border-zinc-800/80 pt-4 text-left">
 				<div class="mb-2 flex items-center justify-between text-xs text-zinc-500">
-					<span>色彩模式</span>
+					<span>外观偏好</span>
 					<span class="font-mono text-[11px] uppercase">{theme.mode}</span>
 				</div>
 				<div class="grid grid-cols-3 gap-1.5">
@@ -161,7 +200,7 @@
 						variant={theme.mode === 'system' ? 'primary' : 'secondary'}
 						onclick={() => theme.setMode('system')}
 					>
-						跟随
+						跟随系统
 					</Button>
 				</div>
 			</div>
