@@ -299,8 +299,8 @@ describe('validateLimit', () => {
 		expect(validateLimit(1)).toBe(1);
 	});
 
-	test('accepts 100', () => {
-		expect(validateLimit(100)).toBe(100);
+	test('accepts 1000', () => {
+		expect(validateLimit(1000)).toBe(1000);
 	});
 
 	test('accepts string number', () => {
@@ -311,8 +311,8 @@ describe('validateLimit', () => {
 		expect(() => validateLimit(0)).toThrow(AppError);
 	});
 
-	test('rejects 101', () => {
-		expect(() => validateLimit(101)).toThrow(AppError);
+	test('rejects 1001', () => {
+		expect(() => validateLimit(1001)).toThrow(AppError);
 	});
 
 	test('rejects non-number string', () => {

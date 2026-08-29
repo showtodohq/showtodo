@@ -7,13 +7,13 @@
  *
  * 用法：
  *   # 1. 接收外部 JSON 数据（AI 动态生成）
- *   node scripts/seed-test-data.mjs --data '[{"email":"alice@example.com","nickname":"Alice","todos":[{"content":"完成季度总结","category":"dev","status":"in_progress"}]}]'
+ *   node .agents/skills/seed-test-data/scripts/seed-test-data.mjs --data '[{"email":"alice@example.com","nickname":"Alice","todos":[{"content":"完成季度总结","category":"dev","status":"in_progress"}]}]'
  *
  *   # 2. 指定 API 地址与并发度
- *   node scripts/seed-test-data.mjs --api-base http://localhost:3003/api --concurrency 5 --data '...'
+ *   node .agents/skills/seed-test-data/scripts/seed-test-data.mjs --api-base http://localhost:3003/api --concurrency 5 --data '...'
  *
  *   # 3. 使用内置默认数据
- *   node scripts/seed-test-data.mjs
+ *   node .agents/skills/seed-test-data/scripts/seed-test-data.mjs
  */
 
 import { parseArgs } from 'node:util';
@@ -178,7 +178,7 @@ const CONTENT_POOL = {
 		'把博客评论系统从第三方迁到自托管'
 	],
 	life: [
-		'预约周末的牙科洗药',
+		'预约周末的牙科洗牙',
 		'给家里添几盆绿植并做好浇水排期',
 		'规划十一假期的川西自驾路线',
 		'整理衣柜，捐掉一年没穿的衣服',

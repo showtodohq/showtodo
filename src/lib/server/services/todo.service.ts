@@ -261,7 +261,7 @@ export async function listDailyCards(
 	db: Database,
 	options: ListDailyCardsOptions
 ): Promise<DailyCardResponse> {
-	const limit = Math.min(Math.max(options.limit ?? 20, 1), 100);
+	const limit = Math.min(Math.max(options.limit ?? 1000, 1), 1000);
 	const offset = Math.max(options.offset ?? 0, 0);
 	const currentUserId = options.currentUserId && isUUID(options.currentUserId) ? options.currentUserId : null;
 	const onlyMine = Boolean(options.onlyMine);

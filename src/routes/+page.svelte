@@ -73,7 +73,8 @@
 		try {
 			const res = await api.getDailyCards({
 				date: selectedDate,
-				currentUserId: userStore.id
+				currentUserId: userStore.id,
+				limit: 1000
 			});
 			cards = res.cards || [];
 		} catch (error) {

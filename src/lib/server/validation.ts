@@ -176,11 +176,11 @@ export function validateUUID(value: unknown): string {
 	return value;
 }
 
-export function validateLimit(value: unknown): number {
-	if (value === null || value === undefined) return 20;
+export function validateLimit(value: unknown, max = 1000, defaultVal = 20): number {
+	if (value === null || value === undefined) return defaultVal;
 	const num = typeof value === 'string' ? parseInt(value, 10) : value;
-	if (typeof num !== 'number' || isNaN(num) || num < 1 || num > 100) {
-		throw new AppError('VALIDATION_ERROR', 'limit must be between 1 and 100');
+	if (typeof num !== 'number' || isNaN(num) || num < 1 || num > max) {
+		throw new AppError('VALIDATION_ERROR', `limit must be between 1 and ${max}`);
 	}
 	return num;
 }
