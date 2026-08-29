@@ -2,7 +2,7 @@ import type { Todo, TodoStatus } from '$lib/types/todo';
 import type { UserProfile } from '$lib/types/user';
 
 /**
- * 状态排序权重：in_progress 置顶，其次 pending，再后 done，最后 abandoned
+ * 状态排序权重：in_progress 优先，其次 pending，再后 done，最后 abandoned
  */
 export const STATUS_SORT_WEIGHT: Record<TodoStatus, number> = {
 	in_progress: 0,

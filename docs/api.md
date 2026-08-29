@@ -61,7 +61,7 @@ Accept: application/json
 | 枚举值 | 中文名称 | 说明 | 允许迁移的下一状态 |
 |---|---|---|---|
 | `pending` | 待办 | 初始状态 | `in_progress`, `done`, `abandoned` |
-| `in_progress` | 进行中 | 呼吸灯高亮 | `done`, `abandoned` |
+| `in_progress` | 进行中 | 进行中状态 | `done`, `abandoned` |
 | `done` | 已完成 | 划线终态 | *不可迁移 (终态)* |
 | `abandoned` | 已放弃 | 划线置灰终态 | *不可迁移 (终态)* |
 
@@ -124,7 +124,7 @@ Accept: application/json
       "id": "78c946e3-f661-4fa3-9f5b-1662991ddf31",
       "shortId": "8x2k9a1b",
       "content": "重构多用户周日历看板",
-      "note": "实现呼吸灯与移动端适配",
+      "note": "实现进行中状态与移动端适配",
       "isNotePublic": true,
       "category": "dev",
       "authorId": "a9bf1c17-646e-4401-9f93-5c026e64ec64",
@@ -298,7 +298,7 @@ curl -X POST "http://localhost:3003/api/todos" \
     "id": "78c946e3-f661-4fa3-9f5b-1662991ddf31",
     "shortId": "8x2k9a1b",
     "content": "重构多用户周日历看板",
-    "note": "实现呼吸灯与移动端适配",
+    "note": "实现进行中状态与移动端适配",
     "isNotePublic": true,
     "category": "dev",
     "authorId": "a9bf1c17-646e-4401-9f93-5c026e64ec64",
