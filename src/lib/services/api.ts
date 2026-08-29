@@ -1,10 +1,12 @@
 import type {
 	CreateTodoInput,
+	DailyCardResponse,
 	ReactionDetail,
 	ReactionEmoji,
 	Todo,
 	TodoListQuery,
 	TodoListResponse,
+	TopicInfoResponse,
 	UpdateTodoInput
 } from '$lib/types/todo';
 import type { UpdateUserInput, UserProfile } from '$lib/types/user';
@@ -205,5 +207,34 @@ export const api = {
 			},
 			customFetch
 		);
+	},
+
+	async getDailyCards(
+		params: {
+			date: string;
+			category?: string;
+			onlyMine?: boolean;
+			currentUserId?: string;
+			limit?: number;
+			offset?: number;
+		},
+		customFetch?: typeof fetch
+	): Promise<DailyCardResponse> {
+		const searchParams = new URLSearchParams();
+		searchParams.set('date', params.date);
+		if (params.category && params.category !== 'all') searchParams.set('category', params.category);
+		if (params.onlyMine !== undefined) searchParams.set('onlyMine', String(params.onlyMine));
+		if (params.currentUserId) searchParams.set('currentUserId', params.currentUserId);
+		if (params.limit) searchParams.set('limit', String(params.limit));
+		if (params.offset) searchParams.set('offset', String(params.offset));
+
+		return request<DailyCardResponse>(`/api/daily?${searchParams.toString()}`, undefined, customFetch);
+	},
+
+	async getTopicInfo(
+		id: string,
+		customFetch?: typeof fetch
+	): Promise<TopicInfoResponse> {
+		return request<TopicInfoResponse>(`/api/todos/${id}/topic`, undefined, customFetch);
 	}
 };

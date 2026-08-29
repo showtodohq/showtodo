@@ -51,6 +51,7 @@ describe('calendar utils', () => {
 			{
 				id: '1',
 				shortId: 's1',
+				topicHash: 'hash1',
 				content: 'Done task',
 				note: null,
 				isNotePublic: true,
@@ -65,6 +66,7 @@ describe('calendar utils', () => {
 			{
 				id: '2',
 				shortId: 's2',
+				topicHash: 'hash2',
 				content: 'In progress task',
 				note: null,
 				isNotePublic: true,
@@ -79,6 +81,7 @@ describe('calendar utils', () => {
 			{
 				id: '3',
 				shortId: 's3',
+				topicHash: 'hash3',
 				content: 'Pending task',
 				note: null,
 				isNotePublic: true,
@@ -93,6 +96,7 @@ describe('calendar utils', () => {
 			{
 				id: '4',
 				shortId: 's4',
+				topicHash: 'hash4',
 				content: 'Abandoned task',
 				note: null,
 				isNotePublic: true,

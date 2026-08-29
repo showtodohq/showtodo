@@ -1,10 +1,12 @@
-import { eq, desc, lt, and, inArray, gte, lte } from 'drizzle-orm';
+import { eq, desc, lt, and, inArray, gte, lte, sql } from 'drizzle-orm';
 import { todos, users } from '../db/schema';
 import type { Database } from '../db';
 import type { Category, TodoStatus } from '../validation';
 import { validateStatusTransition, generateShortId, isUUID } from '../validation';
 import * as reactionService from './reaction.service';
 import { AppError } from '../errors';
+import { computeTopicHash } from '../topic-hash';
+import type { DailyCardResponse, DailyCard, CardParticipant } from '$lib/types/todo';
 
 export interface CreateTodoData {
 	content: string;
@@ -34,6 +36,15 @@ export interface ListTodosFilters {
 	limit?: number;
 }
 
+export interface ListDailyCardsOptions {
+	targetDate: string;
+	category?: string;
+	onlyMine?: boolean;
+	currentUserId?: string;
+	limit?: number;
+	offset?: number;
+}
+
 function sanitizeNote(todo: typeof todos.$inferSelect) {
 	if (!todo.isNotePublic) {
 		return { ...todo, note: null };
@@ -54,9 +65,11 @@ async function generateUniqueShortId(db: Database): Promise<string> {
 
 export async function create(db: Database, data: CreateTodoData) {
 	const shortId = await generateUniqueShortId(db);
+	const topicHash = computeTopicHash(data.category, data.content);
 
 	const values: Record<string, unknown> = {
 		shortId,
+		topicHash,
 		content: data.content,
 		note: data.note ?? null,
 		isNotePublic: data.isNotePublic ?? true,
@@ -196,6 +209,13 @@ export async function update(db: Database, idOrShortId: string, authorEmail: str
 	if (data.startDate !== undefined) updateData.startDate = data.startDate;
 	if (data.dueDate !== undefined) updateData.dueDate = data.dueDate;
 
+	// 若 content 或 category 发生变化，重新计算 topicHash
+	const effectiveContent = data.content !== undefined ? data.content : todo.content;
+	const effectiveCategory = data.category !== undefined ? data.category : todo.category;
+	if (data.content !== undefined || data.category !== undefined) {
+		updateData.topicHash = computeTopicHash(effectiveCategory, effectiveContent);
+	}
+
 	const result = await db.update(todos).set(updateData).where(eq(todos.id, todo.id)).returning();
 
 	await db
@@ -204,6 +224,163 @@ export async function update(db: Database, idOrShortId: string, authorEmail: str
 		.where(eq(users.id, todo.authorId));
 
 	return result[0];
+}
+
+export async function getTopicInfoByTodoId(db: Database, idOrShortId: string) {
+	const condition = isUUID(idOrShortId)
+		? eq(todos.id, idOrShortId)
+		: eq(todos.shortId, idOrShortId);
+
+	const result = await db
+		.select({
+			topicHash: todos.topicHash
+		})
+		.from(todos)
+		.where(condition)
+		.limit(1);
+
+	if (!result[0]) {
+		throw new AppError('NOT_FOUND', 'Todo not found');
+	}
+
+	const topicHash = result[0].topicHash;
+	const countResult = await db
+		.select({ count: sql<number>`count(*)::int` })
+		.from(todos)
+		.where(eq(todos.topicHash, topicHash));
+
+	const participantCount = countResult[0]?.count ?? 0;
+
+	return {
+		topicHash,
+		participantCount
+	};
+}
+
+export async function listDailyCards(
+	db: Database,
+	options: ListDailyCardsOptions
+): Promise<DailyCardResponse> {
+	const limit = Math.min(Math.max(options.limit ?? 20, 1), 100);
+	const offset = Math.max(options.offset ?? 0, 0);
+	const currentUserId = options.currentUserId && isUUID(options.currentUserId) ? options.currentUserId : null;
+	const onlyMine = Boolean(options.onlyMine);
+
+	const categoryFilter =
+		options.category && options.category !== 'all'
+			? sql`AND t.category = ${options.category}`
+			: sql``;
+
+	const havingClause = onlyMine
+		? currentUserId
+			? sql`HAVING bool_or(u.id = ${currentUserId}::uuid)`
+			: sql`HAVING FALSE`
+		: sql``;
+
+	const isMeSql = currentUserId ? sql`(u.id = ${currentUserId}::uuid)` : sql`FALSE`;
+	const isMeOrderSql = currentUserId ? sql`(u.id = ${currentUserId}::uuid)` : sql`FALSE`;
+
+	// 1. 查询符合条件的总卡片数
+	const countQuery = sql`
+		SELECT COUNT(*)::int AS total
+		FROM (
+			SELECT t.topic_hash
+			FROM todos t
+			JOIN users u ON t.author_id = u.id
+			WHERE t.start_date = ${options.targetDate}
+				${categoryFilter}
+			GROUP BY t.topic_hash
+			${havingClause}
+		) sub
+	`;
+
+	const countRaw = await db.execute(countQuery);
+	const countRows = Array.isArray(countRaw) ? countRaw : (countRaw as any).rows || [];
+	const totalCards = Number(countRows[0]?.total || 0);
+
+	if (totalCards === 0) {
+		return {
+			date: options.targetDate,
+			totalCards: 0,
+			cards: []
+		};
+	}
+
+	// 2. 查询卡片明细
+	const cardsQuery = sql`
+		SELECT
+			t.topic_hash,
+			MAX(t.content) AS content,
+			MAX(t.category) AS category,
+			MIN(t.created_at) AS first_created_at,
+			COUNT(*)::int AS total_participants,
+			COUNT(*) FILTER (WHERE t.status = 'done')::int AS done_count,
+			json_agg(
+				json_build_object(
+					'todoId', t.id,
+					'shortId', t.short_id,
+					'status', t.status,
+					'createdAt', t.created_at,
+					'isMe', ${isMeSql},
+					'user', json_build_object(
+						'id', u.id,
+						'nickname', u.nickname,
+						'handle', u.handle,
+						'avatar', u.avatar
+					)
+				) ORDER BY ${isMeOrderSql} DESC, t.created_at ASC
+			) AS participants
+		FROM todos t
+		JOIN users u ON t.author_id = u.id
+		WHERE t.start_date = ${options.targetDate}
+			${categoryFilter}
+		GROUP BY t.topic_hash
+		${havingClause}
+		ORDER BY MAX(t.created_at) DESC
+		LIMIT ${limit} OFFSET ${offset}
+	`;
+
+	const cardsRaw = await db.execute(cardsQuery);
+	const cardRows = Array.isArray(cardsRaw) ? cardsRaw : (cardsRaw as any).rows || [];
+
+	const cards: DailyCard[] = cardRows.map((row: any) => {
+		const rawParticipants = Array.isArray(row.participants)
+			? row.participants
+			: typeof row.participants === 'string'
+				? JSON.parse(row.participants)
+				: [];
+
+		const totalParticipants = Number(row.total_participants || rawParticipants.length);
+		const participants: CardParticipant[] = rawParticipants.map((p: any) => ({
+			todoId: p.todoId,
+			shortId: p.shortId,
+			status: p.status,
+			createdAt: typeof p.createdAt === 'string' ? p.createdAt : new Date(p.createdAt).toISOString(),
+			isMe: Boolean(p.isMe),
+			user: {
+				id: p.user.id,
+				nickname: p.user.nickname,
+				handle: p.user.handle,
+				avatar: p.user.avatar ?? null
+			}
+		}));
+
+		return {
+			topicHash: row.topic_hash,
+			content: row.content,
+			category: row.category ?? null,
+			isMultiplayer: totalParticipants > 1,
+			totalParticipants,
+			doneCount: Number(row.done_count || 0),
+			participants
+		};
+	});
+
+	return {
+		date: options.targetDate,
+		totalCards,
+		cards
+	};
 }
 
 export async function listForCalendar(
@@ -246,4 +423,5 @@ export async function listForCalendar(
 		reactions: allReactionCounts[todo.id] ?? { '👀': 0, '🔥': 0, '💪': 0, '👏': 0 }
 	}));
 }
+
 

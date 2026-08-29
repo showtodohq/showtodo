@@ -1,4 +1,4 @@
-import { pgTable, text, boolean, timestamp, date, pgEnum, uuid, unique } from 'drizzle-orm/pg-core';
+import { pgTable, text, boolean, timestamp, date, pgEnum, uuid, unique, index } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 
 export const todoStatusEnum = pgEnum('todo_status', ['pending', 'in_progress', 'done', 'abandoned']);
@@ -14,22 +14,27 @@ export const users = pgTable('users', {
 	lastTodoUpdatedAt: timestamp('last_todo_updated_at', { withTimezone: true })
 });
 
-export const todos = pgTable('todos', {
-	id: uuid('id').primaryKey().defaultRandom(),
-	shortId: text('short_id').notNull().unique(),
-	content: text('content').notNull(),
-	note: text('note'),
-	isNotePublic: boolean('is_note_public').notNull().default(true),
-	category: text('category'),
-	authorId: uuid('author_id')
-		.notNull()
-		.references(() => users.id),
-	status: todoStatusEnum('status').notNull().default('pending'),
-	startDate: date('start_date').notNull().defaultNow(),
-	dueDate: date('due_date'),
-	createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
-	updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow().$onUpdate(() => new Date())
-});
+export const todos = pgTable(
+	'todos',
+	{
+		id: uuid('id').primaryKey().defaultRandom(),
+		shortId: text('short_id').notNull().unique(),
+		topicHash: text('topic_hash').notNull(),
+		content: text('content').notNull(),
+		note: text('note'),
+		isNotePublic: boolean('is_note_public').notNull().default(true),
+		category: text('category'),
+		authorId: uuid('author_id')
+			.notNull()
+			.references(() => users.id),
+		status: todoStatusEnum('status').notNull().default('pending'),
+		startDate: date('start_date').notNull().defaultNow(),
+		dueDate: date('due_date'),
+		createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+		updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow().$onUpdate(() => new Date())
+	},
+	(table) => [index('idx_todos_topic_hash').on(table.topicHash)]
+);
 
 export const reactions = pgTable(
 	'reactions',

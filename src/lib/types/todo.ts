@@ -15,6 +15,7 @@ export interface Author {
 export interface Todo {
 	id: string;
 	shortId: string;
+	topicHash: string;
 	content: string;
 	note: string | null;
 	isNotePublic: boolean;
@@ -73,3 +74,39 @@ export interface TodoListResponse {
 	todos: Todo[];
 	nextCursor: string | null;
 }
+
+export interface CardParticipant {
+	todoId: string;
+	shortId: string;
+	status: TodoStatus;
+	createdAt: string;
+	isMe: boolean;
+	user: {
+		id: string;
+		nickname: string;
+		handle: string;
+		avatar: string | null;
+	};
+}
+
+export interface DailyCard {
+	topicHash: string;
+	content: string;
+	category: string | null;
+	isMultiplayer: boolean;
+	totalParticipants: number;
+	doneCount: number;
+	participants: CardParticipant[];
+}
+
+export interface DailyCardResponse {
+	date: string;
+	totalCards: number;
+	cards: DailyCard[];
+}
+
+export interface TopicInfoResponse {
+	topicHash: string;
+	participantCount: number;
+}
+

@@ -395,3 +395,282 @@ describe('status transitions', () => {
 		).rejects.toThrow(AppError);
 	});
 });
+
+describe('topicHash behavior', () => {
+	test('computes topicHash upon creation', async () => {
+		const todo = await todoService.create(testDb, {
+			content: '每天早起喝一杯温水。',
+			category: 'life',
+			authorId: testUser.id
+		});
+		expect(todo.topicHash).toBeTruthy();
+		expect(todo.topicHash).toHaveLength(16);
+	});
+
+	test('creates identical topicHash for identical content from different users', async () => {
+		const user2 = await userService.findOrCreate(testDb, 'user2@example.com');
+		const todo1 = await todoService.create(testDb, {
+			content: '每天跑步5公里',
+			category: 'fitness',
+			authorId: testUser.id
+		});
+		const todo2 = await todoService.create(testDb, {
+			content: '每天跑步5公里。',
+			category: 'fitness',
+			authorId: user2.id
+		});
+		expect(todo1.topicHash).toBe(todo2.topicHash);
+	});
+
+	test('recomputes topicHash when content or category is modified', async () => {
+		const todo = await todoService.create(testDb, {
+			content: '读《原则》第1章',
+			category: 'study',
+			authorId: testUser.id
+		});
+		const initialHash = todo.topicHash;
+
+		// 1. Update content
+		const updatedContent = await todoService.update(testDb, todo.id, 'test@example.com', {
+			content: '读《原则》第2章'
+		});
+		expect(updatedContent.topicHash).not.toBe(initialHash);
+
+		// 2. Update category
+		const updatedCategory = await todoService.update(testDb, todo.id, 'test@example.com', {
+			category: 'finance'
+		});
+		expect(updatedCategory.topicHash).not.toBe(updatedContent.topicHash);
+	});
+
+	test('preserves topicHash when updating status, note, or date', async () => {
+		const todo = await todoService.create(testDb, {
+			content: '保持学习',
+			category: 'study',
+			authorId: testUser.id,
+			startDate: '2026-08-28'
+		});
+		const initialHash = todo.topicHash;
+
+		const updatedStatus = await todoService.update(testDb, todo.id, 'test@example.com', {
+			status: 'in_progress',
+			note: 'New private note',
+			startDate: '2026-08-29'
+		});
+		expect(updatedStatus.topicHash).toBe(initialHash);
+	});
+});
+
+describe('getTopicInfoByTodoId', () => {
+	test('returns participantCount = 1 for solo todo', async () => {
+		const todo = await todoService.create(testDb, {
+			content: '独自一人做的事情',
+			authorId: testUser.id
+		});
+
+		const info = await todoService.getTopicInfoByTodoId(testDb, todo.id);
+		expect(info.topicHash).toBe(todo.topicHash);
+		expect(info.participantCount).toBe(1);
+	});
+
+	test('returns correct participantCount when multiple users join same topic', async () => {
+		const user2 = await userService.findOrCreate(testDb, 'user2@example.com');
+		const user3 = await userService.findOrCreate(testDb, 'user3@example.com');
+
+		const todo1 = await todoService.create(testDb, {
+			content: '多人协同打卡目标',
+			category: 'dev',
+			authorId: testUser.id
+		});
+		await todoService.create(testDb, {
+			content: '多人协同打卡目标',
+			category: 'dev',
+			authorId: user2.id
+		});
+		await todoService.create(testDb, {
+			content: '多人协同打卡目标',
+			category: 'dev',
+			authorId: user3.id
+		});
+
+		const info = await todoService.getTopicInfoByTodoId(testDb, todo1.id);
+		expect(info.participantCount).toBe(3);
+	});
+
+	test('throws NOT_FOUND when todo does not exist', async () => {
+		await expect(
+			todoService.getTopicInfoByTodoId(testDb, '00000000-0000-0000-0000-000000000000')
+		).rejects.toThrow(AppError);
+	});
+});
+
+describe('listDailyCards', () => {
+	const targetDate = '2026-08-28';
+
+	test('returns empty cards when no todos exist for target date', async () => {
+		const res = await todoService.listDailyCards(testDb, { targetDate });
+		expect(res.date).toBe(targetDate);
+		expect(res.totalCards).toBe(0);
+		expect(res.cards).toEqual([]);
+	});
+
+	test('aggregates solo and multiplayer cards correctly', async () => {
+		const user2 = await userService.findOrCreate(testDb, 'user2@example.com');
+
+		// Card 1 (Solo)
+		await todoService.create(testDb, {
+			content: 'Solo Task',
+			category: 'life',
+			authorId: testUser.id,
+			startDate: targetDate
+		});
+
+		// Card 2 (Multiplayer: 2 users)
+		const todoA = await todoService.create(testDb, {
+			content: '一起早起跑步',
+			category: 'fitness',
+			authorId: testUser.id,
+			startDate: targetDate
+		});
+		const todoB = await todoService.create(testDb, {
+			content: '一起早起跑步',
+			category: 'fitness',
+			authorId: user2.id,
+			startDate: targetDate
+		});
+		await todoService.update(testDb, todoB.id, 'user2@example.com', { status: 'done' });
+
+		const res = await todoService.listDailyCards(testDb, {
+			targetDate,
+			currentUserId: testUser.id
+		});
+
+		expect(res.totalCards).toBe(2);
+		expect(res.cards).toHaveLength(2);
+
+		const multiCard = res.cards.find((c) => c.content === '一起早起跑步');
+		expect(multiCard).toBeDefined();
+		expect(multiCard!.isMultiplayer).toBe(true);
+		expect(multiCard!.totalParticipants).toBe(2);
+		expect(multiCard!.doneCount).toBe(1);
+		expect(multiCard!.participants).toHaveLength(2);
+
+		// Current user's todo should be first in participants
+		expect(multiCard!.participants[0].isMe).toBe(true);
+		expect(multiCard!.participants[0].todoId).toBe(todoA.id);
+		expect(multiCard!.participants[1].isMe).toBe(false);
+		expect(multiCard!.participants[1].todoId).toBe(todoB.id);
+
+		const soloCard = res.cards.find((c) => c.content === 'Solo Task');
+		expect(soloCard).toBeDefined();
+		expect(soloCard!.isMultiplayer).toBe(false);
+		expect(soloCard!.totalParticipants).toBe(1);
+		expect(soloCard!.doneCount).toBe(0);
+	});
+
+	test('filters by category', async () => {
+		await todoService.create(testDb, {
+			content: 'Study React',
+			category: 'dev',
+			authorId: testUser.id,
+			startDate: targetDate
+		});
+		await todoService.create(testDb, {
+			content: 'Buy grocery',
+			category: 'life',
+			authorId: testUser.id,
+			startDate: targetDate
+		});
+
+		const res = await todoService.listDailyCards(testDb, {
+			targetDate,
+			category: 'dev'
+		});
+
+		expect(res.totalCards).toBe(1);
+		expect(res.cards[0].content).toBe('Study React');
+	});
+
+	test('filters by onlyMine = true', async () => {
+		const user2 = await userService.findOrCreate(testDb, 'user2@example.com');
+		const otherUser = await userService.findOrCreate(testDb, 'other@example.com');
+
+		// Card 1: testUser + user2
+		await todoService.create(testDb, {
+			content: 'Shared Goal',
+			category: 'study',
+			authorId: testUser.id,
+			startDate: targetDate
+		});
+		await todoService.create(testDb, {
+			content: 'Shared Goal',
+			category: 'study',
+			authorId: user2.id,
+			startDate: targetDate
+		});
+
+		// Card 2: otherUser only
+		await todoService.create(testDb, {
+			content: 'Other Person Secret Goal',
+			category: 'life',
+			authorId: otherUser.id,
+			startDate: targetDate
+		});
+
+		// Query with onlyMine = true for testUser
+		const resMine = await todoService.listDailyCards(testDb, {
+			targetDate,
+			onlyMine: true,
+			currentUserId: testUser.id
+		});
+
+		expect(resMine.totalCards).toBe(1);
+		expect(resMine.cards[0].content).toBe('Shared Goal');
+		expect(resMine.cards[0].participants).toHaveLength(2);
+
+		// Query with onlyMine = false (square view)
+		const resAll = await todoService.listDailyCards(testDb, {
+			targetDate,
+			onlyMine: false,
+			currentUserId: testUser.id
+		});
+
+		expect(resAll.totalCards).toBe(2);
+	});
+
+	test('supports pagination via limit and offset', async () => {
+		for (let i = 1; i <= 5; i++) {
+			await todoService.create(testDb, {
+				content: `Daily Task ${i}`,
+				category: 'dev',
+				authorId: testUser.id,
+				startDate: targetDate
+			});
+		}
+
+		const page1 = await todoService.listDailyCards(testDb, {
+			targetDate,
+			limit: 2,
+			offset: 0
+		});
+		expect(page1.totalCards).toBe(5);
+		expect(page1.cards).toHaveLength(2);
+
+		const page2 = await todoService.listDailyCards(testDb, {
+			targetDate,
+			limit: 2,
+			offset: 2
+		});
+		expect(page2.totalCards).toBe(5);
+		expect(page2.cards).toHaveLength(2);
+
+		const page3 = await todoService.listDailyCards(testDb, {
+			targetDate,
+			limit: 2,
+			offset: 4
+		});
+		expect(page3.totalCards).toBe(5);
+		expect(page3.cards).toHaveLength(1);
+	});
+});
+
