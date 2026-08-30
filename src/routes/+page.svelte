@@ -411,7 +411,7 @@
 							</span>
 						</div>
 
-						<!-- 右侧：仅多人 Todo 显示同行者折叠展开区域，单人 Todo 绝对不显示任何内容 -->
+						<!-- 右侧：单人展示作者头像+Tooltip，多人展示同行者叠层与展开按钮 -->
 						{#if isMultiplayer}
 							<button
 								type="button"
@@ -445,6 +445,25 @@
 									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
 								</svg>
 							</button>
+						{:else if card.participants[0]}
+							<!-- 单人 Todo：右侧展示作者头像与悬停 Tooltip -->
+							{@const author = card.participants[0].user}
+							<div class="relative group/author flex items-center shrink-0 pr-1">
+								<Avatar
+									src={author.avatar}
+									name={author.nickname}
+									size="xs"
+									class="h-4.5 w-4.5 cursor-pointer ring-1 ring-transparent group-hover/author:ring-zinc-300 dark:group-hover/author:ring-zinc-700 transition-all"
+								/>
+
+								<!-- 悬停精致微型 Tooltip -->
+								<div class="pointer-events-none absolute bottom-full right-0 mb-1.5 hidden group-hover/author:flex flex-col items-end z-30 animate-in fade-in zoom-in-95 duration-100">
+									<div class="rounded-md bg-zinc-900 px-2 py-1 text-[11px] text-white shadow-md dark:bg-zinc-100 dark:text-zinc-900 whitespace-nowrap">
+										<span class="font-semibold">{author.nickname}</span>
+										<span class="opacity-60 text-[10px] ml-1 font-mono">@{author.handle}</span>
+									</div>
+								</div>
+							</div>
 						{/if}
 					</div>
 
