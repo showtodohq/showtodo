@@ -192,7 +192,74 @@ curl -X GET "http://localhost:3003/api/calendar?startDateFrom=2026-08-24&startDa
 
 ---
 
-### 4.2 待办 (Todos) 操作接口
+### 4.2 今日待办聚合接口 (Daily Aggregated Stream)
+
+#### `GET /api/daily` — 获取指定日期的全网聚合待办卡片列表
+- **接口说明**: 单日聚焦的核心数据接口。将同一天全网内容相同的 Todo 按 `topicHash`（小写去空格 Hash）自动聚合成多人协作卡片，单人待办则展示为独立卡片。
+- **排序算法**: 采用 **【个人感知时间优先 (Personal Effective Time)】** 排序规则：
+  - 若传入了 `currentUserId` 且当前用户参与了该目标，以**当前用户本人的创建/加入时间戳**作为排序依据；
+  - 若当前用户未参与，以该目标在全网被提出的**首发立项时间 (`firstCreatedAt`)** 作为排序依据；
+  - 整体按有效时间戳倒序（`DESC`，最新操作在上）。
+
+##### 请求参数 (Query Parameters)
+| 参数名 | 类型 | 必填 | 默认值 | 边界约束 / 格式 | 描述 |
+|---|---|---|---|---|---|
+| `date` | `string` | **是** | - | `YYYY-MM-DD` | 目标查询日期 |
+| `category` | `string` | 否 | `all` | 见 3.2 分类 ID 白名单 | 按分类筛选 |
+| `onlyMine` | `boolean` | 否 | `false` | `true` \| `false` | 是否只看我参与的待办 |
+| `currentUserId` | `string` | 否 | - | 标准 UUID v4 | 当前登录用户 ID (用于判断 `isMe` 及个人排序) |
+| `limit` | `integer` | 否 | `1000` | `1 <= limit <= 1000` | 分页拉取容量限制 |
+| `offset` | `integer` | 否 | `0` | `>= 0` | 偏移量 |
+
+##### 响应报文 (200 OK)
+```json
+{
+  "date": "2026-08-30",
+  "totalCards": 2,
+  "cards": [
+    {
+      "topicHash": "7f8b9a1c2d3e4f5a6b7c8d9e0f1a2b3c",
+      "content": "每天阅读 30 分钟",
+      "category": "study",
+      "isMultiplayer": true,
+      "totalParticipants": 2,
+      "doneCount": 1,
+      "participants": [
+        {
+          "todoId": "88c946e3-f661-4fa3-9f5b-1662991ddf31",
+          "shortId": "9x2k9a1c",
+          "status": "done",
+          "createdAt": "2026-08-30T15:00:00.000Z",
+          "isMe": true,
+          "user": {
+            "id": "a9bf1c17-646e-4401-9f93-5c026e64ec64",
+            "nickname": "Alex Chen",
+            "handle": "alexchen",
+            "avatar": null
+          }
+        },
+        {
+          "todoId": "99c946e3-f661-4fa3-9f5b-1662991ddf32",
+          "shortId": "3b2k9a1d",
+          "status": "pending",
+          "createdAt": "2026-08-30T08:00:00.000Z",
+          "isMe": false,
+          "user": {
+            "id": "b1234567-1111-2222-3333-444455556666",
+            "nickname": "Sarah",
+            "handle": "sarah",
+            "avatar": "https://example.com/avatar.png"
+          }
+        }
+      ]
+    }
+  ]
+}
+```
+
+---
+
+### 4.3 待办 (Todos) 操作接口
 
 #### `POST /api/todos` — 发布待办
 - **接口说明**: 采用 WordPress 评论免密码模式。传入 `email` 即可发布待办，如果邮箱未建号，后台会自动创建新用户并分配唯一 `handle`。

@@ -86,10 +86,13 @@
 
 ---
 
-## 4. 数据流与本地变异架构 (Local Mutation Architecture)
+## 4. 数据流、排序算法与本地变异架构 (Data Flow & Mutation)
 
-### 4.1 核心原则
+### 4.1 核心原则：0ms 本地就地变异优先
 为了彻底避免传统 SPA “操作一次就全量 refetch 导致列表重绘、滚动跳跃、Spinner 闪烁”的糟糕体验，系统严格遵循：**服务端成功/客户端先行，纯本地就地变异响应**。
+- **发布待办 / 加入一起做**：0ms 立即在本地列表插入或并入多人聚合，绝不发起全量 Refetch；
+- **打勾完成 / 切换状态**：0ms 就地更新状态与统计数据，绝不发起全量 Refetch；
+- **精准隔离**：仅在用户真正切换日期或在抽屉里切换了不同账号时才会重新拉取服务端数据。
 
 ```mermaid
 sequenceDiagram
@@ -113,17 +116,42 @@ sequenceDiagram
     end
 ```
 
-### 4.2 本地变异工具函数契约 (`src/lib/utils/mutation.ts`)
+### 4.2 待办条目排序核心准则：【个人感知时间优先 (Personal Effective Time)】
 
-- `insertItem(list, item, position)`: 0ms 在本地数组顶部（或末尾）就地推入新项；
-- `updateItem(list, idOrPredicate, patch)`: 根据 ID 或判断函数，在本地数组中精准就地合并修改属性（仅触发受影响节点的微更新）；
-- `removeItem(list, idOrPredicate)`: 0ms 从本地列表中安全剔除指定项；
-- `upsertItem(list, item, keyName)`: 存在则就地更新，不存在则推入顶部；
-- `optimisticAction({ apply, rollback, action, onError })`: 乐观更新执行器，自动处理本地先行应用、网络请求与失败秒级回滚。
+#### 决策背景与原因：
+1. **防跳动 (Anti-Jittering)**：Todo 类应用必须严格按「创建时间」而非「更新时间」排序，避免打勾或修改备注时列表条目上下剧烈跳动，破坏用户的空间视觉记忆；
+2. **个人心流对齐**：对于当前用户参与的目标，用户是在当下的时间点做出行动承诺的。若机械地按早上的首发时间排在最底，用户加入后会产生“任务丢失”的割裂感。
+
+#### 有效时间戳计算公式：
+$$\text{effectiveCreatedAt} = \begin{cases} 
+\text{myParticipant.createdAt} & \text{若当前用户已参与/发布} \\
+\min_{p \in \text{participants}}(\text{p.createdAt}) & \text{若当前用户未参与}
+\end{cases}$$
+
+- **交互表现**：未参与的他人目标按全网首发时间排列；一旦当前用户点击「+ 加入一起做」，该条目在本地被赋予当下的最新时间戳，**0ms 顺畅自然地置顶到列表最上方**，让用户确信新任务已就绪；在“我的 (Mine)”视角下严格按个人加入时间倒序排列。
 
 ---
 
-## 5. 通用原子 UI 组件库规范 (`src/lib/components/ui/`)
+## 5. 首页核心模块与现代美学规范
+
+### 5.1 纯净沉浸流与无边界留白 (Whitespace-driven Minimalist Stream)
+- **背景统一**：全屏大背景、顶部标题栏与内容流统一为同一抹纯净白 (`bg-white`) / 深邃黑 (`dark:bg-zinc-950`)，消除卡片嵌套的割裂感；
+- **留白代替分割线**：移除条目间生硬的分割线 (`divide-y`) 与外卡片边框，采用舒适宽敞的行间距 (`space-y-2`) 与内边距 (`px-4 py-3`)；
+- **高对比度深色模式 Hover**：深色模式采用清晰的 `dark:hover:bg-zinc-900`，触控呼吸感分明。
+
+### 5.2 Twitter / X 风格极简快速发布框 (Quick Composer)
+- **自适应与自动收缩**：未聚焦时收缩为单行极简输入条，聚焦时平滑展开多行编辑区并浮现分类药丸工具栏；
+- **快捷取消与收起**：按下 `Escape` 或鼠标点击外部（Click Outside）时，无内容自动平滑收缩回单行；
+- **极速发布**：支持 `Enter` 快捷发送、0ms 乐观置顶插入。
+
+### 5.3 灵动微动效与全屏庆祝 (Confetti Physics & Micro-interactions)
+- **果冻弹性复选框**：1px 边框与他人一致，边框色同他人勾选色 (`zinc-600/300`)，带 `hover:scale-110` 与 `active:scale-85` 物理弹簧手感；
+- **单人/多人头像规范统一**：通过 Svelte 5 Snippet 统一头像行为，所有头像均支持悬停 Tooltip 浮现 `昵称 (@handle)`；多人叠层支持鼠标悬停扇形微展开 (Fan-out)；
+- **全屏高饱和物理纸屑 (Canvas Confetti Engine)**：单次打勾喷发 300 颗高饱和 3D 纸片、彩带与星形粒子；当日全部达成触发连续三次全屏超级大礼炮 (800+ 颗) 狂欢。
+
+---
+
+## 6. 通用原子 UI 组件库规范 (`src/lib/components/ui/`)
 
 所有组件严格基于 **Svelte 5 Runes** 与 **Tailwind CSS v4** 编写，属性严格类型化：
 
@@ -145,21 +173,21 @@ sequenceDiagram
 
 ---
 
-## 6. 网络与全局状态管理
+## 7. 网络与全局状态管理
 
-### 6.1 网络层 (`src/lib/services/http.ts`)
+### 7.1 网络层 (`src/lib/services/http.ts`)
 - 封装统一的 `http.get`, `http.post`, `http.patch`, `http.put`, `http.delete`；
 - 结构化异常类 `HttpError`，自动解析服务端标准错误报文 `{ error: { code, message } }`；
 - 自动集成全局 `toast.error` 提醒（支持 `silent: true` 静默模式）。
 
-### 6.2 状态管理层 (`src/lib/stores/`)
+### 7.2 状态管理层 (`src/lib/stores/`)
 - `toast.svelte.ts`: 全局通知 Store（支持 `toast.success()`, `toast.error()`, `toast.info()`, `toast.warning()`）；
 - `theme.svelte.ts`: 全局明暗模式 Store（支持 `light`, `dark`, `system` 切换与本地持久化，监听 OS 色彩变更）；
-- `user.svelte.ts`: 用户免密 Session 与本地持久化管理。
+- `user.svelte.ts`: 用户免密 Session 与服务端档案同步管理。
 
 ---
 
-## 7. 质量保证与测试体系
+## 8. 质量保证与测试体系
 
 ```bash
 # 1. 运行全量 TypeScript 严格类型与 Svelte 5 Runes 检查
@@ -171,3 +199,4 @@ npx vitest run src/lib/utils/__tests__/
 # 3. 执行生产构建打包
 npm run build
 ```
+

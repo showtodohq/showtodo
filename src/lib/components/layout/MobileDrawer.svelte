@@ -6,6 +6,8 @@
 	import { theme } from '$lib/stores/theme.svelte';
 	import { toast } from '$lib/stores/toast.svelte';
 
+	import { api } from '$lib/services/api';
+
 	interface Props {
 		open?: boolean;
 		onclose?: () => void;
@@ -15,6 +17,7 @@
 
 	let emailInput = $state('');
 	let isChangingEmail = $state(false);
+	let saving = $state(false);
 
 	function handleClose() {
 		open = false;
@@ -28,7 +31,7 @@
 		}
 	}
 
-	function handleSaveUser(e: SubmitEvent) {
+	async function handleSaveUser(e: SubmitEvent) {
 		e.preventDefault();
 		const clean = emailInput.trim().toLowerCase();
 		if (!clean) return;
@@ -40,20 +43,30 @@
 			return;
 		}
 
-		userStore.setSession({
-			email: clean,
-			nickname: clean.split('@')[0],
-			handle: clean.split('@')[0].replace(/[^a-z0-9-_]/gi, '').toLowerCase() || 'user'
-		});
-		toast.success('身份已设置');
-		emailInput = '';
-		isChangingEmail = false;
+		saving = true;
+		try {
+			// 与服务端同步用户档案 (获取/创建真实 UUID id, DiceBear avatar, nickname, handle)
+			const res = await api.syncUser(clean);
+			if (res.user) {
+				userStore.updateUserFromProfile(res.user);
+				toast.success(`欢迎回来，${res.user.nickname}！`);
+			}
+			emailInput = '';
+			isChangingEmail = false;
+			open = false;
+		} catch (err) {
+			console.error('Failed to sync user with server:', err);
+			toast.error(`同步用户失败: ${(err as Error).message}`);
+		} finally {
+			saving = false;
+		}
 	}
 
 	function handleLogout() {
 		userStore.clearSession();
 		toast.info('已退出当前身份');
 		isChangingEmail = false;
+		open = false;
 	}
 </script>
 
@@ -164,7 +177,8 @@
 									size="xs"
 									variant="primary"
 									class="flex-1"
-									disabled={!emailInput.trim()}
+									loading={saving}
+									disabled={saving || !emailInput.trim()}
 								>
 									确认保存
 								</Button>

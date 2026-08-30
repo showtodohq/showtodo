@@ -378,7 +378,11 @@ export async function listDailyCards(
 			${categoryFilter}
 		GROUP BY t.topic_hash
 		${havingClause}
-		ORDER BY MAX(t.created_at) DESC
+		ORDER BY 
+			COALESCE(
+				MAX(CASE WHEN ${isMeSql} THEN t.created_at ELSE NULL END),
+				MIN(t.created_at)
+			) DESC
 		LIMIT ${limit} OFFSET ${offset}
 	`;
 

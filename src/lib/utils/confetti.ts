@@ -83,12 +83,12 @@ class ConfettiEngine {
 	}
 
 	/**
-	 * 单次高饱和度、璀璨全屏纸屑喷发
+	 * 单次高饱和度、璀璨全屏纸屑大喷发 (300 颗粒子)
 	 * @param originX 发射源 X 坐标（默认屏幕中心）
 	 * @param originY 发射源 Y 坐标（默认屏幕中心）
 	 * @param count 粒子数量
 	 */
-	burst(originX?: number, originY?: number, count = 65) {
+	burst(originX?: number, originY?: number, count = 300) {
 		if (!browser) return;
 		this.initCanvas();
 
@@ -99,24 +99,25 @@ class ConfettiEngine {
 
 		for (let i = 0; i < count; i++) {
 			const angle = Math.random() * Math.PI * 2;
-			const speed = 6 + Math.random() * 11;
-			const maxLife = 75 + Math.random() * 45;
+			// 广阔的爆发速度范围与向上冲量
+			const speed = 4 + Math.random() * 15;
+			const maxLife = 80 + Math.random() * 55;
 			const shape = shapes[Math.floor(Math.random() * shapes.length)];
-			const baseSize = 6 + Math.random() * 6;
+			const baseSize = 6 + Math.random() * 7;
 
 			this.particles.push({
 				x,
 				y,
-				vx: Math.cos(angle) * speed + (Math.random() - 0.5) * 3,
-				vy: Math.sin(angle) * speed - 4 - Math.random() * 5, // 强劲向上喷发冲量
+				vx: Math.cos(angle) * speed + (Math.random() - 0.5) * 4,
+				vy: Math.sin(angle) * speed - 5 - Math.random() * 6, // 强劲向上喷发冲量
 				width: shape === 'ribbon' ? baseSize * 0.5 : baseSize,
-				height: shape === 'ribbon' ? baseSize * 2.2 : baseSize * 0.9,
+				height: shape === 'ribbon' ? baseSize * 2.4 : baseSize * 0.9,
 				color: VIBRANT_COLORS[Math.floor(Math.random() * VIBRANT_COLORS.length)],
 				shape,
 				rotation: Math.random() * 360,
-				vRotation: (Math.random() - 0.5) * 14,
+				vRotation: (Math.random() - 0.5) * 16,
 				rotationY: Math.random() * 360,
-				vRotationY: (Math.random() - 0.5) * 16,
+				vRotationY: (Math.random() - 0.5) * 18,
 				opacity: 1,
 				life: 0,
 				maxLife
@@ -129,33 +130,33 @@ class ConfettiEngine {
 	}
 
 	/**
-	 * 连续三次全屏超级大撒花庆祝（当天的待办全部搞定时触发）
+	 * 连续三次全屏超级大撒花庆祝（当天的待办全部搞定时触发，总计 800+ 颗超级烟花瀑布）
 	 */
 	tripleCelebration() {
 		if (!browser) return;
 		this.initCanvas();
 
-		// 第 1 波：左侧强劲礼炮向右上喷发
-		this.burstCannon(this.width * 0.12, this.height * 0.88, Math.PI / 4, 85);
+		// 第 1 波：左侧强劲礼炮向右上喷发 (220 颗)
+		this.burstCannon(this.width * 0.12, this.height * 0.88, Math.PI / 4, 220);
 
-		// 第 2 波（280ms 后）：右侧强劲礼炮向左上喷发
+		// 第 2 波（280ms 后）：右侧强劲礼炮向左上喷发 (220 颗)
 		setTimeout(() => {
-			this.burstCannon(this.width * 0.88, this.height * 0.88, (Math.PI * 3) / 4, 85);
+			this.burstCannon(this.width * 0.88, this.height * 0.88, (Math.PI * 3) / 4, 220);
 		}, 280);
 
-		// 第 3 波（560ms 后）：全屏中央 360 度超级绚烂大爆发
+		// 第 3 波（560ms 后）：全屏中央 360 度超级绚烂大爆发 (380 颗)
 		setTimeout(() => {
-			this.burst(this.width / 2, this.height * 0.4, 130);
+			this.burst(this.width / 2, this.height * 0.4, 380);
 		}, 560);
 	}
 
-	private burstCannon(x: number, y: number, centerAngle: number, count = 75) {
+	private burstCannon(x: number, y: number, centerAngle: number, count = 200) {
 		const shapes: ('rect' | 'circle' | 'star' | 'ribbon')[] = ['rect', 'rect', 'circle', 'star', 'ribbon'];
 
 		for (let i = 0; i < count; i++) {
 			const angle = centerAngle + (Math.random() - 0.5) * (Math.PI / 3);
-			const speed = 12 + Math.random() * 15;
-			const maxLife = 90 + Math.random() * 45;
+			const speed = 12 + Math.random() * 18;
+			const maxLife = 95 + Math.random() * 50;
 			const shape = shapes[Math.floor(Math.random() * shapes.length)];
 			const baseSize = 7 + Math.random() * 7;
 
@@ -165,7 +166,7 @@ class ConfettiEngine {
 				vx: Math.cos(angle) * speed,
 				vy: -Math.abs(Math.sin(angle) * speed),
 				width: shape === 'ribbon' ? baseSize * 0.5 : baseSize,
-				height: shape === 'ribbon' ? baseSize * 2.2 : baseSize * 0.9,
+				height: shape === 'ribbon' ? baseSize * 2.4 : baseSize * 0.9,
 				color: VIBRANT_COLORS[Math.floor(Math.random() * VIBRANT_COLORS.length)],
 				shape,
 				rotation: Math.random() * 360,

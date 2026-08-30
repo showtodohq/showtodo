@@ -10,7 +10,7 @@
 	let isDrawerOpen = $state(false);
 </script>
 
-<div class="min-h-screen flex flex-col bg-zinc-50/50 text-zinc-900 dark:bg-zinc-950 dark:text-zinc-100 antialiased selection:bg-zinc-900 selection:text-white dark:selection:bg-white dark:selection:text-zinc-900">
+<div class="min-h-screen flex flex-col bg-white text-zinc-900 dark:bg-zinc-950 dark:text-zinc-100 antialiased selection:bg-zinc-900 selection:text-white dark:selection:bg-white dark:selection:text-zinc-900">
 	<!-- 顶部 Header（极简仅保留 Logo 和头像） -->
 	<Header onAvatarClick={() => (isDrawerOpen = true)} />
 

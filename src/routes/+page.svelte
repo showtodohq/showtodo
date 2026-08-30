@@ -101,7 +101,34 @@
 	}
 
 	// ---------------------------------------------------------------------------
-	// 人次打卡口径统计 (Svelte 5 $derived 细粒度推导)
+	// 响应式数据拉取：仅在真实切换日期或切换用户账号时才重新拉取，杜绝发布时的多余 Refetch
+	// ---------------------------------------------------------------------------
+	let prevUserId = $state<string | undefined>(undefined);
+	let prevDate = $state<string>('');
+
+	$effect(() => {
+		const curDate = selectedDate;
+		const curUserId = userStore.id;
+
+		// 仅在初次加载、日期真实改变，或用户 ID 真正发生改变时才拉取
+		if (curDate !== prevDate || curUserId !== prevUserId) {
+			prevDate = curDate;
+			prevUserId = curUserId;
+			loadDailyTodos();
+		}
+	});
+
+	onMount(() => {
+		if (browser) {
+			const savedFilter = localStorage.getItem(VIEW_FILTER_KEY) as 'all' | 'mine' | null;
+			if (savedFilter === 'all' || savedFilter === 'mine') {
+				viewFilter = savedFilter;
+			}
+		}
+	});
+
+	// ---------------------------------------------------------------------------
+	// 人次打卡口径统计与排序 (Svelte 5 $derived 细粒度推导)
 	// ---------------------------------------------------------------------------
 	// 全网人次统计
 	const globalTotal = $derived(
@@ -120,10 +147,24 @@
 		myParticipatedCards.filter((c) => findMyParticipant(c)?.status === 'done').length
 	);
 
-	// 实际渲染呈现的列表 (受 viewFilter 过滤)
-	const displayedCards = $derived(
-		viewFilter === 'mine' ? myParticipatedCards : cards
-	);
+	// 计算卡片的有效排序时间戳：个人参与的取本人加入时间，未参与的取该目标首发立项时间
+	function getEffectiveCreatedAt(card: DailyCard): number {
+		const my = findMyParticipant(card);
+		if (my && my.createdAt) {
+			const t = new Date(my.createdAt).getTime();
+			if (!isNaN(t)) return t;
+		}
+		const times = card.participants
+			.map((p) => new Date(p.createdAt).getTime())
+			.filter((t) => !isNaN(t));
+		return times.length > 0 ? Math.min(...times) : 0;
+	}
+
+	// 实际渲染呈现的列表 (受 viewFilter 过滤，并严格按个人有效时间倒序排列)
+	const displayedCards = $derived.by(() => {
+		const base = viewFilter === 'mine' ? myParticipatedCards : cards;
+		return [...base].sort((a, b) => getEffectiveCreatedAt(b) - getEffectiveCreatedAt(a));
+	});
 
 	// ---------------------------------------------------------------------------
 	// 状态变更与本地变异 + 全屏灵动庆祝动效 (0ms 即时响应)
@@ -135,13 +176,12 @@
 		const nextStatus: TodoStatus = prevStatus === 'done' ? 'pending' : 'done';
 		const prevDoneCount = card.doneCount;
 
-		// 触发全屏庆祝动效
+		// 触发全屏庆祝动效 (300 颗粒子超级漫天大撒花)
 		if (nextStatus === 'done') {
-			// 1. 单次轻盈全屏撒花（以点击位置为发射源）
 			if (event) {
-				confetti.burst(event.clientX, event.clientY, 40);
+				confetti.burst(event.clientX, event.clientY, 300);
 			} else {
-				confetti.burst(undefined, undefined, 40);
+				confetti.burst(undefined, undefined, 300);
 			}
 		}
 
@@ -246,18 +286,207 @@
 		}
 	}
 
-	onMount(() => {
-		if (browser) {
-			const savedFilter = localStorage.getItem(VIEW_FILTER_KEY) as 'all' | 'mine' | null;
-			if (savedFilter === 'all' || savedFilter === 'mine') {
-				viewFilter = savedFilter;
+
+	import { CATEGORIES } from '$lib/constants/categories';
+	import type { CategoryId } from '$lib/types/todo';
+
+	// ---------------------------------------------------------------------------
+	// 快速发布框状态与自动收起交互
+	// ---------------------------------------------------------------------------
+	let newTodoContent = $state('');
+	let selectedCategory = $state<CategoryId | null>(null);
+	let isComposerFocused = $state(false);
+	let submitting = $state(false);
+	let composerContainerRef = $state<HTMLDivElement | null>(null);
+
+	const isComposerExpanded = $derived(isComposerFocused || newTodoContent.trim().length > 0);
+
+	function handleClickOutside(e: MouseEvent) {
+		if (composerContainerRef && !composerContainerRef.contains(e.target as Node)) {
+			// 仅在无内容时点击外部自动收起
+			if (!newTodoContent.trim()) {
+				isComposerFocused = false;
 			}
 		}
-		loadDailyTodos();
-	});
+	}
+
+	function handleGlobalKeydown(e: KeyboardEvent) {
+		if (e.key === 'Escape') {
+			if (isComposerFocused) {
+				if (!newTodoContent.trim()) {
+					isComposerFocused = false;
+				} else {
+					// 有内容时按 ESC 优先收起焦点
+					isComposerFocused = false;
+				}
+			}
+		}
+	}
+
+	async function handleCreateTodo() {
+		const clean = newTodoContent.trim();
+		if (!clean || submitting) return;
+
+		if (!userStore.email) {
+			toast.info('请先点击右上角头像设置您的发布邮箱');
+			return;
+		}
+
+		submitting = true;
+		const email = userStore.email;
+		const category = selectedCategory;
+		const content = clean;
+
+		// 构造临时本地参与者对象
+		const tempId = `temp-${Date.now()}`;
+		const myParticipant: CardParticipant = {
+			todoId: tempId,
+			shortId: tempId,
+			status: 'pending',
+			createdAt: new Date().toISOString(),
+			isMe: true,
+			user: {
+				id: userStore.id || '',
+				nickname: userStore.nickname,
+				handle: userStore.handle,
+				avatar: userStore.avatar
+			}
+		};
+
+		// 检查本地列表中是否已存在同名目标
+		const existingCardIndex = cards.findIndex(
+			(c) => c.content.trim().toLowerCase() === content.toLowerCase() && (c.category ?? null) === (category ?? null)
+		);
+
+		const prevCards = [...cards];
+
+		try {
+			await optimisticAction({
+				apply: () => {
+					if (existingCardIndex >= 0) {
+						// 并入已存在的聚合目标
+						const targetCard = cards[existingCardIndex];
+						targetCard.participants.unshift(myParticipant);
+						targetCard.totalParticipants += 1;
+						targetCard.isMultiplayer = true;
+					} else {
+						// 插入全新的聚合卡片至顶部
+						const newCard: DailyCard = {
+							topicHash: `temp-topic-${Date.now()}`,
+							content,
+							category,
+							isMultiplayer: false,
+							totalParticipants: 1,
+							doneCount: 0,
+							participants: [myParticipant]
+						};
+						cards.unshift(newCard);
+					}
+					// 清空输入框并收起
+					newTodoContent = '';
+					selectedCategory = null;
+					isComposerFocused = false;
+				},
+				rollback: () => {
+					cards = prevCards;
+				},
+				action: async () => {
+					const res = await api.createTodo({
+						email,
+						content,
+						category: category ?? undefined,
+						startDate: selectedDate
+					});
+					myParticipant.todoId = res.todo.id;
+					myParticipant.shortId = res.todo.shortId;
+					if (res.author) {
+						userStore.updateUserFromProfile(res.author);
+					}
+				},
+				onError: (err) => {
+					toast.error(`发布失败: ${(err as Error).message}`);
+				}
+			});
+
+			toast.success('已发布今日待办！');
+		} catch {
+			// handled by onError
+		} finally {
+			submitting = false;
+		}
+	}
+
+	function handleComposerKeydown(e: KeyboardEvent) {
+		if (e.key === 'Enter' && !e.shiftKey) {
+			e.preventDefault();
+			handleCreateTodo();
+		} else if (e.key === 'Escape') {
+			isComposerFocused = false;
+		}
+	}
 </script>
 
-<div class="w-full space-y-4">
+<svelte:window onclick={handleClickOutside} onkeydown={handleGlobalKeydown} />
+
+<div class="w-full space-y-6">
+	<!-- 顶部 Twitter / X 风格极简快速发布框 (支持自动展开与收缩) -->
+	<div
+		bind:this={composerContainerRef}
+		class="rounded-2xl border border-zinc-200/80 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-3 sm:p-3.5 transition-all duration-200 shadow-2xs focus-within:border-zinc-300 dark:focus-within:border-zinc-700"
+	>
+		<div class="flex gap-3">
+			<!-- 左侧用户头像 -->
+			<div class="shrink-0 pt-0.5">
+				<Avatar src={userStore.avatar} name={userStore.nickname} size="sm" class="h-7.5 w-7.5 ring-1 ring-zinc-200/80 dark:ring-zinc-800" />
+			</div>
+
+			<!-- 右侧主输入与操作区 -->
+			<div class="flex-1 min-w-0 space-y-2">
+				<!-- 无边框自适应输入区 -->
+				<textarea
+					bind:value={newTodoContent}
+					onkeydown={handleComposerKeydown}
+					onfocus={() => (isComposerFocused = true)}
+					placeholder={userStore.email ? "记录今天的一个目标... (Enter 发送)" : "写下今天的一个目标... (需先设置邮箱)"}
+					rows={isComposerExpanded ? 2 : 1}
+					class="w-full resize-none bg-transparent text-sm font-medium placeholder:text-zinc-400 dark:placeholder:text-zinc-500 text-zinc-900 dark:text-zinc-100 focus:outline-hidden leading-relaxed transition-all duration-150 py-0.5"
+				></textarea>
+
+				<!-- 工具栏与胶囊发布按钮：仅在聚焦或有内容时平滑展开呈现 -->
+				{#if isComposerExpanded}
+					<div class="flex items-center justify-between pt-1 border-t border-zinc-100 dark:border-zinc-900/80 gap-2 animate-in fade-in duration-150">
+						<!-- 分类快捷标签选择器 -->
+						<div class="flex items-center gap-1 overflow-x-auto py-0.5 scrollbar-none">
+							{#each CATEGORIES as cat}
+								{@const isSelected = selectedCategory === cat.id}
+								<button
+									type="button"
+									onclick={() => (selectedCategory = isSelected ? null : cat.id)}
+									class="flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium transition-all duration-150 cursor-pointer {isSelected ? 'bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900 shadow-xs' : 'text-zinc-500 hover:text-zinc-800 dark:text-zinc-400 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-900'}"
+									title="选择分类: {cat.name}"
+								>
+									<span class="h-1.5 w-1.5 rounded-full shrink-0" style="background-color: {cat.color};"></span>
+									{cat.name}
+								</button>
+							{/each}
+						</div>
+
+						<!-- 经典 Twitter 胶囊药丸发布按钮 -->
+						<button
+							type="button"
+							onclick={handleCreateTodo}
+							disabled={!newTodoContent.trim() || submitting}
+							class="rounded-full bg-zinc-900 px-4 py-1.5 text-xs font-semibold text-white dark:bg-zinc-100 dark:text-zinc-900 hover:opacity-90 active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed transition-all cursor-pointer shrink-0 shadow-xs"
+						>
+							{submitting ? '发布中...' : '发布'}
+						</button>
+					</div>
+				{/if}
+			</div>
+		</div>
+	</div>
+
+	<!-- 单行状态栏：日期导航 + 个人/全网打卡统计 -->
 	<!-- 顶部单行状态栏：日期导航 + 个人/全网打卡统计 (可点击切换，激活态呈现下划线) -->
 	<div class="flex items-center justify-between text-xs py-1 px-0.5 text-zinc-600 dark:text-zinc-400 select-none">
 		<!-- 左侧：日期导航控制器 -->
@@ -369,11 +598,11 @@
 
 	<!-- 待办内容区 -->
 	{#if loading}
-		<div class="flex justify-center py-16 text-zinc-400">
+		<div class="flex justify-center py-20 text-zinc-400">
 			<Spinner size="md" />
 		</div>
 	{:else if displayedCards.length === 0}
-		<div class="rounded-xl border border-dashed border-zinc-200 dark:border-zinc-800 py-16 text-center text-xs text-zinc-400">
+		<div class="rounded-2xl border border-dashed border-zinc-200 dark:border-zinc-800/80 py-20 text-center text-xs text-zinc-400">
 			{#if viewFilter === 'mine'}
 				当前日期您暂无参与的待办
 				<button
@@ -388,8 +617,8 @@
 			{/if}
 		</div>
 	{:else}
-		<!-- 今日待办列表：允许浮层向上溢出 (避免 overflow-hidden 裁切第一行的 Tooltip) -->
-		<div class="divide-y divide-zinc-100 dark:divide-zinc-800/80 rounded-xl border border-zinc-200/80 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-xs">
+		<!-- 今日待办列表：无边框无分割线，用优雅宽敞的留白呼吸感代替 -->
+		<div class="space-y-1.5 sm:space-y-2">
 			{#each displayedCards as card (card.topicHash)}
 				{@const myParticipant = findMyParticipant(card)}
 				{@const isMultiplayer = card.isMultiplayer || card.totalParticipants > 1}
@@ -399,9 +628,9 @@
 				{@const isCompletedVisual = (myParticipant && myParticipant.status === 'done') || isSoloDone || isAllDone}
 				{@const catConfig = getCategoryConfig(card.category)}
 
-				<div class="transition-colors hover:bg-zinc-50/50 dark:hover:bg-zinc-800/40 first:rounded-t-xl last:rounded-b-xl relative hover:z-20">
+				<div class="group/row rounded-xl px-3 py-2.5 sm:px-4 sm:py-3 transition-colors duration-150 hover:bg-zinc-100/80 dark:hover:bg-zinc-900 relative hover:z-20">
 					<!-- 主行 Item 主体 -->
-					<div class="flex items-center justify-between gap-3 px-4 py-3.5 sm:px-5">
+					<div class="flex items-center justify-between gap-3.5">
 						<!-- 左侧：统一待办勾选框（当前用户可操作，他人只读清晰区分） + 分类圆点 + 正文内容 -->
 						<div class="flex items-center gap-3 min-w-0 flex-1">
 							{#if myParticipant}
@@ -423,7 +652,7 @@
 							{:else if isSoloDone || isAllDone}
 								<!-- 他人待办：已达成状态（清晰浅灰底 + 深灰实心勾，对比度适中易辨识） -->
 								<div
-									class="flex h-4.5 w-4.5 shrink-0 items-center justify-center rounded-full border border-zinc-300 dark:border-zinc-600 bg-zinc-150 bg-zinc-200/70 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 cursor-default select-none shadow-2xs"
+									class="flex h-4.5 w-4.5 shrink-0 items-center justify-center rounded-full border border-zinc-300 dark:border-zinc-600 bg-zinc-200/70 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 cursor-default select-none shadow-2xs"
 									title={isAllDone ? '全员已达成（他人）' : '作者已完成（他人）'}
 								>
 									<svg class="h-2.5 w-2.5 stroke-[2.5]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -469,7 +698,7 @@
 								<button
 									type="button"
 									onclick={() => toggleExpand(card.topicHash)}
-									class="flex items-center gap-1 rounded-md px-1.5 py-1 text-xs text-zinc-500 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-800 transition-colors cursor-pointer"
+									class="flex items-center gap-1 rounded-md px-1.5 py-1 text-xs text-zinc-500 hover:bg-zinc-200/70 dark:text-zinc-400 dark:hover:bg-zinc-800 transition-colors cursor-pointer"
 									title="展开同行者"
 								>
 									<span class="text-[11px] font-mono text-zinc-400">
@@ -490,15 +719,15 @@
 						{:else if card.participants[0]}
 							<!-- 单人 Todo：右侧展示统一作者头像与悬停 Tooltip -->
 							{@const author = card.participants[0].user}
-							<div class="pr-1">
+							<div class="pr-0.5">
 								{@render userAvatarTooltip(author, false)}
 							</div>
 						{/if}
 					</div>
 
-					<!-- 多人 Todo 展开区：行内展示同行者打卡记录与“一起做” -->
+					<!-- 多人 Todo 展开区：行内展示同行者打卡记录与“一起做” (纯留白背景无生硬边框) -->
 					{#if isMultiplayer && isExpanded}
-						<div class="border-t border-zinc-100 dark:border-zinc-800/60 bg-zinc-50/50 dark:bg-zinc-900/50 px-4 py-3 sm:px-5 space-y-2.5 animate-in fade-in duration-150">
+						<div class="rounded-lg bg-zinc-100/80 dark:bg-zinc-900 p-3 mt-2 space-y-2 animate-in fade-in duration-150">
 							<div class="flex items-center justify-between text-[11px] font-semibold text-zinc-400 uppercase tracking-wider">
 								<span>同行伙伴打卡 ({card.totalParticipants})</span>
 								{#if !myParticipant}
