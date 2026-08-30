@@ -163,23 +163,50 @@ export function validateStatusTransition(from: TodoStatus, to: TodoStatus): void
 }
 
 export function validateDate(value: unknown): string {
-	if (typeof value !== 'string' || !DATE_REGEX.test(value)) {
+	if (typeof value !== 'string' || !DATE_REGEX.test(value.trim())) {
 		throw new AppError('VALIDATION_ERROR', 'Invalid date format. Use YYYY-MM-DD');
 	}
-	const parsed = new Date(value + 'T00:00:00Z');
+	const trimmed = value.trim();
+	const parsed = new Date(trimmed + 'T00:00:00Z');
 	if (isNaN(parsed.getTime())) {
 		throw new AppError('VALIDATION_ERROR', 'Invalid date');
 	}
-	const [y, m, d] = value.split('-').map(Number);
+	const [y, m, d] = trimmed.split('-').map(Number);
 	if (parsed.getUTCFullYear() !== y || parsed.getUTCMonth() + 1 !== m || parsed.getUTCDate() !== d) {
 		throw new AppError('VALIDATION_ERROR', 'Invalid date');
 	}
-	return value;
+	return trimmed;
 }
 
 export function validateOptionalDate(value: unknown): string | null {
 	if (value === null || value === undefined) return null;
 	return validateDate(value);
+}
+
+export function validateDateTime(value: unknown): string {
+	if (typeof value !== 'string') {
+		throw new AppError('VALIDATION_ERROR', 'Invalid date-time format');
+	}
+	const trimmed = value.trim();
+	if (trimmed.length === 0) {
+		throw new AppError('VALIDATION_ERROR', 'Invalid date-time format');
+	}
+
+	if (DATE_REGEX.test(trimmed)) {
+		validateDate(trimmed);
+		return new Date(`${trimmed}T00:00:00.000Z`).toISOString();
+	}
+
+	const parsed = new Date(trimmed);
+	if (isNaN(parsed.getTime())) {
+		throw new AppError('VALIDATION_ERROR', 'Invalid date-time format');
+	}
+	return parsed.toISOString();
+}
+
+export function validateOptionalDateTime(value: unknown): string | null {
+	if (value === null || value === undefined) return null;
+	return validateDateTime(value);
 }
 
 export function validateUUID(value: unknown): string {

@@ -33,15 +33,17 @@ describe('create', () => {
 			isNotePublic: false,
 			category: 'dev',
 			authorId: testUser.id,
-			startDate: '2026-08-26',
-			dueDate: '2026-09-01'
+			startDate: '2026-08-26T14:30:00.000Z',
+			dueDate: '2026-09-01T18:00:00.000Z'
 		});
 		expect(todo.content).toBe('Full todo');
 		expect(todo.note).toBe('Some note');
 		expect(todo.isNotePublic).toBe(false);
 		expect(todo.category).toBe('dev');
-		expect(todo.startDate).toBe('2026-08-26');
-		expect(todo.dueDate).toBe('2026-09-01');
+		expect(todo.startDate).toBeInstanceOf(Date);
+		expect(todo.startDate.toISOString()).toBe('2026-08-26T14:30:00.000Z');
+		expect(todo.dueDate).toBeInstanceOf(Date);
+		expect(todo.dueDate!.toISOString()).toBe('2026-09-01T18:00:00.000Z');
 	});
 
 	test('defaults startDate to today when not provided', async () => {
@@ -49,7 +51,25 @@ describe('create', () => {
 			content: 'Date test',
 			authorId: testUser.id
 		});
-		expect(todo.startDate).toBeTruthy();
+		expect(todo.startDate).toBeInstanceOf(Date);
+	});
+
+	test('updates startDate and dueDate with precise timestamps', async () => {
+		const todo = await todoService.create(testDb, {
+			content: 'Precise time test',
+			authorId: testUser.id,
+			startDate: '2026-08-26'
+		});
+
+		const updated = await todoService.update(testDb, todo.id, 'test@example.com', {
+			startDate: '2026-08-27T08:00:00.000Z',
+			dueDate: '2026-08-30T23:59:59.000Z'
+		});
+
+		expect(updated.startDate).toBeInstanceOf(Date);
+		expect(updated.startDate.toISOString()).toBe('2026-08-27T08:00:00.000Z');
+		expect(updated.dueDate).toBeInstanceOf(Date);
+		expect(updated.dueDate!.toISOString()).toBe('2026-08-30T23:59:59.000Z');
 	});
 
 	test('updates author lastTodoUpdatedAt on creation', async () => {

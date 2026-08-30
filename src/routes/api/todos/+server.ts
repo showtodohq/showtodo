@@ -9,7 +9,7 @@ import {
 	validateContent,
 	validateNote,
 	validateCategory,
-	validateOptionalDate,
+	validateOptionalDateTime,
 	validateBoolean,
 	validateStatus,
 	validateLimit
@@ -29,8 +29,8 @@ export const POST: RequestHandler = async ({ request }) => {
 		const note = validateNote(body.note);
 		const isNotePublic = validateBoolean(body.isNotePublic, true);
 		const category = validateCategory(body.category);
-		const startDate = validateOptionalDate(body.startDate) ?? undefined;
-		const dueDate = validateOptionalDate(body.dueDate);
+		const startDate = validateOptionalDateTime(body.startDate) ?? undefined;
+		const dueDate = validateOptionalDateTime(body.dueDate);
 
 		const user = await userService.findOrCreate(db, email);
 		const todo = await todoService.create(db, {

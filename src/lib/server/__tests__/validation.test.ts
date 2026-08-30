@@ -10,6 +10,8 @@ import {
 	validateActivityContent,
 	validateDate,
 	validateOptionalDate,
+	validateDateTime,
+	validateOptionalDateTime,
 	validateUUID,
 	validateLimit,
 	validateBoolean,
@@ -279,6 +281,40 @@ describe('validateOptionalDate', () => {
 
 	test('validates non-null value', () => {
 		expect(validateOptionalDate('2026-08-25')).toBe('2026-08-25');
+	});
+});
+
+describe('validateDateTime', () => {
+	test('accepts pure YYYY-MM-DD date and normalizes to UTC ISO string', () => {
+		expect(validateDateTime('2026-08-25')).toBe('2026-08-25T00:00:00.000Z');
+	});
+
+	test('accepts full ISO 8601 string with UTC time', () => {
+		expect(validateDateTime('2026-08-25T14:30:00.000Z')).toBe('2026-08-25T14:30:00.000Z');
+	});
+
+	test('accepts full ISO 8601 string with timezone offset', () => {
+		const result = validateDateTime('2026-08-25T18:00:00+08:00');
+		expect(new Date(result).getUTCHours()).toBe(10);
+	});
+
+	test('rejects invalid date string', () => {
+		expect(() => validateDateTime('invalid-date')).toThrow(AppError);
+	});
+
+	test('rejects non-string values', () => {
+		expect(() => validateDateTime(1234567890)).toThrow(AppError);
+	});
+});
+
+describe('validateOptionalDateTime', () => {
+	test('accepts null and undefined', () => {
+		expect(validateOptionalDateTime(null)).toBeNull();
+		expect(validateOptionalDateTime(undefined)).toBeNull();
+	});
+
+	test('validates non-null value', () => {
+		expect(validateOptionalDateTime('2026-08-25')).toBe('2026-08-25T00:00:00.000Z');
 	});
 });
 

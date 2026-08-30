@@ -29,8 +29,8 @@ export const todos = pgTable(
 			.notNull()
 			.references(() => users.id),
 		status: todoStatusEnum('status').notNull().default('pending'),
-		startDate: date('start_date').notNull().defaultNow(),
-		dueDate: date('due_date'),
+		startDate: timestamp('start_date', { withTimezone: true }).notNull().defaultNow(),
+		dueDate: timestamp('due_date', { withTimezone: true }),
 		createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 		updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow().$onUpdate(() => new Date())
 	},

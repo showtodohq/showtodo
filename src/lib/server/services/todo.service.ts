@@ -77,10 +77,10 @@ export async function create(db: Database, data: CreateTodoData) {
 		isNotePublic: data.isNotePublic ?? true,
 		category: data.category ?? null,
 		authorId: data.authorId,
-		dueDate: data.dueDate ?? null
+		dueDate: data.dueDate ? new Date(data.dueDate) : null
 	};
 	if (data.startDate !== undefined) {
-		values.startDate = data.startDate;
+		values.startDate = new Date(data.startDate);
 	}
 
 	const result = await db
@@ -223,8 +223,8 @@ export async function update(db: Database, idOrShortId: string, authorEmail: str
 	if (data.isNotePublic !== undefined) updateData.isNotePublic = data.isNotePublic;
 	if (data.category !== undefined) updateData.category = data.category;
 	if (data.status !== undefined) updateData.status = data.status;
-	if (data.startDate !== undefined) updateData.startDate = data.startDate;
-	if (data.dueDate !== undefined) updateData.dueDate = data.dueDate;
+	if (data.startDate !== undefined) updateData.startDate = new Date(data.startDate);
+	if (data.dueDate !== undefined) updateData.dueDate = data.dueDate ? new Date(data.dueDate) : null;
 
 	// 若 content 或 category 发生变化，重新计算 topicHash
 	const effectiveContent = data.content !== undefined ? data.content : todo.content;
@@ -322,14 +322,15 @@ export async function listDailyCards(
 	const isMeSql = currentUserId ? sql`(u.id = ${currentUserId}::uuid)` : sql`FALSE`;
 	const isMeOrderSql = currentUserId ? sql`(u.id = ${currentUserId}::uuid)` : sql`FALSE`;
 
-	// 1. 查询符合条件的总卡片数
+	// 1. 查询符合条件的总卡片数 (使用 TIMESTAMPTZ 开闭范围比较)
 	const countQuery = sql`
 		SELECT COUNT(*)::int AS total
 		FROM (
 			SELECT t.topic_hash
 			FROM todos t
 			JOIN users u ON t.author_id = u.id
-			WHERE t.start_date = ${options.targetDate}
+			WHERE t.start_date >= ${options.targetDate}::date 
+				AND t.start_date < (${options.targetDate}::date + INTERVAL '1 day')
 				${categoryFilter}
 			GROUP BY t.topic_hash
 			${havingClause}
@@ -374,15 +375,12 @@ export async function listDailyCards(
 			) AS participants
 		FROM todos t
 		JOIN users u ON t.author_id = u.id
-		WHERE t.start_date = ${options.targetDate}
+		WHERE t.start_date >= ${options.targetDate}::date 
+			AND t.start_date < (${options.targetDate}::date + INTERVAL '1 day')
 			${categoryFilter}
 		GROUP BY t.topic_hash
 		${havingClause}
-		ORDER BY 
-			COALESCE(
-				MAX(CASE WHEN ${isMeSql} THEN t.created_at ELSE NULL END),
-				MIN(t.created_at)
-			) DESC
+		ORDER BY MAX(t.created_at) DESC
 		LIMIT ${limit} OFFSET ${offset}
 	`;
 
@@ -444,8 +442,8 @@ export async function listForCalendar(
 
 	const conditions = [
 		inArray(todos.authorId, options.authorIds),
-		gte(todos.startDate, options.startDateFrom),
-		lte(todos.startDate, options.startDateTo)
+		gte(todos.startDate, sql`${options.startDateFrom}::date`),
+		lt(todos.startDate, sql`(${options.startDateTo}::date + INTERVAL '1 day')`)
 	];
 
 	if (options.category && options.category !== 'all') {
