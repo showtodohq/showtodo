@@ -4,6 +4,19 @@ export type CategoryId = 'study' | 'fitness' | 'finance' | 'dev' | 'life' | 'oth
 
 export type ReactionEmoji = '👀' | '🔥' | '💪' | '👏';
 
+export type TodoActivityType = 'created' | 'status_change' | 'progress_note';
+
+export interface TodoActivity {
+	id: string;
+	todoId: string;
+	authorId: string;
+	type: TodoActivityType;
+	fromStatus: TodoStatus | null;
+	toStatus: TodoStatus | null;
+	content: string | null;
+	createdAt: string;
+}
+
 export interface Author {
 	id: string;
 	handle: string;
@@ -28,6 +41,7 @@ export interface Todo {
 	updatedAt: string;
 	author?: Author;
 	reactions?: Record<string, number>;
+	activities?: TodoActivity[];
 }
 
 export interface ReactionDetail {
@@ -60,6 +74,7 @@ export interface UpdateTodoInput {
 	status?: TodoStatus;
 	startDate?: string;
 	dueDate?: string | null;
+	activityNote?: string | null;
 }
 
 export interface TodoListQuery {

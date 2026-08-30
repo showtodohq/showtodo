@@ -10,28 +10,31 @@ interface Particle {
 	y: number;
 	vx: number;
 	vy: number;
-	size: number;
+	width: number;
+	height: number;
 	color: string;
-	shape: 'rect' | 'circle' | 'star';
+	shape: 'rect' | 'circle' | 'star' | 'ribbon';
 	rotation: number;
 	vRotation: number;
-	scale: number;
+	rotationY: number;
+	vRotationY: number;
 	opacity: number;
 	life: number;
 	maxLife: number;
 }
 
-const PASTEL_COLORS = [
-	'#FF6B6B', // 珊瑚红
-	'#4ECDC4', // 薄荷绿
-	'#45B7D1', // 天空蓝
-	'#FFA07A', // 浅橙
-	'#98D8C8', // 浅绿
-	'#F7DC6F', // 柠檬黄
-	'#BB8FCE', // 浅紫
-	'#F1948A', // 蜜桃粉
-	'#85C1E9', // 冰蓝
-	'#F8C471'  // 暖黄
+// 高饱和度、高对比度、鲜艳夺目的派对庆祝配色 (Vibrant Party Palette)
+const VIBRANT_COLORS = [
+	'#FF135A', // 鲜亮红
+	'#FF5E00', // 荧光橙
+	'#FFD700', // 灿金黄
+	'#00E676', // 电光绿
+	'#00D2FF', // 霓虹青蓝
+	'#7C4DFF', // 幻彩电紫
+	'#FF007F', // 耀眼洋红
+	'#FF3366', // 烈焰粉
+	'#00F5D4', // 绿松石青
+	'#FEE440'  // 柠檬金
 ];
 
 class ConfettiEngine {
@@ -80,36 +83,40 @@ class ConfettiEngine {
 	}
 
 	/**
-	 * 单次轻盈全屏纸屑喷发
+	 * 单次高饱和度、璀璨全屏纸屑喷发
 	 * @param originX 发射源 X 坐标（默认屏幕中心）
 	 * @param originY 发射源 Y 坐标（默认屏幕中心）
 	 * @param count 粒子数量
 	 */
-	burst(originX?: number, originY?: number, count = 45) {
+	burst(originX?: number, originY?: number, count = 65) {
 		if (!browser) return;
 		this.initCanvas();
 
 		const x = originX ?? this.width / 2;
 		const y = originY ?? this.height / 2;
 
-		const shapes: ('rect' | 'circle' | 'star')[] = ['rect', 'circle', 'star'];
+		const shapes: ('rect' | 'circle' | 'star' | 'ribbon')[] = ['rect', 'rect', 'circle', 'star', 'ribbon'];
 
 		for (let i = 0; i < count; i++) {
 			const angle = Math.random() * Math.PI * 2;
-			const speed = 4 + Math.random() * 9;
-			const maxLife = 70 + Math.random() * 40;
+			const speed = 6 + Math.random() * 11;
+			const maxLife = 75 + Math.random() * 45;
+			const shape = shapes[Math.floor(Math.random() * shapes.length)];
+			const baseSize = 6 + Math.random() * 6;
 
 			this.particles.push({
 				x,
 				y,
-				vx: Math.cos(angle) * speed + (Math.random() - 0.5) * 2,
-				vy: Math.sin(angle) * speed - 3 - Math.random() * 4, // 初始向上喷射冲量
-				size: 5 + Math.random() * 5,
-				color: PASTEL_COLORS[Math.floor(Math.random() * PASTEL_COLORS.length)],
-				shape: shapes[Math.floor(Math.random() * shapes.length)],
+				vx: Math.cos(angle) * speed + (Math.random() - 0.5) * 3,
+				vy: Math.sin(angle) * speed - 4 - Math.random() * 5, // 强劲向上喷发冲量
+				width: shape === 'ribbon' ? baseSize * 0.5 : baseSize,
+				height: shape === 'ribbon' ? baseSize * 2.2 : baseSize * 0.9,
+				color: VIBRANT_COLORS[Math.floor(Math.random() * VIBRANT_COLORS.length)],
+				shape,
 				rotation: Math.random() * 360,
-				vRotation: (Math.random() - 0.5) * 12,
-				scale: 1,
+				vRotation: (Math.random() - 0.5) * 14,
+				rotationY: Math.random() * 360,
+				vRotationY: (Math.random() - 0.5) * 16,
 				opacity: 1,
 				life: 0,
 				maxLife
@@ -128,39 +135,43 @@ class ConfettiEngine {
 		if (!browser) return;
 		this.initCanvas();
 
-		// 第 1 波：左侧礼炮向右上喷发
-		this.burstCannon(this.width * 0.15, this.height * 0.85, Math.PI / 4, 70);
+		// 第 1 波：左侧强劲礼炮向右上喷发
+		this.burstCannon(this.width * 0.12, this.height * 0.88, Math.PI / 4, 85);
 
-		// 第 2 波（300ms 后）：右侧礼炮向左上喷发
+		// 第 2 波（280ms 后）：右侧强劲礼炮向左上喷发
 		setTimeout(() => {
-			this.burstCannon(this.width * 0.85, this.height * 0.85, (Math.PI * 3) / 4, 70);
-		}, 300);
+			this.burstCannon(this.width * 0.88, this.height * 0.88, (Math.PI * 3) / 4, 85);
+		}, 280);
 
-		// 第 3 波（600ms 后）：全屏中央 360 度超级大喷发
+		// 第 3 波（560ms 后）：全屏中央 360 度超级绚烂大爆发
 		setTimeout(() => {
-			this.burst(this.width / 2, this.height * 0.45, 100);
-		}, 600);
+			this.burst(this.width / 2, this.height * 0.4, 130);
+		}, 560);
 	}
 
-	private burstCannon(x: number, y: number, centerAngle: number, count = 60) {
-		const shapes: ('rect' | 'circle' | 'star')[] = ['rect', 'circle', 'star'];
+	private burstCannon(x: number, y: number, centerAngle: number, count = 75) {
+		const shapes: ('rect' | 'circle' | 'star' | 'ribbon')[] = ['rect', 'rect', 'circle', 'star', 'ribbon'];
 
 		for (let i = 0; i < count; i++) {
 			const angle = centerAngle + (Math.random() - 0.5) * (Math.PI / 3);
-			const speed = 10 + Math.random() * 12;
-			const maxLife = 85 + Math.random() * 45;
+			const speed = 12 + Math.random() * 15;
+			const maxLife = 90 + Math.random() * 45;
+			const shape = shapes[Math.floor(Math.random() * shapes.length)];
+			const baseSize = 7 + Math.random() * 7;
 
 			this.particles.push({
 				x,
 				y,
 				vx: Math.cos(angle) * speed,
 				vy: -Math.abs(Math.sin(angle) * speed),
-				size: 6 + Math.random() * 6,
-				color: PASTEL_COLORS[Math.floor(Math.random() * PASTEL_COLORS.length)],
-				shape: shapes[Math.floor(Math.random() * shapes.length)],
+				width: shape === 'ribbon' ? baseSize * 0.5 : baseSize,
+				height: shape === 'ribbon' ? baseSize * 2.2 : baseSize * 0.9,
+				color: VIBRANT_COLORS[Math.floor(Math.random() * VIBRANT_COLORS.length)],
+				shape,
 				rotation: Math.random() * 360,
-				vRotation: (Math.random() - 0.5) * 16,
-				scale: 1,
+				vRotation: (Math.random() - 0.5) * 18,
+				rotationY: Math.random() * 360,
+				vRotationY: (Math.random() - 0.5) * 20,
 				opacity: 1,
 				life: 0,
 				maxLife
@@ -177,29 +188,30 @@ class ConfettiEngine {
 
 		this.ctx.clearRect(0, 0, this.width, this.height);
 
-		const gravity = 0.22;
-		const drag = 0.985;
+		const gravity = 0.24;
+		const drag = 0.988;
 
 		for (let i = this.particles.length - 1; i >= 0; i--) {
 			const p = this.particles[i];
 			p.life += 1;
 
-			// 物理更新
+			// 物理速度衰减与重力下落
 			p.vx *= drag;
 			p.vy = p.vy * drag + gravity;
 			p.x += p.vx;
 			p.y += p.vy;
 			p.rotation += p.vRotation;
+			p.rotationY += p.vRotationY;
 
-			// 淡出计算
+			// 衰减与自然淡出
 			const progress = p.life / p.maxLife;
-			p.opacity = Math.max(0, 1 - progress);
+			p.opacity = Math.max(0, 1 - Math.pow(progress, 1.5));
 
-			// 绘制粒子
+			// 绘制炫彩粒子
 			this.drawParticle(p);
 
-			// 移除衰减完成的粒子
-			if (p.life >= p.maxLife || p.y > this.height + 50) {
+			// 移除离开视口或寿命结束的粒子
+			if (p.life >= p.maxLife || p.y > this.height + 60) {
 				this.particles.splice(i, 1);
 			}
 		}
@@ -218,20 +230,28 @@ class ConfettiEngine {
 		this.ctx.save();
 		this.ctx.translate(p.x, p.y);
 		this.ctx.rotate((p.rotation * Math.PI) / 180);
+
+		// 逼真的 3D 空间翻转缩放 (Flip 3D)
+		const scaleY = Math.cos((p.rotationY * Math.PI) / 180);
+		this.ctx.scale(1, scaleY);
+
 		this.ctx.globalAlpha = p.opacity;
 		this.ctx.fillStyle = p.color;
 
 		if (p.shape === 'circle') {
 			this.ctx.beginPath();
-			this.ctx.arc(0, 0, p.size / 2, 0, Math.PI * 2);
+			this.ctx.arc(0, 0, p.width / 2, 0, Math.PI * 2);
 			this.ctx.fill();
 		} else if (p.shape === 'star') {
-			this.drawStar(this.ctx, 0, 0, 5, p.size / 2, p.size / 4);
+			this.drawStar(this.ctx, 0, 0, 5, p.width * 0.8, p.width * 0.4);
+		} else if (p.shape === 'ribbon') {
+			// 长条飘带，略带微圆角
+			this.ctx.beginPath();
+			this.ctx.roundRect(-p.width / 2, -p.height / 2, p.width, p.height, 2);
+			this.ctx.fill();
 		} else {
-			// 3D 翻转效果
-			const scaleY = Math.cos((p.rotation * Math.PI) / 90);
-			this.ctx.scale(1, scaleY);
-			this.ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size * 0.7);
+			// 经典节日方形纸屑
+			this.ctx.fillRect(-p.width / 2, -p.height / 2, p.width, p.height);
 		}
 
 		this.ctx.restore();

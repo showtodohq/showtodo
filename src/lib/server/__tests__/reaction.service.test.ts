@@ -113,7 +113,9 @@ describe('getByTodoId', () => {
 		const result = await reactionService.getByTodoId(testDb, testTodo.id);
 		expect(result[0].users[0]).toEqual({
 			id: testUser.id,
-			nickname: 'test'
+			nickname: 'test',
+			handle: testUser.handle,
+			avatar: null
 		});
 	});
 });

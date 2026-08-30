@@ -7,6 +7,7 @@ import {
 	validateEmoji,
 	validateStatus,
 	validateStatusTransition,
+	validateActivityContent,
 	validateDate,
 	validateOptionalDate,
 	validateUUID,
@@ -188,49 +189,60 @@ describe('validateStatus', () => {
 	});
 });
 
+describe('validateActivityContent', () => {
+	test('accepts null and undefined', () => {
+		expect(validateActivityContent(null)).toBeNull();
+		expect(validateActivityContent(undefined)).toBeNull();
+	});
+
+	test('accepts normal text', () => {
+		expect(validateActivityContent('  Started progress on module A  ')).toBe(
+			'Started progress on module A'
+		);
+	});
+
+	test('returns null for empty or whitespace-only string', () => {
+		expect(validateActivityContent('')).toBeNull();
+		expect(validateActivityContent('   ')).toBeNull();
+	});
+
+	test('rejects activity note over 1000 chars', () => {
+		expect(() => validateActivityContent('a'.repeat(1001))).toThrow(AppError);
+	});
+
+	test('accepts activity note at exactly 1000 chars', () => {
+		const note = 'a'.repeat(1000);
+		expect(validateActivityContent(note)).toBe(note);
+	});
+
+	test('rejects non-string non-null', () => {
+		expect(() => validateActivityContent(123)).toThrow(AppError);
+	});
+});
+
 describe('validateStatusTransition', () => {
-	test('allows pending → in_progress', () => {
+	test('allows pending → in_progress, done, abandoned', () => {
 		expect(() => validateStatusTransition('pending', 'in_progress')).not.toThrow();
-	});
-
-	test('allows pending → done', () => {
 		expect(() => validateStatusTransition('pending', 'done')).not.toThrow();
-	});
-
-	test('allows pending → abandoned', () => {
 		expect(() => validateStatusTransition('pending', 'abandoned')).not.toThrow();
 	});
 
-	test('allows in_progress → done', () => {
+	test('allows in_progress → pending, done, abandoned', () => {
+		expect(() => validateStatusTransition('in_progress', 'pending')).not.toThrow();
 		expect(() => validateStatusTransition('in_progress', 'done')).not.toThrow();
-	});
-
-	test('allows in_progress → abandoned', () => {
 		expect(() => validateStatusTransition('in_progress', 'abandoned')).not.toThrow();
 	});
 
-	test('rejects done → pending', () => {
-		expect(() => validateStatusTransition('done', 'pending')).toThrow(AppError);
+	test('allows done → in_progress, pending, abandoned (reactivation)', () => {
+		expect(() => validateStatusTransition('done', 'in_progress')).not.toThrow();
+		expect(() => validateStatusTransition('done', 'pending')).not.toThrow();
+		expect(() => validateStatusTransition('done', 'abandoned')).not.toThrow();
 	});
 
-	test('rejects done → in_progress', () => {
-		expect(() => validateStatusTransition('done', 'in_progress')).toThrow(AppError);
-	});
-
-	test('rejects abandoned → pending', () => {
-		expect(() => validateStatusTransition('abandoned', 'pending')).toThrow(AppError);
-	});
-
-	test('rejects in_progress → pending', () => {
-		expect(() => validateStatusTransition('in_progress', 'pending')).toThrow(AppError);
-	});
-
-	test('rejects done → abandoned', () => {
-		expect(() => validateStatusTransition('done', 'abandoned')).toThrow(AppError);
-	});
-
-	test('rejects abandoned → in_progress', () => {
-		expect(() => validateStatusTransition('abandoned', 'in_progress')).toThrow(AppError);
+	test('allows abandoned → pending, in_progress, done (reactivation)', () => {
+		expect(() => validateStatusTransition('abandoned', 'pending')).not.toThrow();
+		expect(() => validateStatusTransition('abandoned', 'in_progress')).not.toThrow();
+		expect(() => validateStatusTransition('abandoned', 'done')).not.toThrow();
 	});
 });
 

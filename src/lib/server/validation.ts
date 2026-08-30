@@ -11,10 +11,23 @@ export type TodoStatus = (typeof VALID_STATUSES)[number];
 
 const ALLOWED_TRANSITIONS: Record<TodoStatus, readonly TodoStatus[]> = {
 	pending: ['in_progress', 'done', 'abandoned'],
-	in_progress: ['done', 'abandoned'],
-	done: [],
-	abandoned: []
+	in_progress: ['pending', 'done', 'abandoned'],
+	done: ['in_progress', 'pending', 'abandoned'],
+	abandoned: ['pending', 'in_progress', 'done']
 };
+
+export function validateActivityContent(value: unknown): string | null {
+	if (value === null || value === undefined) return null;
+	if (typeof value !== 'string') {
+		throw new AppError('VALIDATION_ERROR', 'activity note must be a string');
+	}
+	const trimmed = value.trim();
+	if (trimmed.length === 0) return null;
+	if (trimmed.length > 1000) {
+		throw new AppError('VALIDATION_ERROR', 'activity note must be at most 1000 characters');
+	}
+	return trimmed;
+}
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;

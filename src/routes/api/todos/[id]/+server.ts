@@ -10,7 +10,8 @@ import {
 	validateCategory,
 	validateOptionalDate,
 	validateBoolean,
-	validateStatus
+	validateStatus,
+	validateActivityContent
 } from '$lib/server/validation';
 
 export const GET: RequestHandler = async ({ params }) => {
@@ -43,6 +44,7 @@ export const PATCH: RequestHandler = async ({ params, request }) => {
 		if (body.status !== undefined) data.status = validateStatus(body.status);
 		if (body.startDate !== undefined) data.startDate = validateOptionalDate(body.startDate);
 		if (body.dueDate !== undefined) data.dueDate = validateOptionalDate(body.dueDate);
+		if (body.activityNote !== undefined) data.activityNote = validateActivityContent(body.activityNote);
 
 		const updated = await todoService.update(db, params.id, email, data);
 

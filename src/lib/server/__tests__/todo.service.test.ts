@@ -313,86 +313,110 @@ describe('update', () => {
 });
 
 describe('status transitions', () => {
-	test('allows pending → in_progress', async () => {
+	test('allows pending → in_progress, done, abandoned', async () => {
 		const todo = await todoService.create(testDb, { content: 'Todo', authorId: testUser.id });
-		const updated = await todoService.update(testDb, todo.id, 'test@example.com', {
+		const updated1 = await todoService.update(testDb, todo.id, 'test@example.com', {
 			status: 'in_progress'
 		});
-		expect(updated.status).toBe('in_progress');
-	});
+		expect(updated1.status).toBe('in_progress');
 
-	test('allows pending → done', async () => {
-		const todo = await todoService.create(testDb, { content: 'Todo', authorId: testUser.id });
-		const updated = await todoService.update(testDb, todo.id, 'test@example.com', {
+		const todo2 = await todoService.create(testDb, { content: 'Todo 2', authorId: testUser.id });
+		const updated2 = await todoService.update(testDb, todo2.id, 'test@example.com', {
 			status: 'done'
 		});
-		expect(updated.status).toBe('done');
-	});
+		expect(updated2.status).toBe('done');
 
-	test('allows pending → abandoned', async () => {
-		const todo = await todoService.create(testDb, { content: 'Todo', authorId: testUser.id });
-		const updated = await todoService.update(testDb, todo.id, 'test@example.com', {
+		const todo3 = await todoService.create(testDb, { content: 'Todo 3', authorId: testUser.id });
+		const updated3 = await todoService.update(testDb, todo3.id, 'test@example.com', {
 			status: 'abandoned'
 		});
-		expect(updated.status).toBe('abandoned');
+		expect(updated3.status).toBe('abandoned');
 	});
 
-	test('allows in_progress → done', async () => {
+	test('allows in_progress → done, abandoned, pending', async () => {
 		const todo = await todoService.create(testDb, { content: 'Todo', authorId: testUser.id });
 		await todoService.update(testDb, todo.id, 'test@example.com', { status: 'in_progress' });
+		
 		const updated = await todoService.update(testDb, todo.id, 'test@example.com', {
-			status: 'done'
+			status: 'pending'
 		});
-		expect(updated.status).toBe('done');
+		expect(updated.status).toBe('pending');
 	});
 
-	test('allows in_progress → abandoned', async () => {
-		const todo = await todoService.create(testDb, { content: 'Todo', authorId: testUser.id });
-		await todoService.update(testDb, todo.id, 'test@example.com', { status: 'in_progress' });
-		const updated = await todoService.update(testDb, todo.id, 'test@example.com', {
-			status: 'abandoned'
-		});
-		expect(updated.status).toBe('abandoned');
-	});
-
-	test('rejects done → pending', async () => {
+	test('allows done → in_progress (reactivation)', async () => {
 		const todo = await todoService.create(testDb, { content: 'Todo', authorId: testUser.id });
 		await todoService.update(testDb, todo.id, 'test@example.com', { status: 'done' });
 
-		try {
-			await todoService.update(testDb, todo.id, 'test@example.com', { status: 'pending' });
-			expect.unreachable('Should have thrown');
-		} catch (e) {
-			expect(e).toBeInstanceOf(AppError);
-			expect((e as AppError).code).toBe('INVALID_STATUS_TRANSITION');
-		}
+		const reactivated = await todoService.update(testDb, todo.id, 'test@example.com', {
+			status: 'in_progress'
+		});
+		expect(reactivated.status).toBe('in_progress');
 	});
 
-	test('rejects done → in_progress', async () => {
-		const todo = await todoService.create(testDb, { content: 'Todo', authorId: testUser.id });
-		await todoService.update(testDb, todo.id, 'test@example.com', { status: 'done' });
-
-		await expect(
-			todoService.update(testDb, todo.id, 'test@example.com', { status: 'in_progress' })
-		).rejects.toThrow(AppError);
-	});
-
-	test('rejects abandoned → pending', async () => {
+	test('allows abandoned → pending (reactivation)', async () => {
 		const todo = await todoService.create(testDb, { content: 'Todo', authorId: testUser.id });
 		await todoService.update(testDb, todo.id, 'test@example.com', { status: 'abandoned' });
 
-		await expect(
-			todoService.update(testDb, todo.id, 'test@example.com', { status: 'pending' })
-		).rejects.toThrow(AppError);
+		const reactivated = await todoService.update(testDb, todo.id, 'test@example.com', {
+			status: 'pending'
+		});
+		expect(reactivated.status).toBe('pending');
+	});
+});
+
+describe('activities behavior', () => {
+	test('records created activity on todo creation', async () => {
+		const todo = await todoService.create(testDb, { content: 'Activity test', authorId: testUser.id });
+		const found = await todoService.findById(testDb, todo.id);
+
+		expect(found!.activities).toBeDefined();
+		expect(found!.activities).toHaveLength(1);
+		expect(found!.activities![0].type).toBe('created');
+		expect(found!.activities![0].toStatus).toBe('pending');
+		expect(found!.activities![0].authorId).toBe(testUser.id);
 	});
 
-	test('rejects in_progress → pending', async () => {
-		const todo = await todoService.create(testDb, { content: 'Todo', authorId: testUser.id });
-		await todoService.update(testDb, todo.id, 'test@example.com', { status: 'in_progress' });
+	test('records status_change activity on status update', async () => {
+		const todo = await todoService.create(testDb, { content: 'Status log test', authorId: testUser.id });
+		await todoService.update(testDb, todo.id, 'test@example.com', {
+			status: 'in_progress',
+			activityNote: 'Starting right now'
+		});
 
-		await expect(
-			todoService.update(testDb, todo.id, 'test@example.com', { status: 'pending' })
-		).rejects.toThrow(AppError);
+		const found = await todoService.findById(testDb, todo.id);
+		expect(found!.activities).toHaveLength(2);
+
+		const second = found!.activities![1];
+		expect(second.type).toBe('status_change');
+		expect(second.fromStatus).toBe('pending');
+		expect(second.toStatus).toBe('in_progress');
+		expect(second.content).toBe('Starting right now');
+	});
+
+	test('records progress_note when status is unchanged but activityNote is provided', async () => {
+		const todo = await todoService.create(testDb, { content: 'Check-in test', authorId: testUser.id });
+		await todoService.update(testDb, todo.id, 'test@example.com', {
+			activityNote: 'Finished part 1 today'
+		});
+
+		const found = await todoService.findById(testDb, todo.id);
+		expect(found!.activities).toHaveLength(2);
+
+		const second = found!.activities![1];
+		expect(second.type).toBe('progress_note');
+		expect(second.fromStatus).toBe('pending');
+		expect(second.toStatus).toBe('pending');
+		expect(second.content).toBe('Finished part 1 today');
+	});
+
+	test('does not record activity when neither status changes nor activityNote is provided', async () => {
+		const todo = await todoService.create(testDb, { content: 'Content edit only', authorId: testUser.id });
+		await todoService.update(testDb, todo.id, 'test@example.com', {
+			content: 'Updated content'
+		});
+
+		const found = await todoService.findById(testDb, todo.id);
+		expect(found!.activities).toHaveLength(1); // Only created
 	});
 });
 

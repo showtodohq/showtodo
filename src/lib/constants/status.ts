@@ -130,9 +130,9 @@ export function getStatusConfig(status: TodoStatus | string): StatusConfig {
  */
 export const ALLOWED_STATUS_TRANSITIONS: Record<TodoStatus, TodoStatus[]> = {
 	pending: ['in_progress', 'done', 'abandoned'],
-	in_progress: ['done', 'abandoned'],
-	done: [],
-	abandoned: []
+	in_progress: ['pending', 'done', 'abandoned'],
+	done: ['in_progress', 'pending', 'abandoned'],
+	abandoned: ['pending', 'in_progress', 'done']
 };
 
 export function canTransitionTo(current: TodoStatus, target: TodoStatus): boolean {

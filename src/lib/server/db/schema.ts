@@ -2,6 +2,7 @@ import { pgTable, text, boolean, timestamp, date, pgEnum, uuid, unique, index } 
 import { relations } from 'drizzle-orm';
 
 export const todoStatusEnum = pgEnum('todo_status', ['pending', 'in_progress', 'done', 'abandoned']);
+export const activityTypeEnum = pgEnum('todo_activity_type', ['created', 'status_change', 'progress_note']);
 
 export const users = pgTable('users', {
 	id: uuid('id').primaryKey().defaultRandom(),
@@ -52,10 +53,30 @@ export const reactions = pgTable(
 	(table) => [unique('reaction_todo_user_emoji_unique').on(table.todoId, table.userId, table.emoji)]
 );
 
+export const todoActivities = pgTable(
+	'todo_activities',
+	{
+		id: uuid('id').primaryKey().defaultRandom(),
+		todoId: uuid('todo_id')
+			.notNull()
+			.references(() => todos.id, { onDelete: 'cascade' }),
+		authorId: uuid('author_id')
+			.notNull()
+			.references(() => users.id),
+		type: activityTypeEnum('type').notNull().default('status_change'),
+		fromStatus: todoStatusEnum('from_status'),
+		toStatus: todoStatusEnum('to_status'),
+		content: text('content'),
+		createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow()
+	},
+	(table) => [index('idx_todo_activities_todo_created').on(table.todoId, table.createdAt)]
+);
+
 // Relations for Drizzle query builder
 export const usersRelations = relations(users, ({ many }) => ({
 	todos: many(todos),
-	reactions: many(reactions)
+	reactions: many(reactions),
+	activities: many(todoActivities)
 }));
 
 export const todosRelations = relations(todos, ({ one, many }) => ({
@@ -63,7 +84,8 @@ export const todosRelations = relations(todos, ({ one, many }) => ({
 		fields: [todos.authorId],
 		references: [users.id]
 	}),
-	reactions: many(reactions)
+	reactions: many(reactions),
+	activities: many(todoActivities)
 }));
 
 export const reactionsRelations = relations(reactions, ({ one }) => ({
@@ -73,6 +95,17 @@ export const reactionsRelations = relations(reactions, ({ one }) => ({
 	}),
 	user: one(users, {
 		fields: [reactions.userId],
+		references: [users.id]
+	})
+}));
+
+export const todoActivitiesRelations = relations(todoActivities, ({ one }) => ({
+	todo: one(todos, {
+		fields: [todoActivities.todoId],
+		references: [todos.id]
+	}),
+	author: one(users, {
+		fields: [todoActivities.authorId],
 		references: [users.id]
 	})
 }));

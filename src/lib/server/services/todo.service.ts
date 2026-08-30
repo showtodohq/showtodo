@@ -4,6 +4,7 @@ import type { Database } from '../db';
 import type { Category, TodoStatus } from '../validation';
 import { validateStatusTransition, generateShortId, isUUID } from '../validation';
 import * as reactionService from './reaction.service';
+import * as activityService from './activity.service';
 import { AppError } from '../errors';
 import { computeTopicHash } from '../topic-hash';
 import type { DailyCardResponse, DailyCard, CardParticipant } from '$lib/types/todo';
@@ -26,6 +27,7 @@ export interface UpdateTodoData {
 	status?: TodoStatus;
 	startDate?: string;
 	dueDate?: string | null;
+	activityNote?: string | null;
 }
 
 export interface ListTodosFilters {
@@ -86,12 +88,22 @@ export async function create(db: Database, data: CreateTodoData) {
 		.values(values as typeof todos.$inferInsert)
 		.returning();
 
+	const createdTodo = result[0];
+
+	// 记录初始创建动态
+	await activityService.recordActivity(db, {
+		todoId: createdTodo.id,
+		authorId: data.authorId,
+		type: 'created',
+		toStatus: createdTodo.status as TodoStatus
+	});
+
 	await db
 		.update(users)
 		.set({ lastTodoUpdatedAt: new Date() })
 		.where(eq(users.id, data.authorId));
 
-	return result[0];
+	return createdTodo;
 }
 
 export async function findById(db: Database, id: string) {
@@ -115,12 +127,16 @@ export async function findByIdOrShortId(db: Database, identifier: string) {
 	if (!result[0]) return null;
 
 	const { todos: todo, users: author } = result[0];
-	const reactionCounts = await reactionService.getCountsByTodoIds(db, [todo.id]);
+	const [reactionCounts, activities] = await Promise.all([
+		reactionService.getCountsByTodoIds(db, [todo.id]),
+		activityService.listByTodoId(db, todo.id)
+	]);
 
 	return {
 		...sanitizeNote(todo),
 		author: { id: author.id, nickname: author.nickname, handle: author.handle, avatar: author.avatar },
-		reactions: reactionCounts[todo.id] ?? { '👀': 0, '🔥': 0, '💪': 0, '👏': 0 }
+		reactions: reactionCounts[todo.id] ?? { '👀': 0, '🔥': 0, '💪': 0, '👏': 0 },
+		activities
 	};
 }
 
@@ -196,8 +212,9 @@ export async function update(db: Database, idOrShortId: string, authorEmail: str
 		throw new AppError('FORBIDDEN', 'Only the author can update this todo');
 	}
 
-	if (data.status && data.status !== todo.status) {
-		validateStatusTransition(todo.status as TodoStatus, data.status);
+	const isStatusChanged = Boolean(data.status && data.status !== todo.status);
+	if (isStatusChanged) {
+		validateStatusTransition(todo.status as TodoStatus, data.status!);
 	}
 
 	const updateData: Record<string, unknown> = {};
@@ -216,14 +233,39 @@ export async function update(db: Database, idOrShortId: string, authorEmail: str
 		updateData.topicHash = computeTopicHash(effectiveCategory, effectiveContent);
 	}
 
-	const result = await db.update(todos).set(updateData).where(eq(todos.id, todo.id)).returning();
+	const result = Object.keys(updateData).length > 0
+		? await db.update(todos).set(updateData).where(eq(todos.id, todo.id)).returning()
+		: [todo];
+
+	const updatedTodo = result[0];
+
+	// 记录活动日志
+	if (isStatusChanged) {
+		await activityService.recordActivity(db, {
+			todoId: todo.id,
+			authorId: todo.authorId,
+			type: 'status_change',
+			fromStatus: todo.status as TodoStatus,
+			toStatus: data.status!,
+			content: data.activityNote ?? null
+		});
+	} else if (data.activityNote && data.activityNote.trim().length > 0) {
+		await activityService.recordActivity(db, {
+			todoId: todo.id,
+			authorId: todo.authorId,
+			type: 'progress_note',
+			fromStatus: todo.status as TodoStatus,
+			toStatus: todo.status as TodoStatus,
+			content: data.activityNote.trim()
+		});
+	}
 
 	await db
 		.update(users)
 		.set({ lastTodoUpdatedAt: new Date() })
 		.where(eq(users.id, todo.authorId));
 
-	return result[0];
+	return updatedTodo;
 }
 
 export async function getTopicInfoByTodoId(db: Database, idOrShortId: string) {
