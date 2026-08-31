@@ -4,7 +4,7 @@
 	import type { DailyCard, CardParticipant, TodoStatus } from '$lib/types/todo';
 	import { api } from '$lib/services/api';
 	import { userStore } from '$lib/stores/user.svelte';
-	import { getAvatarUrl } from '$lib/services/avatar';
+	import Avatar from '$lib/components/ui/Avatar.svelte';
 	import { TODO_STATUSES, getStatusConfig, ALLOWED_STATUS_TRANSITIONS } from '$lib/constants/status';
 
 	// ---------------------------------------------------------------------------
@@ -496,10 +496,10 @@
 
 				<!-- 当前登录身份展示 -->
 				<div class="flex items-center gap-2">
-					<img
-						src={getAvatarUrl(userStore.avatar, userStore.nickname, 40)}
-						alt="current avatar"
-						class="h-7 w-7 rounded-full border border-zinc-200 bg-zinc-100 dark:border-zinc-700"
+					<Avatar
+						src={userStore.avatar}
+						name={userStore.nickname}
+						size="sm"
 					/>
 					<div class="hidden text-right sm:block">
 						<div class="text-xs font-semibold text-zinc-900 dark:text-zinc-100">{userStore.nickname}</div>
@@ -808,10 +808,11 @@
 									{#each card.participants as p (p.todoId)}
 										{@const isMe = isCurrentParticipant(p)}
 										<div class="flex items-center gap-1.5 rounded-full border border-zinc-200/80 bg-zinc-50/80 px-2.5 py-1 text-xs dark:border-zinc-800 dark:bg-zinc-800/60 {isMe ? 'ring-1 ring-zinc-900 dark:ring-white bg-zinc-100 dark:bg-zinc-800' : ''}">
-											<img
-												src={getAvatarUrl(p.user.avatar, p.user.nickname, 40)}
-												alt={p.user.nickname}
-												class="h-4.5 w-4.5 rounded-full object-cover bg-zinc-200"
+											<Avatar
+												src={p.user.avatar}
+												name={p.user.nickname}
+												size="xs"
+												class="h-4.5 w-4.5"
 											/>
 											<span class="text-xs font-medium text-zinc-800 dark:text-zinc-200">
 												{p.user.nickname}{isMe ? ' (我)' : ''}
@@ -851,10 +852,11 @@
 										{@const isMe = isCurrentParticipant(p)}
 										<div class="flex items-center justify-between border-b border-zinc-200/40 pb-2 last:border-0 last:pb-0 dark:border-zinc-700/40">
 											<div class="flex items-center gap-2">
-												<img
-													src={getAvatarUrl(p.user.avatar, p.user.nickname, 40)}
-													alt={p.user.nickname}
-													class="h-6 w-6 rounded-full object-cover bg-zinc-200"
+												<Avatar
+													src={p.user.avatar}
+													name={p.user.nickname}
+													size="xs"
+													class="h-6 w-6"
 												/>
 												<div>
 													<div class="font-medium text-zinc-800 dark:text-zinc-200">
