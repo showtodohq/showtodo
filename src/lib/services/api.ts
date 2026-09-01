@@ -98,6 +98,10 @@ export const api = {
 		if (query?.authorId) params.set('authorId', query.authorId);
 		if (query?.cursor) params.set('cursor', query.cursor);
 		if (query?.limit) params.set('limit', String(query.limit));
+		if (query?.startDateFrom) params.set('startDateFrom', query.startDateFrom);
+		if (query?.startDateTo) params.set('startDateTo', query.startDateTo);
+		if (query?.dueDateFrom) params.set('dueDateFrom', query.dueDateFrom);
+		if (query?.dueDateTo) params.set('dueDateTo', query.dueDateTo);
 
 		const qs = params.toString();
 		return request<TodoListResponse>(`/api/todos${qs ? `?${qs}` : ''}`, undefined, customFetch);

@@ -466,7 +466,7 @@ describe('topicHash behavior', () => {
 		expect(todo1.topicHash).toBe(todo2.topicHash);
 	});
 
-	test('recomputes topicHash when content or category is modified', async () => {
+	test('recomputes topicHash when content is modified, but preserves it when category is modified', async () => {
 		const todo = await todoService.create(testDb, {
 			content: '读《原则》第1章',
 			category: 'study',
@@ -480,11 +480,11 @@ describe('topicHash behavior', () => {
 		});
 		expect(updatedContent.topicHash).not.toBe(initialHash);
 
-		// 2. Update category
+		// 2. Update category (should preserve topicHash under content-only hashing)
 		const updatedCategory = await todoService.update(testDb, todo.id, 'test@example.com', {
 			category: 'finance'
 		});
-		expect(updatedCategory.topicHash).not.toBe(updatedContent.topicHash);
+		expect(updatedCategory.topicHash).toBe(updatedContent.topicHash);
 	});
 
 	test('preserves topicHash when updating status, note, or date', async () => {

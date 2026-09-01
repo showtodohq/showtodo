@@ -23,12 +23,10 @@ export function normalizeContent(content: string): string {
 
 /**
  * 计算待办内容的 topic_hash (SHA-256 前 16 位十六进制)
- * topic_hash = SHA256( (category || '') + ":" + normalize(content) ).substring(0, 16)
+ * topic_hash = SHA256( normalize(content) ).substring(0, 16)
  */
-export function computeTopicHash(category: string | null | undefined, content: string): string {
-	const catKey = (category ?? '').trim().toLowerCase();
+export function computeTopicHash(content: string): string {
 	const normalizedContent = normalizeContent(content);
-	const raw = `${catKey}:${normalizedContent}`;
-
-	return createHash('sha256').update(raw, 'utf8').digest('hex').substring(0, 16);
+	return createHash('sha256').update(normalizedContent, 'utf8').digest('hex').substring(0, 16);
 }
+

@@ -3,7 +3,7 @@ import { AppError } from './errors';
 export const VALID_CATEGORIES = ['study', 'fitness', 'finance', 'dev', 'life', 'other'] as const;
 export type Category = (typeof VALID_CATEGORIES)[number];
 
-export const VALID_EMOJIS = ['👀', '🔥', '💪', '👏'] as const;
+export const VALID_EMOJIS = ['❤️', '👍', '🔥', '💪', '👏', '🚀', '🎉', '👀'] as const;
 export type Emoji = (typeof VALID_EMOJIS)[number];
 
 export const VALID_STATUSES = ['pending', 'in_progress', 'done', 'abandoned'] as const;

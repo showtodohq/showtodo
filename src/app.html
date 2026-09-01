@@ -4,6 +4,14 @@
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
 		<meta name="theme-color" content="#18181b" />
+		<script>
+			try {
+				const mode = localStorage.getItem('app_theme_mode') || 'system';
+				const isDark = mode === 'dark' || (mode === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+				if (isDark) document.documentElement.classList.add('dark');
+				else document.documentElement.classList.remove('dark');
+			} catch (_) {}
+		</script>
 		%sveltekit.head%
 	</head>
 	<body class="h-full antialiased" data-sveltekit-preload-data="hover">

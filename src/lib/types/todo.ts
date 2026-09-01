@@ -2,7 +2,7 @@ export type TodoStatus = 'pending' | 'in_progress' | 'done' | 'abandoned';
 
 export type CategoryId = 'study' | 'fitness' | 'finance' | 'dev' | 'life' | 'other';
 
-export type ReactionEmoji = '👀' | '🔥' | '💪' | '👏';
+export type ReactionEmoji = '❤️' | '👍' | '🔥' | '💪' | '👏' | '🚀' | '🎉' | '👀';
 
 export type TodoActivityType = 'created' | 'status_change' | 'progress_note';
 
@@ -83,6 +83,10 @@ export interface TodoListQuery {
 	authorId?: string;
 	cursor?: string;
 	limit?: number;
+	startDateFrom?: string;
+	startDateTo?: string;
+	dueDateFrom?: string;
+	dueDateTo?: string;
 }
 
 export interface TodoListResponse {
@@ -94,6 +98,7 @@ export interface CardParticipant {
 	todoId: string;
 	shortId: string;
 	status: TodoStatus;
+	note?: string | null;
 	createdAt: string;
 	isMe: boolean;
 	user: {

@@ -29,38 +29,30 @@ describe('normalizeContent', () => {
 
 describe('computeTopicHash', () => {
 	test('produces deterministic 16-character hex string', () => {
-		const hash1 = computeTopicHash('study', '每天背50个单词');
-		const hash2 = computeTopicHash('study', '每天背50个单词');
+		const hash1 = computeTopicHash('每天背50个单词');
+		const hash2 = computeTopicHash('每天背50个单词');
 		expect(hash1).toHaveLength(16);
 		expect(hash1).toBe(hash2);
 		expect(/^[0-9a-f]{16}$/.test(hash1)).toBe(true);
 	});
 
 	test('matches identical content with slight formatting/punctuation differences', () => {
-		const hash1 = computeTopicHash('study', '  每天背50个单词。 ');
-		const hash2 = computeTopicHash('study', '每天背50个单词');
-		const hash3 = computeTopicHash('study', '每天背50个单词！');
+		const hash1 = computeTopicHash('  每天背50个单词。 ');
+		const hash2 = computeTopicHash('每天背50个单词');
+		const hash3 = computeTopicHash('每天背50个单词！');
 		expect(hash1).toBe(hash2);
 		expect(hash2).toBe(hash3);
 	});
 
-	test('produces different hash for different categories with same content', () => {
-		const hashStudy = computeTopicHash('study', '读《原则》');
-		const hashFinance = computeTopicHash('finance', '读《原则》');
-		expect(hashStudy).not.toBe(hashFinance);
+	test('produces same hash for same content regardless of context', () => {
+		const hash1 = computeTopicHash('读《原则》');
+		const hash2 = computeTopicHash('读《原则》');
+		expect(hash1).toBe(hash2);
 	});
 
-	test('produces different hash for different content with same category', () => {
-		const hash1 = computeTopicHash('fitness', '晨跑 5 公里');
-		const hash2 = computeTopicHash('fitness', '夜跑 5 公里');
+	test('produces different hash for different content', () => {
+		const hash1 = computeTopicHash('晨跑 5 公里');
+		const hash2 = computeTopicHash('夜跑 5 公里');
 		expect(hash1).not.toBe(hash2);
-	});
-
-	test('handles null and undefined category equivalently', () => {
-		const hashNull = computeTopicHash(null, '早起喝水');
-		const hashUndefined = computeTopicHash(undefined, '早起喝水');
-		const hashEmpty = computeTopicHash('', '早起喝水');
-		expect(hashNull).toBe(hashUndefined);
-		expect(hashNull).toBe(hashEmpty);
 	});
 });

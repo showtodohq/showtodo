@@ -119,7 +119,7 @@ export async function getCountsByTodoIds(db: Database, todoIds: string[]) {
 
 	const countsMap: Record<string, Record<string, number>> = {};
 	for (const todoId of validUuids) {
-		countsMap[todoId] = { '👀': 0, '🔥': 0, '💪': 0, '👏': 0 };
+		countsMap[todoId] = { '❤️': 0, '👍': 0, '🔥': 0, '💪': 0, '👏': 0, '🚀': 0, '🎉': 0, '👀': 0 };
 	}
 	for (const row of result) {
 		if (countsMap[row.todoId]) {

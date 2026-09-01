@@ -32,9 +32,37 @@ export function formatRelativeTime(dateInput: string | Date | number): string {
 }
 
 /**
+ * 格式化短日期 (如 09-01)
+ */
+export function formatShortDate(dateInput: string | Date | number): string {
+	const d = new Date(dateInput);
+	if (isNaN(d.getTime())) return '';
+	const m = String(d.getMonth() + 1).padStart(2, '0');
+	const day = String(d.getDate()).padStart(2, '0');
+	return `${m}-${day}`;
+}
+
+/**
+ * 格式化排期范围 (如 "09-01 ~ 09-03", "截止于 09-03", "09-01 开始")
+ */
+export function formatScheduleRange(startDate?: string | null, dueDate?: string | null): string | null {
+	const s = startDate ? formatShortDate(startDate) : null;
+	const d = dueDate ? formatShortDate(dueDate) : null;
+
+	if (s && d) {
+		if (s === d) return `${s}`;
+		return `${s} ~ ${d}`;
+	}
+	if (d) return `截止 ${d}`;
+	if (s) return `${s}`;
+	return null;
+}
+
+/**
  * 字符串安全截断
  */
 export function truncate(text: string, maxLength: number, suffix = '...'): string {
 	if (!text || text.length <= maxLength) return text;
 	return text.slice(0, maxLength) + suffix;
 }
+

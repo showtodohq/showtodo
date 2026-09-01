@@ -36,6 +36,10 @@ export interface ListTodosFilters {
 	authorId?: string;
 	cursor?: string;
 	limit?: number;
+	startDateFrom?: string;
+	startDateTo?: string;
+	dueDateFrom?: string;
+	dueDateTo?: string;
 }
 
 export interface ListDailyCardsOptions {
@@ -67,7 +71,7 @@ async function generateUniqueShortId(db: Database): Promise<string> {
 
 export async function create(db: Database, data: CreateTodoData) {
 	const shortId = await generateUniqueShortId(db);
-	const topicHash = computeTopicHash(data.category, data.content);
+	const topicHash = computeTopicHash(data.content);
 
 	const values: Record<string, unknown> = {
 		shortId,
@@ -135,7 +139,7 @@ export async function findByIdOrShortId(db: Database, identifier: string) {
 	return {
 		...sanitizeNote(todo),
 		author: { id: author.id, nickname: author.nickname, handle: author.handle, avatar: author.avatar },
-		reactions: reactionCounts[todo.id] ?? { '👀': 0, '🔥': 0, '💪': 0, '👏': 0 },
+		reactions: reactionCounts[todo.id] ?? { '❤️': 0, '👍': 0, '🔥': 0, '💪': 0, '👏': 0, '🚀': 0, '🎉': 0, '👀': 0 },
 		activities
 	};
 }
@@ -152,6 +156,18 @@ export async function list(db: Database, filters: ListTodosFilters) {
 	}
 	if (filters.authorId && isUUID(filters.authorId)) {
 		conditions.push(eq(todos.authorId, filters.authorId));
+	}
+	if (filters.startDateFrom) {
+		conditions.push(gte(todos.startDate, new Date(filters.startDateFrom)));
+	}
+	if (filters.startDateTo) {
+		conditions.push(lte(todos.startDate, new Date(filters.startDateTo)));
+	}
+	if (filters.dueDateFrom) {
+		conditions.push(gte(todos.dueDate, new Date(filters.dueDateFrom)));
+	}
+	if (filters.dueDateTo) {
+		conditions.push(lte(todos.dueDate, new Date(filters.dueDateTo)));
 	}
 	if (filters.cursor && isUUID(filters.cursor)) {
 		const cursorTodo = await db
@@ -184,7 +200,7 @@ export async function list(db: Database, filters: ListTodosFilters) {
 	const todoList = items.map(({ todos: todo, users: author }) => ({
 		...sanitizeNote(todo),
 		author: { id: author.id, nickname: author.nickname, handle: author.handle, avatar: author.avatar },
-		reactions: allReactionCounts[todo.id] ?? { '👀': 0, '🔥': 0, '💪': 0, '👏': 0 }
+		reactions: allReactionCounts[todo.id] ?? { '❤️': 0, '👍': 0, '🔥': 0, '💪': 0, '👏': 0, '🚀': 0, '🎉': 0, '👀': 0 }
 	}));
 
 	return {
@@ -226,11 +242,9 @@ export async function update(db: Database, idOrShortId: string, authorEmail: str
 	if (data.startDate !== undefined) updateData.startDate = new Date(data.startDate);
 	if (data.dueDate !== undefined) updateData.dueDate = data.dueDate ? new Date(data.dueDate) : null;
 
-	// 若 content 或 category 发生变化，重新计算 topicHash
-	const effectiveContent = data.content !== undefined ? data.content : todo.content;
-	const effectiveCategory = data.category !== undefined ? data.category : todo.category;
-	if (data.content !== undefined || data.category !== undefined) {
-		updateData.topicHash = computeTopicHash(effectiveCategory, effectiveContent);
+	// 若 content 发生变化，重新计算 topicHash
+	if (data.content !== undefined) {
+		updateData.topicHash = computeTopicHash(data.content);
 	}
 
 	const result = Object.keys(updateData).length > 0
@@ -363,6 +377,7 @@ export async function listDailyCards(
 					'todoId', t.id,
 					'shortId', t.short_id,
 					'status', t.status,
+					'note', CASE WHEN t.is_note_public OR ${isMeSql} THEN t.note ELSE NULL END,
 					'createdAt', t.created_at,
 					'isMe', ${isMeSql},
 					'user', json_build_object(
@@ -380,7 +395,11 @@ export async function listDailyCards(
 			${categoryFilter}
 		GROUP BY t.topic_hash
 		${havingClause}
-		ORDER BY MAX(t.created_at) DESC
+		ORDER BY 
+			COALESCE(
+				MAX(CASE WHEN ${isMeSql} THEN t.created_at ELSE NULL END),
+				MIN(t.created_at)
+			) DESC
 		LIMIT ${limit} OFFSET ${offset}
 	`;
 
@@ -399,6 +418,7 @@ export async function listDailyCards(
 			todoId: p.todoId,
 			shortId: p.shortId,
 			status: p.status,
+			note: p.note ?? null,
 			createdAt: typeof p.createdAt === 'string' ? p.createdAt : new Date(p.createdAt).toISOString(),
 			isMe: Boolean(p.isMe),
 			user: {

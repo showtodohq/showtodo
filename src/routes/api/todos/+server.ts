@@ -60,7 +60,22 @@ export const GET: RequestHandler = async ({ url }) => {
 		const cursor = url.searchParams.get('cursor') ?? undefined;
 		const limit = validateLimit(url.searchParams.get('limit') ?? undefined);
 
-		const result = await todoService.list(db, { status, category, authorId, cursor, limit });
+		const startDateFrom = validateOptionalDateTime(url.searchParams.get('startDateFrom')) ?? undefined;
+		const startDateTo = validateOptionalDateTime(url.searchParams.get('startDateTo')) ?? undefined;
+		const dueDateFrom = validateOptionalDateTime(url.searchParams.get('dueDateFrom')) ?? undefined;
+		const dueDateTo = validateOptionalDateTime(url.searchParams.get('dueDateTo')) ?? undefined;
+
+		const result = await todoService.list(db, {
+			status,
+			category,
+			authorId,
+			cursor,
+			limit,
+			startDateFrom,
+			startDateTo,
+			dueDateFrom,
+			dueDateTo
+		});
 
 		return json(result);
 	} catch (e) {
