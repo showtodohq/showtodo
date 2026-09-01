@@ -68,7 +68,7 @@
 		<div class="flex items-center gap-1.5 font-semibold text-xs text-zinc-900 dark:text-zinc-100">
 			<span>🔥 热门多人 Todo</span>
 		</div>
-		<span class="text-[10px] text-zinc-400 font-mono">今日共建</span>
+		<span class="text-[10px] text-zinc-400 font-mono">今日同行</span>
 	</div>
 
 	<!-- 列表内容 -->
@@ -83,6 +83,9 @@
 	{:else}
 		<div class="space-y-2.5">
 			{#each trendingCards as card (card.topicHash)}
+				{@const hasJoined = card.participants.some(
+					(p) => p.isMe || Boolean(userStore.id && p.user.id === userStore.id)
+				)}
 				<div
 					class="p-2.5 rounded-xl bg-zinc-50/90 dark:bg-zinc-900/50 hover:bg-zinc-100/90 dark:hover:bg-zinc-900/80 transition-all border border-zinc-200/50 dark:border-zinc-800/60 space-y-2 group/card"
 				>
@@ -99,13 +102,23 @@
 							</span>
 						</div>
 
-						<button
-							type="button"
-							onclick={() => handleJoin(card)}
-							class="shrink-0 text-[11px] font-medium text-zinc-600 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-white px-2 py-0.5 rounded-md hover:bg-zinc-200/70 dark:hover:bg-zinc-800 transition-colors cursor-pointer"
-						>
-							+ 一起做
-						</button>
+						{#if hasJoined}
+							<!-- 当前用户已加入：展示已同行状态徽标 -->
+							<span
+								class="shrink-0 text-[10px] font-medium text-emerald-600 dark:text-emerald-400 bg-emerald-50/80 dark:bg-emerald-950/40 px-2 py-0.5 rounded-md border border-emerald-200/60 dark:border-emerald-800/40 select-none"
+							>
+								已同行
+							</span>
+						{:else}
+							<!-- 当前用户未加入：展示可点击的一起做按钮 -->
+							<button
+								type="button"
+								onclick={() => handleJoin(card)}
+								class="shrink-0 text-[11px] font-medium text-zinc-600 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-white px-2 py-0.5 rounded-md hover:bg-zinc-200/70 dark:hover:bg-zinc-800 transition-colors cursor-pointer"
+							>
+								+ 一起做
+							</button>
+						{/if}
 					</div>
 
 					<!-- 底部：参与人数与头像微堆叠 -->

@@ -81,12 +81,12 @@
 		<button
 			type="button"
 			onclick={handleQuickClick}
-			class="flex shrink-0 items-center justify-center rounded-full border transition-all duration-150 active:scale-85 cursor-pointer {sizeClasses[
+			class="relative flex shrink-0 items-center justify-center rounded-full border overflow-hidden transition-all duration-150 active:scale-85 cursor-pointer {sizeClasses[
 				size
 			].box} {currentStatus === 'done'
 				? 'border-zinc-900 bg-zinc-900 text-white dark:border-zinc-100 dark:bg-zinc-100 dark:text-zinc-900 shadow-xs'
 				: currentStatus === 'in_progress'
-					? 'border-blue-500 bg-blue-50/80 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400 ring-2 ring-blue-500/20'
+					? 'border-zinc-900 dark:border-zinc-100 bg-zinc-100/80 dark:bg-zinc-800/80 text-zinc-900 dark:text-zinc-100'
 					: currentStatus === 'abandoned'
 						? 'border-zinc-300 dark:border-zinc-700 bg-zinc-100 dark:bg-zinc-800 text-zinc-400'
 						: 'border-zinc-600 dark:border-zinc-300 hover:scale-110 hover:border-zinc-900 dark:hover:border-white hover:bg-zinc-100 dark:hover:bg-zinc-800'}"
@@ -109,8 +109,14 @@
 					<path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
 				</svg>
 			{:else if currentStatus === 'in_progress'}
-				<!-- 进行中：脉冲时钟/半环 -->
-				<div class="h-2 w-2 rounded-full bg-blue-500 animate-pulse"></div>
+				<!-- 进行中：右上角 1/4 扇形完全填满右上象限，严丝合缝无缝隙 -->
+				<svg
+					class="absolute inset-0 h-full w-full"
+					viewBox="0 0 24 24"
+					fill="currentColor"
+				>
+					<path d="M12 12 L12 0 A12 12 0 0 1 24 12 Z" />
+				</svg>
 			{:else if currentStatus === 'abandoned'}
 				<!-- 已放弃：极简斜叉 -->
 				<svg
@@ -145,10 +151,10 @@
 								<circle cx="12" cy="12" r="9" />
 							</svg>
 						{:else if st.id === 'in_progress'}
-							<!-- 进行中：双层同心圆矢量 SVG (继承 currentColor) -->
-							<svg class="h-2.5 w-2.5 fill-current" viewBox="0 0 24 24">
-								<circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2.2" />
-								<circle cx="12" cy="12" r="4.5" />
+							<!-- 进行中：标准 ◔ 四分之一填充圆 (外环 + 右上角 1/4 扇形填充，继承 currentColor) -->
+							<svg class="h-2.5 w-2.5" viewBox="0 0 24 24" fill="none">
+								<circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2.2" />
+								<path d="M12 12 L12 3 A9 9 0 0 1 21 12 Z" fill="currentColor" />
 							</svg>
 						{:else if st.id === 'done'}
 							<!-- 已完成：加粗打勾矢量 SVG -->
@@ -172,7 +178,7 @@
 			</div>
 		{/if}
 	{:else}
-		<!-- 他人待办：只读静态 4 态徽标 (低饱和度降噪设计) -->
+		<!-- 他人待办：只读静态 4 态徽标 (低饱和度中性降噪设计) -->
 		{#if currentStatus === 'done'}
 			<div
 				class="flex shrink-0 items-center justify-center rounded-full border border-zinc-300 dark:border-zinc-600 bg-zinc-200/70 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 cursor-default select-none shadow-2xs {sizeClasses[
@@ -190,14 +196,20 @@
 				</svg>
 			</div>
 		{:else if currentStatus === 'in_progress'}
-			<!-- 他人进行中：低调柔和的微灰底 + 暗蓝小圆点，与本人高亮明显区分 -->
+			<!-- 他人进行中：灰底 + 右上角 1/4 扇形完全填满右上象限，无空缺 -->
 			<div
-				class="flex shrink-0 items-center justify-center rounded-full border border-zinc-200/90 dark:border-zinc-800 bg-zinc-100/80 dark:bg-zinc-800/60 cursor-default select-none {sizeClasses[
+				class="relative flex shrink-0 items-center justify-center rounded-full border border-zinc-300 dark:border-zinc-700 bg-zinc-200/50 dark:bg-zinc-800/60 text-zinc-500 dark:text-zinc-400 overflow-hidden cursor-default select-none {sizeClasses[
 					size
 				].box}"
 				title="作者正在推进此待办（他人）"
 			>
-				<div class="h-1.5 w-1.5 rounded-full bg-blue-400/80 dark:bg-blue-500/70"></div>
+				<svg
+					class="absolute inset-0 h-full w-full"
+					viewBox="0 0 24 24"
+					fill="currentColor"
+				>
+					<path d="M12 12 L12 0 A12 12 0 0 1 24 12 Z" />
+				</svg>
 			</div>
 		{:else if currentStatus === 'abandoned'}
 			<div
