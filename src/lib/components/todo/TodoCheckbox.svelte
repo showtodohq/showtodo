@@ -134,20 +134,29 @@
 					<button
 						type="button"
 						onclick={(e) => handleSelectStatus(st.id, e)}
-						class="flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-medium transition-all duration-100 cursor-pointer {isActive
+						class="flex items-center gap-1.5 px-2 py-1 rounded-lg text-xs font-medium transition-all duration-100 cursor-pointer {isActive
 							? 'bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900 font-semibold shadow-2xs'
 							: 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-zinc-100'}"
 						title="{st.label}: {st.description}"
 					>
 						{#if st.id === 'pending'}
-							<span class="h-2 w-2 rounded-full border border-zinc-400"></span>
+							<!-- 待办：标准空心正圆矢量 SVG (继承 currentColor) -->
+							<svg class="h-2.5 w-2.5 stroke-[2.2]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+								<circle cx="12" cy="12" r="9" />
+							</svg>
 						{:else if st.id === 'in_progress'}
-							<span class="h-2 w-2 rounded-full bg-blue-500"></span>
+							<!-- 进行中：双层同心圆矢量 SVG (继承 currentColor) -->
+							<svg class="h-2.5 w-2.5 fill-current" viewBox="0 0 24 24">
+								<circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2.2" />
+								<circle cx="12" cy="12" r="4.5" />
+							</svg>
 						{:else if st.id === 'done'}
+							<!-- 已完成：加粗打勾矢量 SVG -->
 							<svg class="h-2.5 w-2.5 stroke-[3]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
 								<path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
 							</svg>
 						{:else if st.id === 'abandoned'}
+							<!-- 已放弃：极简叉号矢量 SVG -->
 							<svg class="h-2.5 w-2.5 stroke-[2.5]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
 								<path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
 							</svg>
@@ -163,7 +172,7 @@
 			</div>
 		{/if}
 	{:else}
-		<!-- 他人待办：只读静态 4 态徽标 -->
+		<!-- 他人待办：只读静态 4 态徽标 (低饱和度降噪设计) -->
 		{#if currentStatus === 'done'}
 			<div
 				class="flex shrink-0 items-center justify-center rounded-full border border-zinc-300 dark:border-zinc-600 bg-zinc-200/70 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 cursor-default select-none shadow-2xs {sizeClasses[
@@ -181,13 +190,14 @@
 				</svg>
 			</div>
 		{:else if currentStatus === 'in_progress'}
+			<!-- 他人进行中：低调柔和的微灰底 + 暗蓝小圆点，与本人高亮明显区分 -->
 			<div
-				class="flex shrink-0 items-center justify-center rounded-full border border-blue-300 dark:border-blue-700 bg-blue-50/50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 cursor-default select-none {sizeClasses[
+				class="flex shrink-0 items-center justify-center rounded-full border border-zinc-200/90 dark:border-zinc-800 bg-zinc-100/80 dark:bg-zinc-800/60 cursor-default select-none {sizeClasses[
 					size
 				].box}"
 				title="作者正在推进此待办（他人）"
 			>
-				<div class="h-1.5 w-1.5 rounded-full bg-blue-500 animate-pulse"></div>
+				<div class="h-1.5 w-1.5 rounded-full bg-blue-400/80 dark:bg-blue-500/70"></div>
 			</div>
 		{:else if currentStatus === 'abandoned'}
 			<div

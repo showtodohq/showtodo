@@ -8,6 +8,7 @@
 	import type { Todo, TodoStatus } from '$lib/types/todo';
 	import Spinner from '$lib/components/ui/Spinner.svelte';
 	import TodoCheckbox from '$lib/components/todo/TodoCheckbox.svelte';
+	import TodoContent from '$lib/components/todo/TodoContent.svelte';
 
 	interface Props {
 		onTodoToggled?: (todoId: string, nextStatus: TodoStatus) => void;
@@ -139,20 +140,17 @@
 		{:else}
 			<div class="space-y-1.5">
 				{#each todayTodos as todo (todo.id)}
-					{@const isDone = todo.status === 'done'}
-					{@const isAbandoned = todo.status === 'abandoned'}
 					<div
 						class="flex items-center justify-between gap-2 py-1.5 px-2 rounded-lg hover:bg-zinc-100/70 dark:hover:bg-zinc-900/60 transition-colors group/item"
 					>
-						<span
-							class="text-xs truncate flex-1 {isDone
-								? 'line-through text-zinc-400 dark:text-zinc-500'
-								: isAbandoned
-									? 'line-through text-zinc-300 dark:text-zinc-600 opacity-60'
-									: 'text-zinc-800 dark:text-zinc-200 font-medium'}"
-						>
-							{todo.content}
-						</span>
+						<!-- 统一 TodoContent 组件 (紧凑截断模式) -->
+						<TodoContent
+							content={todo.content}
+							status={todo.status}
+							size="xs"
+							truncate={true}
+							class="flex-1 min-w-0"
+						/>
 
 						<!-- 统一 TodoCheckbox 组件 -->
 						<TodoCheckbox

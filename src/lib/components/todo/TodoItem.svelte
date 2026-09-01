@@ -5,6 +5,7 @@
 	import ReactionButton from '$lib/components/todo/ReactionButton.svelte';
 	import CategoryBadge from '$lib/components/todo/CategoryBadge.svelte';
 	import TodoCheckbox from '$lib/components/todo/TodoCheckbox.svelte';
+	import TodoContent from '$lib/components/todo/TodoContent.svelte';
 
 	interface Props {
 		todo: Todo;
@@ -18,9 +19,6 @@
 
 	const scheduleText = $derived(formatScheduleRange(todo.startDate, todo.dueDate));
 	const relativeTime = $derived(formatRelativeTime(todo.createdAt));
-	const isDone = $derived(todo.status === 'done');
-	const isAbandoned = $derived(todo.status === 'abandoned');
-	const isInProgress = $derived(todo.status === 'in_progress');
 </script>
 
 <div
@@ -55,18 +53,8 @@
 			{/if}
 		</div>
 
-		<!-- 第二行：正文标题 (4 态视觉区分) -->
-		<p
-			class="text-sm leading-snug break-words transition-colors duration-150 {isDone
-				? 'line-through text-zinc-400 dark:text-zinc-500 font-normal'
-				: isAbandoned
-					? 'line-through text-zinc-300 dark:text-zinc-600 opacity-60 font-normal'
-					: isInProgress
-						? 'text-zinc-900 dark:text-zinc-100 font-semibold'
-						: 'text-zinc-900 dark:text-zinc-100 font-medium'}"
-		>
-			{todo.content}
-		</p>
+		<!-- 第二行：正文标题 (统一 TodoContent 组件，15px 黄金字号) -->
+		<TodoContent content={todo.content} status={todo.status} size="sm" />
 
 		<!-- 第三行：公开备注/执行细节 (如果有且公开) -->
 		{#if todo.note && todo.isNotePublic}
