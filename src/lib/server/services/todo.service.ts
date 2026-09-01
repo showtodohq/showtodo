@@ -34,6 +34,7 @@ export interface ListTodosFilters {
 	status?: TodoStatus;
 	category?: string;
 	authorId?: string;
+	currentUserId?: string;
 	cursor?: string;
 	limit?: number;
 	startDateFrom?: string;
@@ -194,13 +195,20 @@ export async function list(db: Database, filters: ListTodosFilters) {
 	const items = hasMore ? result.slice(0, limit) : result;
 
 	const todoIds = items.map((r) => r.todos.id);
-	const allReactionCounts =
-		todoIds.length > 0 ? await reactionService.getCountsByTodoIds(db, todoIds) : {};
+	const [allReactionCounts, myReactionsMap] = await Promise.all([
+		todoIds.length > 0
+			? reactionService.getCountsByTodoIds(db, todoIds)
+			: ({} as Record<string, Record<string, number>>),
+		todoIds.length > 0 && filters.currentUserId
+			? reactionService.getMyReactionsByTodoIds(db, todoIds, filters.currentUserId)
+			: ({} as Record<string, string[]>)
+	]);
 
 	const todoList = items.map(({ todos: todo, users: author }) => ({
 		...sanitizeNote(todo),
 		author: { id: author.id, nickname: author.nickname, handle: author.handle, avatar: author.avatar },
-		reactions: allReactionCounts[todo.id] ?? { '❤️': 0, '👍': 0, '🔥': 0, '💪': 0, '👏': 0, '🚀': 0, '🎉': 0, '👀': 0 }
+		reactions: allReactionCounts[todo.id] ?? { '❤️': 0, '👍': 0, '🔥': 0, '💪': 0, '👏': 0, '🚀': 0, '🎉': 0, '👀': 0 },
+		myReactions: myReactionsMap[todo.id] ?? []
 	}));
 
 	return {
@@ -484,7 +492,7 @@ export async function listForCalendar(
 	return result.map(({ todos: todo, users: author }) => ({
 		...sanitizeNote(todo),
 		author: { id: author.id, nickname: author.nickname, handle: author.handle, avatar: author.avatar },
-		reactions: allReactionCounts[todo.id] ?? { '👀': 0, '🔥': 0, '💪': 0, '👏': 0 }
+		reactions: allReactionCounts[todo.id] ?? { '❤️': 0, '👍': 0, '🔥': 0, '💪': 0, '👏': 0, '🚀': 0, '🎉': 0, '👀': 0 }
 	}));
 }
 

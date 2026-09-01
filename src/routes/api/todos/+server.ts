@@ -57,6 +57,7 @@ export const GET: RequestHandler = async ({ url }) => {
 		const status = statusParam ? validateStatus(statusParam) : undefined;
 		const category = categoryParam ? (validateCategory(categoryParam) ?? undefined) : undefined;
 		const authorId = url.searchParams.get('authorId') ?? undefined;
+		const currentUserId = url.searchParams.get('currentUserId') ?? undefined;
 		const cursor = url.searchParams.get('cursor') ?? undefined;
 		const limit = validateLimit(url.searchParams.get('limit') ?? undefined);
 
@@ -69,6 +70,7 @@ export const GET: RequestHandler = async ({ url }) => {
 			status,
 			category,
 			authorId,
+			currentUserId,
 			cursor,
 			limit,
 			startDateFrom,

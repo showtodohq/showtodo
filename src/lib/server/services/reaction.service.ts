@@ -128,3 +128,31 @@ export async function getCountsByTodoIds(db: Database, todoIds: string[]) {
 	}
 	return countsMap;
 }
+
+export async function getMyReactionsByTodoIds(
+	db: Database,
+	todoIds: string[],
+	userId: string
+): Promise<Record<string, string[]>> {
+	const validUuids = todoIds.filter(isUUID);
+	if (validUuids.length === 0 || !isUUID(userId)) return {};
+
+	const rows = await db
+		.select({
+			todoId: reactions.todoId,
+			emoji: reactions.emoji
+		})
+		.from(reactions)
+		.where(and(inArray(reactions.todoId, validUuids), eq(reactions.userId, userId)));
+
+	const myReactionsMap: Record<string, string[]> = {};
+	for (const row of rows) {
+		if (!myReactionsMap[row.todoId]) {
+			myReactionsMap[row.todoId] = [];
+		}
+		myReactionsMap[row.todoId].push(row.emoji);
+	}
+	return myReactionsMap;
+}
+
+

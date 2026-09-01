@@ -24,6 +24,8 @@
 	let myTodayWidgetRef = $state<ReturnType<typeof MyTodayWidget> | null>(null);
 	let trendingWidgetRef = $state<ReturnType<typeof TrendingTopicsWidget> | null>(null);
 
+	let prevUserId = $state<string | undefined>(undefined);
+
 	async function loadLatestTodos(isInitial = true) {
 		if (isInitial) {
 			loading = true;
@@ -33,6 +35,7 @@
 
 		try {
 			const res = await api.getTodos({
+				currentUserId: userStore.id,
 				cursor: isInitial ? undefined : (nextCursor ?? undefined),
 				limit: 20
 			});
@@ -51,6 +54,14 @@
 			loadingMore = false;
 		}
 	}
+
+	$effect(() => {
+		const curUserId = userStore.id;
+		if (curUserId !== prevUserId) {
+			prevUserId = curUserId;
+			loadLatestTodos(true);
+		}
+	});
 
 	onMount(() => {
 		loadLatestTodos(true);
@@ -227,7 +238,7 @@
 	}
 
 	// ---------------------------------------------------------------------------
-	// 轻量表态 Reaction (0ms 乐观累加)
+	// 轻量表态 Reaction (支持 0ms 乐观 Toggle 切换与撤销)
 	// ---------------------------------------------------------------------------
 	async function handleReaction(todo: Todo, emoji: ReactionEmoji) {
 		if (!userStore.email) {
@@ -236,27 +247,42 @@
 		}
 
 		if (!todo.reactions) {
-			todo.reactions = { '👀': 0, '🔥': 0, '💪': 0, '👏': 0 };
+			todo.reactions = { '❤️': 0, '👍': 0, '🔥': 0, '💪': 0, '👏': 0, '🚀': 0, '🎉': 0, '👀': 0 };
 		}
+		if (!todo.myReactions) {
+			todo.myReactions = [];
+		}
+
+		const isLiked = todo.myReactions.includes(emoji);
 		const prevCount = todo.reactions[emoji] || 0;
+		const prevMyReactions = [...todo.myReactions];
 
 		try {
 			await optimisticAction({
 				apply: () => {
-					if (todo.reactions) {
-						todo.reactions[emoji] = prevCount + 1;
+					if (isLiked) {
+						// 取消点赞
+						todo.reactions![emoji] = Math.max(0, prevCount - 1);
+						todo.myReactions = todo.myReactions!.filter((e) => e !== emoji);
+					} else {
+						// 新增点赞
+						todo.reactions![emoji] = prevCount + 1;
+						todo.myReactions = [...todo.myReactions!, emoji];
 					}
 				},
 				rollback: () => {
-					if (todo.reactions) {
-						todo.reactions[emoji] = prevCount;
-					}
+					todo.reactions![emoji] = prevCount;
+					todo.myReactions = prevMyReactions;
 				},
 				action: async () => {
-					await api.addReaction(todo.id, emoji, userStore.email!);
+					if (isLiked) {
+						await api.removeReaction(todo.id, emoji, userStore.email!);
+					} else {
+						await api.addReaction(todo.id, emoji, userStore.email!);
+					}
 				},
 				onError: (err) => {
-					toast.error(`表态失败: ${(err as Error).message}`);
+					toast.error(`表态操作失败: ${(err as Error).message}`);
 				}
 			});
 		} catch {

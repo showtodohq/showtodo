@@ -41,6 +41,7 @@ export interface Todo {
 	updatedAt: string;
 	author?: Author;
 	reactions?: Record<string, number>;
+	myReactions?: ReactionEmoji[];
 	activities?: TodoActivity[];
 }
 
@@ -81,6 +82,7 @@ export interface TodoListQuery {
 	status?: TodoStatus;
 	category?: string;
 	authorId?: string;
+	currentUserId?: string;
 	cursor?: string;
 	limit?: number;
 	startDateFrom?: string;

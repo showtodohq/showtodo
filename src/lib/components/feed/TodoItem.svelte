@@ -155,14 +155,18 @@
 				<!-- 1. 若已有表态：响应式展示 Emoji 徽标列表 (移动端最多 1 个，桌面端最多 3 个，超出显示 +m) -->
 				{#if activeReactions.length > 0}
 					{#each activeReactions as r, idx}
+						{@const isMyReaction = todo.myReactions?.includes(r.emoji) ?? false}
+						{@const config = REACTIONS.find((item) => item.emoji === r.emoji)}
 						<button
 							type="button"
 							onclick={() => handleSelectEmoji(r.emoji)}
-							class="items-center gap-1 px-1.5 py-0.5 rounded-md text-[11px] font-mono bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-300 transition-colors cursor-pointer {idx === 0 ? 'inline-flex' : idx < 3 ? 'hidden sm:inline-flex' : 'hidden'}"
-							title="点击表态 {r.emoji}"
+							class="items-center gap-1 px-1.5 py-0.5 rounded-md text-[11px] font-mono transition-all cursor-pointer {idx === 0 ? 'inline-flex' : idx < 3 ? 'hidden sm:inline-flex' : 'hidden'} {isMyReaction
+								? `${config?.activeClass || 'bg-rose-50 border-rose-300 text-rose-700 dark:bg-rose-950/60 dark:border-rose-700 dark:text-rose-300'} border font-bold shadow-2xs ring-1 ring-rose-200/50 dark:ring-rose-800/50`
+								: 'bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-300 border border-transparent'}"
+							title={isMyReaction ? `已表态，点击取消 ${r.emoji}` : `点击表态 ${r.emoji}`}
 						>
 							<span>{r.emoji}</span>
-							<span class="text-[10px] font-semibold">{r.count}</span>
+							<span class="text-[10px] {isMyReaction ? 'font-bold' : 'font-semibold'}">{r.count}</span>
 						</button>
 					{/each}
 
@@ -198,7 +202,7 @@
 					</button>
 				{/if}
 
-				<!-- 悬浮弹出的完整 Emoji POP 浮层 (2 行 4 列网格，正上方居中，带具体数值显示) -->
+				<!-- 悬浮弹出的完整 Emoji POP 浮层 (2 行 4 列网格，正上方居中，带具体数值与我的激活态显示) -->
 				{#if isEmojiPopOpen}
 					<div
 						class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 z-50 w-44 p-1.5 rounded-2xl bg-white dark:bg-zinc-900 shadow-xl border border-zinc-200/90 dark:border-zinc-800 animate-in fade-in zoom-in-95 duration-150 select-none"
@@ -206,17 +210,22 @@
 						<div class="grid grid-cols-4 gap-1 place-items-center">
 							{#each REACTIONS as item}
 								{@const count = todo.reactions?.[item.emoji] || 0}
+								{@const isMyReaction = todo.myReactions?.includes(item.emoji) ?? false}
 								<button
 									type="button"
 									onclick={() => handleSelectEmoji(item.emoji)}
-									class="flex flex-col items-center justify-center h-10 w-9 rounded-xl hover:scale-110 hover:bg-zinc-100 dark:hover:bg-zinc-800 active:scale-95 transition-all duration-100 cursor-pointer"
-									title="{item.label}: {item.description} ({count} 票)"
+									class="relative flex flex-col items-center justify-center h-10 w-9 rounded-xl hover:scale-110 active:scale-95 transition-all duration-100 cursor-pointer {isMyReaction
+										? 'bg-rose-50/90 dark:bg-rose-950/60 ring-1.5 ring-rose-400 dark:ring-rose-600 shadow-2xs'
+										: 'hover:bg-zinc-100 dark:hover:bg-zinc-800'}"
+									title="{item.label}: {item.description} ({count} 票){isMyReaction ? ' - 已表态(点击取消)' : ''}"
 								>
 									<span class="text-base leading-tight">{item.emoji}</span>
 									<span
-										class="text-[10px] font-mono leading-none mt-0.5 {count > 0
-											? 'text-zinc-700 dark:text-zinc-200 font-semibold'
-											: 'text-zinc-300 dark:text-zinc-600 font-normal'}"
+										class="text-[10px] font-mono leading-none mt-0.5 {isMyReaction
+											? 'text-rose-600 dark:text-rose-300 font-bold'
+											: count > 0
+												? 'text-zinc-700 dark:text-zinc-200 font-semibold'
+												: 'text-zinc-300 dark:text-zinc-600 font-normal'}"
 									>
 										{count}
 									</span>

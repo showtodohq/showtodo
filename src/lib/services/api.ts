@@ -96,6 +96,7 @@ export const api = {
 		if (query?.status) params.set('status', query.status);
 		if (query?.category) params.set('category', query.category);
 		if (query?.authorId) params.set('authorId', query.authorId);
+		if (query?.currentUserId) params.set('currentUserId', query.currentUserId);
 		if (query?.cursor) params.set('cursor', query.cursor);
 		if (query?.limit) params.set('limit', String(query.limit));
 		if (query?.startDateFrom) params.set('startDateFrom', query.startDateFrom);
