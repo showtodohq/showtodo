@@ -9,11 +9,10 @@
 		todo: Todo;
 		isMine?: boolean;
 		ontoggle?: (todo: Todo, e?: MouseEvent) => void;
-		onreaction?: (todo: Todo, emoji: ReactionEmoji) => void;
-		ontoggleglobal?: (todo: Todo) => void;
+		onreaction?: (todo: Todo, emoji?: ReactionEmoji) => void;
 	}
 
-	let { todo, isMine = false, ontoggle, onreaction, ontoggleglobal }: Props = $props();
+	let { todo, isMine = false, ontoggle, onreaction }: Props = $props();
 
 	const catConfig = $derived(getCategoryConfig(todo.category));
 	const scheduleText = $derived(formatScheduleRange(todo.startDate, todo.dueDate));
@@ -23,14 +22,6 @@
 		Object.values(todo.reactions || {}).reduce((sum, c) => sum + c, 0)
 	);
 	const hasMyReaction = $derived((todo.myReactions?.length ?? 0) > 0);
-
-	// 计算已存在的 Reaction 列表
-	const activeReactions = $derived.by(() => {
-		if (!todo.reactions) return [];
-		return Object.entries(todo.reactions)
-			.filter(([_, count]) => count > 0)
-			.map(([emoji, count]) => ({ emoji: emoji as ReactionEmoji, count }));
-	});
 
 	let isEmojiPopOpen = $state(false);
 	let popCloseTimeout: ReturnType<typeof setTimeout> | null = null;
@@ -49,7 +40,7 @@
 		}, 250);
 	}
 
-	function handleSelectEmoji(emoji: ReactionEmoji) {
+	function handleSelectEmoji(emoji?: ReactionEmoji) {
 		isEmojiPopOpen = false;
 		onreaction?.(todo, emoji);
 	}
@@ -160,13 +151,7 @@
 				<!-- 主互动按钮：爱心 SVG Icon + 反应总数 (点击触发一键全清或点赞爱心) -->
 				<button
 					type="button"
-					onclick={() => {
-						if (ontoggleglobal) {
-							ontoggleglobal(todo);
-						} else {
-							handleSelectEmoji('❤️');
-						}
-					}}
+					onclick={() => handleSelectEmoji()}
 					class="group/heart inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-mono transition-all cursor-pointer select-none {hasMyReaction
 						? 'text-rose-600 dark:text-rose-400 bg-rose-50/80 dark:bg-rose-950/40 border border-rose-200/80 dark:border-rose-800/60 font-semibold shadow-2xs'
 						: 'text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800/80 border border-transparent'}"

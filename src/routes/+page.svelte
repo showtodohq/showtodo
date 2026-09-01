@@ -238,42 +238,38 @@
 	}
 
 	// ---------------------------------------------------------------------------
-	// 主爱心全局开关 (未高亮时点赞 ❤️；高亮时 1 个请求一键全清所有表态)
+	// 极简表态处理：点击主爱心(无emoji)一键全清/点赞，浮层内传emoji单项切换
 	// ---------------------------------------------------------------------------
-	async function handleGlobalHeartToggle(todo: Todo) {
-		if (!userStore.email) {
-			toast.info('请先点击右上角头像绑定邮箱再表态');
-			return;
-		}
+	async function handleReaction(todo: Todo, emoji?: ReactionEmoji) {
+		if (!userStore.email) return toast.info('请先点击右上角头像绑定邮箱再表态');
 
-		if (!todo.reactions) {
-			todo.reactions = { '❤️': 0, '👍': 0, '🔥': 0, '💪': 0, '👏': 0, '🚀': 0, '🎉': 0, '👀': 0 };
-		}
-		if (!todo.myReactions) {
-			todo.myReactions = [];
-		}
+		todo.reactions ??= { '❤️': 0, '👍': 0, '🔥': 0, '💪': 0, '👏': 0, '🚀': 0, '🎉': 0, '👀': 0 };
+		todo.myReactions ??= [];
 
-		const hasMyReaction = todo.myReactions.length > 0;
 		const prevReactions = { ...todo.reactions };
 		const prevMyReactions = [...todo.myReactions];
+		const targetEmoji = emoji || (todo.myReactions.length > 0 ? undefined : '❤️');
+		const isLiked = targetEmoji ? todo.myReactions.includes(targetEmoji) : true;
 
 		try {
 			await optimisticAction({
 				apply: () => {
-					if (hasMyReaction) {
-						// 一键撤销：清空当前用户的所有表态
-						for (const emoji of prevMyReactions) {
-							if (todo.reactions) {
-								todo.reactions[emoji] = Math.max(0, (todo.reactions[emoji] || 1) - 1);
+					if (isLiked) {
+						if (!targetEmoji) {
+							// 一键全清
+							for (const e of prevMyReactions) {
+								todo.reactions![e] = Math.max(0, (todo.reactions![e] || 1) - 1);
 							}
+							todo.myReactions = [];
+						} else {
+							// 单个取消
+							todo.reactions![targetEmoji] = Math.max(0, (todo.reactions![targetEmoji] || 1) - 1);
+							todo.myReactions = todo.myReactions!.filter((e) => e !== targetEmoji);
 						}
-						todo.myReactions = [];
 					} else {
-						// 点赞爱心
-						if (todo.reactions) {
-							todo.reactions['❤️'] = (todo.reactions['❤️'] || 0) + 1;
-						}
-						todo.myReactions = ['❤️'];
+						// 单个新增
+						todo.reactions![targetEmoji!] = (todo.reactions![targetEmoji!] || 0) + 1;
+						todo.myReactions = [...todo.myReactions!, targetEmoji!];
 					}
 				},
 				rollback: () => {
@@ -281,64 +277,10 @@
 					todo.myReactions = prevMyReactions;
 				},
 				action: async () => {
-					if (hasMyReaction) {
-						// 单个极简网络请求一键清除全部
-						await api.removeReaction(todo.id, undefined, userStore.email!);
-					} else {
-						await api.addReaction(todo.id, '❤️', userStore.email!);
-					}
-				},
-				onError: (err) => {
-					toast.error(`表态操作失败: ${(err as Error).message}`);
-				}
-			});
-		} catch {
-			// handled
-		}
-	}
-
-	// ---------------------------------------------------------------------------
-	// 轻量表态 Reaction (8格浮层细粒度单个 Emoji Toggle 增减)
-	// ---------------------------------------------------------------------------
-	async function handleReaction(todo: Todo, emoji: ReactionEmoji) {
-		if (!userStore.email) {
-			toast.info('请先点击右上角头像绑定邮箱再表态');
-			return;
-		}
-
-		if (!todo.reactions) {
-			todo.reactions = { '❤️': 0, '👍': 0, '🔥': 0, '💪': 0, '👏': 0, '🚀': 0, '🎉': 0, '👀': 0 };
-		}
-		if (!todo.myReactions) {
-			todo.myReactions = [];
-		}
-
-		const isLiked = todo.myReactions.includes(emoji);
-		const prevCount = todo.reactions[emoji] || 0;
-		const prevMyReactions = [...todo.myReactions];
-
-		try {
-			await optimisticAction({
-				apply: () => {
 					if (isLiked) {
-						// 取消单个点赞
-						todo.reactions![emoji] = Math.max(0, prevCount - 1);
-						todo.myReactions = todo.myReactions!.filter((e) => e !== emoji);
+						await api.removeReaction(todo.id, targetEmoji, userStore.email!);
 					} else {
-						// 新增单个点赞
-						todo.reactions![emoji] = prevCount + 1;
-						todo.myReactions = [...todo.myReactions!, emoji];
-					}
-				},
-				rollback: () => {
-					todo.reactions![emoji] = prevCount;
-					todo.myReactions = prevMyReactions;
-				},
-				action: async () => {
-					if (isLiked) {
-						await api.removeReaction(todo.id, emoji, userStore.email!);
-					} else {
-						await api.addReaction(todo.id, emoji, userStore.email!);
+						await api.addReaction(todo.id, targetEmoji!, userStore.email!);
 					}
 				},
 				onError: (err) => {
@@ -508,7 +450,6 @@
 							isMine={isMyTodo(todo)}
 							ontoggle={handleToggleStatus}
 							onreaction={handleReaction}
-							ontoggleglobal={handleGlobalHeartToggle}
 						/>
 					{/each}
 				</div>
