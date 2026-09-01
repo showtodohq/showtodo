@@ -10,9 +10,10 @@
 		isMine?: boolean;
 		ontoggle?: (todo: Todo, e?: MouseEvent) => void;
 		onreaction?: (todo: Todo, emoji: ReactionEmoji) => void;
+		ontoggleglobal?: (todo: Todo) => void;
 	}
 
-	let { todo, isMine = false, ontoggle, onreaction }: Props = $props();
+	let { todo, isMine = false, ontoggle, onreaction, ontoggleglobal }: Props = $props();
 
 	const catConfig = $derived(getCategoryConfig(todo.category));
 	const scheduleText = $derived(formatScheduleRange(todo.startDate, todo.dueDate));
@@ -21,7 +22,7 @@
 	const totalReactionCount = $derived(
 		Object.values(todo.reactions || {}).reduce((sum, c) => sum + c, 0)
 	);
-	const isHeartLiked = $derived(todo.myReactions?.includes('❤️') ?? false);
+	const hasMyReaction = $derived((todo.myReactions?.length ?? 0) > 0);
 
 	// 计算已存在的 Reaction 列表
 	const activeReactions = $derived.by(() => {
@@ -156,17 +157,25 @@
 				role="group"
 				aria-label="Reaction picker"
 			>
-				<!-- 主互动按钮：爱心 SVG Icon + 反应总数 -->
+				<!-- 主互动按钮：爱心 SVG Icon + 反应总数 (点击触发一键全清或点赞爱心) -->
 				<button
 					type="button"
-					onclick={() => handleSelectEmoji('❤️')}
-					class="group/heart inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-mono transition-all cursor-pointer select-none {isHeartLiked
+					onclick={() => {
+						if (ontoggleglobal) {
+							ontoggleglobal(todo);
+						} else {
+							handleSelectEmoji('❤️');
+						}
+					}}
+					class="group/heart inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-mono transition-all cursor-pointer select-none {hasMyReaction
 						? 'text-rose-600 dark:text-rose-400 bg-rose-50/80 dark:bg-rose-950/40 border border-rose-200/80 dark:border-rose-800/60 font-semibold shadow-2xs'
 						: 'text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800/80 border border-transparent'}"
-					title={isHeartLiked ? '已点赞爱心 (点击取消，悬停选择更多表情)' : '点赞 (悬停选择更多表情)'}
+					title={hasMyReaction
+						? '已表态 (点击一键取消全部表态，悬停选择更多表情)'
+						: '点赞 (悬停选择更多表情)'}
 					aria-label="Reaction button"
 				>
-					{#if isHeartLiked}
+					{#if hasMyReaction}
 						<!-- 已点赞：实心高亮爱心 Icon -->
 						<svg
 							class="h-3.5 w-3.5 text-rose-500 fill-rose-500 transition-transform active:scale-85 animate-in zoom-in-75 duration-150"
@@ -188,7 +197,7 @@
 
 					{#if totalReactionCount > 0}
 						<span
-							class="text-[11px] leading-none {isHeartLiked
+							class="text-[11px] leading-none {hasMyReaction
 								? 'text-rose-600 dark:text-rose-400 font-bold'
 								: 'text-zinc-500 dark:text-zinc-400 font-medium'}"
 						>

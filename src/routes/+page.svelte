@@ -238,7 +238,67 @@
 	}
 
 	// ---------------------------------------------------------------------------
-	// 轻量表态 Reaction (支持 0ms 乐观 Toggle 切换与撤销)
+	// 主爱心全局开关 (未高亮时点赞 ❤️；高亮时 1 个请求一键全清所有表态)
+	// ---------------------------------------------------------------------------
+	async function handleGlobalHeartToggle(todo: Todo) {
+		if (!userStore.email) {
+			toast.info('请先点击右上角头像绑定邮箱再表态');
+			return;
+		}
+
+		if (!todo.reactions) {
+			todo.reactions = { '❤️': 0, '👍': 0, '🔥': 0, '💪': 0, '👏': 0, '🚀': 0, '🎉': 0, '👀': 0 };
+		}
+		if (!todo.myReactions) {
+			todo.myReactions = [];
+		}
+
+		const hasMyReaction = todo.myReactions.length > 0;
+		const prevReactions = { ...todo.reactions };
+		const prevMyReactions = [...todo.myReactions];
+
+		try {
+			await optimisticAction({
+				apply: () => {
+					if (hasMyReaction) {
+						// 一键撤销：清空当前用户的所有表态
+						for (const emoji of prevMyReactions) {
+							if (todo.reactions) {
+								todo.reactions[emoji] = Math.max(0, (todo.reactions[emoji] || 1) - 1);
+							}
+						}
+						todo.myReactions = [];
+					} else {
+						// 点赞爱心
+						if (todo.reactions) {
+							todo.reactions['❤️'] = (todo.reactions['❤️'] || 0) + 1;
+						}
+						todo.myReactions = ['❤️'];
+					}
+				},
+				rollback: () => {
+					todo.reactions = prevReactions;
+					todo.myReactions = prevMyReactions;
+				},
+				action: async () => {
+					if (hasMyReaction) {
+						// 单个极简网络请求一键清除全部
+						await api.removeReaction(todo.id, undefined, userStore.email!);
+					} else {
+						await api.addReaction(todo.id, '❤️', userStore.email!);
+					}
+				},
+				onError: (err) => {
+					toast.error(`表态操作失败: ${(err as Error).message}`);
+				}
+			});
+		} catch {
+			// handled
+		}
+	}
+
+	// ---------------------------------------------------------------------------
+	// 轻量表态 Reaction (8格浮层细粒度单个 Emoji Toggle 增减)
 	// ---------------------------------------------------------------------------
 	async function handleReaction(todo: Todo, emoji: ReactionEmoji) {
 		if (!userStore.email) {
@@ -261,11 +321,11 @@
 			await optimisticAction({
 				apply: () => {
 					if (isLiked) {
-						// 取消点赞
+						// 取消单个点赞
 						todo.reactions![emoji] = Math.max(0, prevCount - 1);
 						todo.myReactions = todo.myReactions!.filter((e) => e !== emoji);
 					} else {
-						// 新增点赞
+						// 新增单个点赞
 						todo.reactions![emoji] = prevCount + 1;
 						todo.myReactions = [...todo.myReactions!, emoji];
 					}
@@ -448,6 +508,7 @@
 							isMine={isMyTodo(todo)}
 							ontoggle={handleToggleStatus}
 							onreaction={handleReaction}
+							ontoggleglobal={handleGlobalHeartToggle}
 						/>
 					{/each}
 				</div>

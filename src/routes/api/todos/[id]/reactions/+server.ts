@@ -46,7 +46,7 @@ export const DELETE: RequestHandler = async ({ params, request }) => {
 		}
 
 		const email = validateEmail(body.email);
-		const emoji = validateEmoji(body.emoji);
+		const emoji = body.emoji ? validateEmoji(body.emoji) : undefined;
 
 		const user = await userService.findByEmail(db, email);
 		if (!user) throw new AppError('NOT_FOUND', 'User not found');

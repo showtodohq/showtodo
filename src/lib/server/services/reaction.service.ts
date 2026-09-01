@@ -35,22 +35,25 @@ export async function add(db: Database, idOrShortId: string, userId: string, emo
 	return result[0];
 }
 
-export async function remove(db: Database, idOrShortId: string, userId: string, emoji: string) {
+export async function remove(db: Database, idOrShortId: string, userId: string, emoji?: string | null) {
 	const todoId = await resolveTodoUuid(db, idOrShortId);
 	if (!todoId) throw new AppError('NOT_FOUND', 'Todo not found');
 
+	const conditions = [eq(reactions.todoId, todoId), eq(reactions.userId, userId)];
+	if (emoji) {
+		conditions.push(eq(reactions.emoji, emoji));
+	}
+
 	const result = await db
 		.delete(reactions)
-		.where(
-			and(eq(reactions.todoId, todoId), eq(reactions.userId, userId), eq(reactions.emoji, emoji))
-		)
+		.where(and(...conditions))
 		.returning();
 
-	if (!result[0]) {
+	if (emoji && result.length === 0) {
 		throw new AppError('NOT_FOUND', 'Reaction not found');
 	}
 
-	return result[0];
+	return result;
 }
 
 export async function getByTodoId(db: Database, idOrShortId: string) {

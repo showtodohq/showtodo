@@ -159,7 +159,7 @@ export const api = {
 
 	async removeReaction(
 		todoId: string,
-		emoji: ReactionEmoji,
+		emoji: ReactionEmoji | undefined,
 		email: string,
 		customFetch?: typeof fetch
 	): Promise<{ success: boolean }> {
@@ -167,7 +167,7 @@ export const api = {
 			`/api/todos/${todoId}/reactions`,
 			{
 				method: 'DELETE',
-				body: JSON.stringify({ emoji, email })
+				body: JSON.stringify({ email, ...(emoji ? { emoji } : {}) })
 			},
 			customFetch
 		);

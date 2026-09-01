@@ -59,7 +59,7 @@ describe('remove', () => {
 	test('removes reaction successfully', async () => {
 		await reactionService.add(testDb, testTodo.id, testUser.id, '🔥');
 		const removed = await reactionService.remove(testDb, testTodo.id, testUser.id, '🔥');
-		expect(removed.emoji).toBe('🔥');
+		expect(removed[0].emoji).toBe('🔥');
 	});
 
 	test('throws NOT_FOUND for non-existent reaction', async () => {
