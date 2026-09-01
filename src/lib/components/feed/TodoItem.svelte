@@ -18,6 +18,10 @@
 	const scheduleText = $derived(formatScheduleRange(todo.startDate, todo.dueDate));
 	const relativeTime = $derived(formatRelativeTime(todo.createdAt));
 	const isDone = $derived(todo.status === 'done');
+	const totalReactionCount = $derived(
+		Object.values(todo.reactions || {}).reduce((sum, c) => sum + c, 0)
+	);
+	const isHeartLiked = $derived(todo.myReactions?.includes('❤️') ?? false);
 
 	// 计算已存在的 Reaction 列表
 	const activeReactions = $derived.by(() => {
@@ -144,65 +148,56 @@
 
 			<span>·</span>
 
-			<!-- 悬停 Emoji Pop 表态互动组件 (整组区域触发与正上方居中锚定) -->
+			<!-- 悬停 Emoji Pop 表态互动组件 (极简爱心Icon + 总反应数，悬停呼出 8 格面板) -->
 			<div
-				class="relative inline-flex items-center gap-1.5"
+				class="relative inline-flex items-center"
 				onmouseenter={handleMouseEnterEmoji}
 				onmouseleave={handleMouseLeaveEmoji}
 				role="group"
 				aria-label="Reaction picker"
 			>
-				<!-- 1. 若已有表态：响应式展示 Emoji 徽标列表 (移动端最多 1 个，桌面端最多 3 个，超出显示 +m) -->
-				{#if activeReactions.length > 0}
-					{#each activeReactions as r, idx}
-						{@const isMyReaction = todo.myReactions?.includes(r.emoji) ?? false}
-						{@const config = REACTIONS.find((item) => item.emoji === r.emoji)}
-						<button
-							type="button"
-							onclick={() => handleSelectEmoji(r.emoji)}
-							class="items-center gap-1 px-1.5 py-0.5 rounded-md text-[11px] font-mono transition-all cursor-pointer {idx === 0 ? 'inline-flex' : idx < 3 ? 'hidden sm:inline-flex' : 'hidden'} {isMyReaction
-								? `${config?.activeClass || 'bg-rose-50 border-rose-300 text-rose-700 dark:bg-rose-950/60 dark:border-rose-700 dark:text-rose-300'} border font-bold shadow-2xs ring-1 ring-rose-200/50 dark:ring-rose-800/50`
-								: 'bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-300 border border-transparent'}"
-							title={isMyReaction ? `已表态，点击取消 ${r.emoji}` : `点击表态 ${r.emoji}`}
+				<!-- 主互动按钮：爱心 SVG Icon + 反应总数 -->
+				<button
+					type="button"
+					onclick={() => handleSelectEmoji('❤️')}
+					class="group/heart inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-mono transition-all cursor-pointer select-none {isHeartLiked
+						? 'text-rose-600 dark:text-rose-400 bg-rose-50/80 dark:bg-rose-950/40 border border-rose-200/80 dark:border-rose-800/60 font-semibold shadow-2xs'
+						: 'text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800/80 border border-transparent'}"
+					title={isHeartLiked ? '已点赞爱心 (点击取消，悬停选择更多表情)' : '点赞 (悬停选择更多表情)'}
+					aria-label="Reaction button"
+				>
+					{#if isHeartLiked}
+						<!-- 已点赞：实心高亮爱心 Icon -->
+						<svg
+							class="h-3.5 w-3.5 text-rose-500 fill-rose-500 transition-transform active:scale-85 animate-in zoom-in-75 duration-150"
+							viewBox="0 0 24 24"
 						>
-							<span>{r.emoji}</span>
-							<span class="text-[10px] {isMyReaction ? 'font-bold' : 'font-semibold'}">{r.count}</span>
-						</button>
-					{/each}
-
-					<!-- 移动端多余徽标 +m 提示 (超出 1 个时展示) -->
-					{#if activeReactions.length > 1}
-						<span
-							class="sm:hidden inline-flex items-center px-1 py-0.5 rounded text-[10px] font-mono font-medium text-zinc-400 bg-zinc-100/80 dark:bg-zinc-800/80 cursor-default"
-							title="还有 {activeReactions.length - 1} 种表情表态"
+							<path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+						</svg>
+					{:else}
+						<!-- 未点赞：极简描边空心爱心 Icon -->
+						<svg
+							class="h-3.5 w-3.5 stroke-[1.8] text-zinc-400 group-hover/heart:text-rose-500 group-hover/heart:scale-110 transition-all duration-150"
+							fill="none"
+							viewBox="0 0 24 24"
+							stroke="currentColor"
 						>
-							+{activeReactions.length - 1}
-						</span>
+							<path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />
+						</svg>
 					{/if}
 
-					<!-- 桌面端多余徽标 +m 提示 (超出 3 个时展示) -->
-					{#if activeReactions.length > 3}
+					{#if totalReactionCount > 0}
 						<span
-							class="hidden sm:inline-flex items-center px-1 py-0.5 rounded text-[10px] font-mono font-medium text-zinc-400 bg-zinc-100/80 dark:bg-zinc-800/80 cursor-default"
-							title="还有 {activeReactions.length - 3} 种表情表态"
+							class="text-[11px] leading-none {isHeartLiked
+								? 'text-rose-600 dark:text-rose-400 font-bold'
+								: 'text-zinc-500 dark:text-zinc-400 font-medium'}"
 						>
-							+{activeReactions.length - 3}
+							{totalReactionCount}
 						</span>
 					{/if}
-				{:else}
-					<!-- 2. 若无反应：展示默认代表 Emoji (❤️)，点击直接点赞爱心，悬停可呼出完整 8 格选择器 -->
-					<button
-						type="button"
-						onclick={() => handleSelectEmoji('❤️')}
-						class="inline-flex items-center justify-center h-5 w-5 rounded-full text-zinc-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-zinc-800 active:scale-90 transition-all cursor-pointer select-none"
-						title="点赞爱心 (悬停可选择更多表情)"
-						aria-label="Add heart reaction"
-					>
-						<span class="text-xs leading-none">❤️</span>
-					</button>
-				{/if}
+				</button>
 
-				<!-- 悬浮弹出的完整 Emoji POP 浮层 (2 行 4 列网格，正上方居中，带具体数值与我的激活态显示) -->
+				<!-- 悬浮弹出的完整 Emoji POP 浮层 (2 行 4 列网格，正上方居中，带各 Emoji 具体数值分布) -->
 				{#if isEmojiPopOpen}
 					<div
 						class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 z-50 w-44 p-1.5 rounded-2xl bg-white dark:bg-zinc-900 shadow-xl border border-zinc-200/90 dark:border-zinc-800 animate-in fade-in zoom-in-95 duration-150 select-none"
