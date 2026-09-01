@@ -4,8 +4,10 @@
 	import { toast } from '$lib/stores/toast.svelte';
 	import { optimisticAction } from '$lib/utils/mutation';
 	import { confetti } from '$lib/utils/confetti';
+	import { getTodayString } from '$lib/utils/format';
 	import type { Todo, TodoStatus } from '$lib/types/todo';
 	import Spinner from '$lib/components/ui/Spinner.svelte';
+	import TodoCheckbox from '$lib/components/todo/TodoCheckbox.svelte';
 
 	interface Props {
 		onTodoToggled?: (todoId: string, nextStatus: TodoStatus) => void;
@@ -15,14 +17,6 @@
 
 	let todayTodos = $state<Todo[]>([]);
 	let loading = $state(false);
-
-	function getTodayString(): string {
-		const now = new Date();
-		const y = now.getFullYear();
-		const m = String(now.getMonth() + 1).padStart(2, '0');
-		const d = String(now.getDate()).padStart(2, '0');
-		return `${y}-${m}-${d}`;
-	}
 
 	export async function refresh() {
 		if (!userStore.id && !userStore.email) return;
@@ -58,7 +52,10 @@
 	export function triggerCheckAllDone(justCompletedTodoId?: string) {
 		const isAllDone =
 			todayTodos.length > 0 &&
-			todayTodos.every((t) => (t.id === justCompletedTodoId ? true : t.status === 'done'));
+			todayTodos.every((t) => {
+				if (justCompletedTodoId && t.id === justCompletedTodoId) return true;
+				return t.status === 'done';
+			});
 
 		if (isAllDone) {
 			confetti.tripleCelebration();
@@ -154,21 +151,13 @@
 							{todo.content}
 						</span>
 
-						<button
-							type="button"
-							onclick={(e) => handleToggleStatus(todo, e)}
-							class="flex h-4 w-4 shrink-0 items-center justify-center rounded-full border transition-all duration-150 active:scale-85 cursor-pointer {isDone
-								? 'border-zinc-900 bg-zinc-900 text-white dark:border-zinc-100 dark:bg-zinc-100 dark:text-zinc-900'
-								: 'border-zinc-400 dark:border-zinc-600 hover:border-zinc-900 dark:hover:border-zinc-200'}"
-							title={isDone ? '标记为未完成' : '完成此待办'}
-							aria-label={isDone ? 'Mark uncompleted' : 'Mark completed'}
-						>
-							{#if isDone}
-								<svg class="h-2.5 w-2.5 stroke-[3]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-									<path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
-								</svg>
-							{/if}
-						</button>
+						<!-- 统一 TodoCheckbox 组件 -->
+						<TodoCheckbox
+							status={todo.status}
+							isMine={true}
+							size="sm"
+							ontoggle={(e) => handleToggleStatus(todo, e)}
+						/>
 					</div>
 				{/each}
 			</div>

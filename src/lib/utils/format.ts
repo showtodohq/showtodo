@@ -66,3 +66,13 @@ export function truncate(text: string, maxLength: number, suffix = '...'): strin
 	return text.slice(0, maxLength) + suffix;
 }
 
+/**
+ * 获取 YYYY-MM-DD 格式的今天（或指定日期）字符串
+ */
+export function getTodayString(date: Date = new Date()): string {
+	const y = date.getFullYear();
+	const m = String(date.getMonth() + 1).padStart(2, '0');
+	const d = String(date.getDate()).padStart(2, '0');
+	return `${y}-${m}-${d}`;
+}
+

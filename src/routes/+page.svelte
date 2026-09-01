@@ -6,10 +6,9 @@
 	import { toast } from '$lib/stores/toast.svelte';
 	import { optimisticAction } from '$lib/utils/mutation';
 	import { confetti } from '$lib/utils/confetti';
-	import { CATEGORIES } from '$lib/constants/categories';
-	import Avatar from '$lib/components/ui/Avatar.svelte';
 	import Spinner from '$lib/components/ui/Spinner.svelte';
-	import TodoItem from '$lib/components/feed/TodoItem.svelte';
+	import TodoItem from '$lib/components/todo/TodoItem.svelte';
+	import TodoComposer from '$lib/components/todo/TodoComposer.svelte';
 	import MyTodayWidget from '$lib/components/widgets/MyTodayWidget.svelte';
 	import TrendingTopicsWidget from '$lib/components/widgets/TrendingTopicsWidget.svelte';
 
@@ -68,66 +67,25 @@
 	});
 
 	// ---------------------------------------------------------------------------
-	// 快速发布框状态与交互
+	// 快速发布待办
 	// ---------------------------------------------------------------------------
-	let newTodoContent = $state('');
-	let newTodoNote = $state('');
-	let isNoteOpen = $state(false);
-	let selectedCategory = $state<CategoryId | null>(null);
-	let isComposerFocused = $state(false);
-	let submitting = $state(false);
-	let composerContainerRef = $state<HTMLDivElement | null>(null);
-
-	const isComposerExpanded = $derived(
-		isComposerFocused || newTodoContent.trim().length > 0 || newTodoNote.trim().length > 0 || isNoteOpen
-	);
-
-	function handleClickOutside(e: MouseEvent) {
-		if (composerContainerRef && !composerContainerRef.contains(e.target as Node)) {
-			if (!newTodoContent.trim() && !newTodoNote.trim()) {
-				isComposerFocused = false;
-				isNoteOpen = false;
-			}
-		}
-	}
-
-	function handleGlobalKeydown(e: KeyboardEvent) {
-		if (e.key === 'Escape') {
-			if (isComposerFocused) {
-				if (!newTodoContent.trim() && !newTodoNote.trim()) {
-					isComposerFocused = false;
-					isNoteOpen = false;
-				} else {
-					isComposerFocused = false;
-				}
-			}
-		}
-	}
-
-	async function handleCreateTodo() {
-		const clean = newTodoContent.trim();
-		if (!clean || submitting) return;
-
-		if (!userStore.email) {
-			toast.info('请先点击右上角头像设置您的发布邮箱');
-			return;
-		}
-
-		submitting = true;
+	async function handleCreateTodo(data: {
+		content: string;
+		note: string | null;
+		category: CategoryId | null;
+	}) {
 		const email = userStore.email;
-		const category = selectedCategory;
-		const content = clean;
-		const note = newTodoNote.trim() || null;
-		const tempId = `temp-${Date.now()}`;
+		if (!email) return;
 
+		const tempId = `temp-${Date.now()}`;
 		const tempTodo: Todo = {
 			id: tempId,
 			shortId: tempId,
 			topicHash: `topic-${Date.now()}`,
-			content,
-			note,
+			content: data.content,
+			note: data.note,
 			isNotePublic: true,
-			category,
+			category: data.category,
 			authorId: userStore.id || '',
 			status: 'pending',
 			startDate: new Date().toISOString(),
@@ -140,20 +98,15 @@
 				nickname: userStore.nickname,
 				avatar: userStore.avatar
 			},
-			reactions: { '❤️': 0, '👍': 0, '🔥': 0, '💪': 0, '👏': 0, '🚀': 0, '🎉': 0, '👀': 0 }
+			reactions: { '❤️': 0, '👍': 0, '🔥': 0, '💪': 0, '👏': 0, '🚀': 0, '🎉': 0, '👀': 0 },
+			myReactions: []
 		};
 
 		const prevTodos = [...todos];
-
 		try {
 			await optimisticAction({
 				apply: () => {
 					todos.unshift(tempTodo);
-					newTodoContent = '';
-					newTodoNote = '';
-					isNoteOpen = false;
-					selectedCategory = null;
-					isComposerFocused = false;
 				},
 				rollback: () => {
 					todos = prevTodos;
@@ -161,9 +114,9 @@
 				action: async () => {
 					const res = await api.createTodo({
 						email,
-						content,
-						note,
-						category: category ?? undefined
+						content: data.content,
+						note: data.note,
+						category: data.category ?? undefined
 					});
 					tempTodo.id = res.todo.id;
 					tempTodo.shortId = res.todo.shortId;
@@ -180,18 +133,7 @@
 
 			toast.success('已发布公开待办！');
 		} catch {
-			// handled by onError
-		} finally {
-			submitting = false;
-		}
-	}
-
-	function handleComposerKeydown(e: KeyboardEvent) {
-		if (e.key === 'Enter' && !e.shiftKey) {
-			e.preventDefault();
-			handleCreateTodo();
-		} else if (e.key === 'Escape') {
-			isComposerFocused = false;
+			// handled
 		}
 	}
 
@@ -301,20 +243,11 @@
 			return;
 		}
 
-		try {
-			const res = await api.createTodo({
-				email: userStore.email,
-				content,
-				category: category ?? undefined
-			});
-
-			todos.unshift(res.todo);
-			toast.success(`已加入「${content}」！`);
-			myTodayWidgetRef?.refresh();
-			trendingWidgetRef?.loadTrending();
-		} catch (e) {
-			toast.error(`加入失败: ${(e as Error).message}`);
-		}
+		await handleCreateTodo({
+			content,
+			note: null,
+			category: (category as CategoryId) || null
+		});
 	}
 
 	function isMyTodo(todo: Todo): boolean {
@@ -332,100 +265,13 @@
 	}
 </script>
 
-<svelte:window onclick={handleClickOutside} onkeydown={handleGlobalKeydown} />
-
 <div class="w-full space-y-6 sm:space-y-8">
-	<!-- 顶部 Twitter / X 风格极简快速发布框 -->
-	<div
-		bind:this={composerContainerRef}
-		class="rounded-2xl border border-zinc-200/80 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-3 sm:p-3.5 transition-all duration-200 shadow-2xs focus-within:border-zinc-300 dark:focus-within:border-zinc-700"
-	>
-		<div class="flex gap-3">
-			<!-- 左侧用户头像 -->
-			<div class="shrink-0 pt-0.5">
-				<Avatar
-					src={userStore.avatar}
-					name={userStore.nickname}
-					size="sm"
-					class="h-8 w-8 ring-1 ring-zinc-200/80 dark:ring-zinc-800"
-				/>
-			</div>
-
-			<!-- 右侧主输入与操作区 -->
-			<div class="flex-1 min-w-0 space-y-2">
-				<!-- 主待办正文输入区 -->
-				<textarea
-					bind:value={newTodoContent}
-					onkeydown={handleComposerKeydown}
-					onfocus={() => (isComposerFocused = true)}
-					placeholder={userStore.email ? "写下今天的一个目标... (Enter 发送)" : "写下今天的一个目标... (需先设置邮箱)"}
-					rows={isComposerExpanded ? 2 : 1}
-					class="w-full resize-none bg-transparent text-sm font-semibold placeholder:font-normal placeholder:text-zinc-400 dark:placeholder:text-zinc-500 text-zinc-900 dark:text-zinc-100 focus:outline-hidden leading-relaxed transition-all duration-150 py-0.5"
-				></textarea>
-
-				<!-- 详细备注输入区 -->
-				{#if isNoteOpen || newTodoNote.trim()}
-					<div class="animate-in fade-in duration-150 pt-0.5">
-						<textarea
-							bind:value={newTodoNote}
-							placeholder="添加备注、链接或执行细节..."
-							rows="2"
-							class="w-full resize-none bg-transparent text-xs text-zinc-600 dark:text-zinc-400 placeholder:text-zinc-400/80 dark:placeholder:text-zinc-600 focus:outline-hidden leading-relaxed transition-all"
-						></textarea>
-					</div>
-				{/if}
-
-				<!-- 工具栏与发布按钮 -->
-				{#if isComposerExpanded}
-					<div class="flex items-center justify-between pt-2 border-t border-zinc-100 dark:border-zinc-900/80 gap-2 animate-in fade-in duration-150">
-						<!-- 分类快捷标签组 -->
-						<div class="flex items-center gap-1 overflow-x-auto py-0.5 scrollbar-none">
-							{#each CATEGORIES as cat}
-								{@const isSelected = selectedCategory === cat.id}
-								<button
-									type="button"
-									onclick={() => (selectedCategory = isSelected ? null : cat.id)}
-									class="flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium transition-all duration-150 cursor-pointer {isSelected ? 'bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900 shadow-xs' : 'text-zinc-500 hover:text-zinc-800 dark:text-zinc-400 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-900'}"
-									title="选择分类: {cat.name}"
-								>
-									<span class="h-1.5 w-1.5 rounded-full shrink-0" style="background-color: {cat.color};"></span>
-									{cat.name}
-								</button>
-							{/each}
-						</div>
-
-						<!-- 右侧操作组 -->
-						<div class="flex items-center gap-1.5 shrink-0">
-							<button
-								type="button"
-								onclick={() => (isNoteOpen = !isNoteOpen)}
-								class="flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium transition-all duration-150 cursor-pointer {isNoteOpen || newTodoNote.trim() ? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 font-semibold' : 'text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 hover:bg-zinc-100/80 dark:hover:bg-zinc-900'}"
-								title={isNoteOpen ? '收起备注' : '添加备注'}
-							>
-								<svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-								</svg>
-								<span class="text-[11px]">备注</span>
-							</button>
-
-							<button
-								type="button"
-								onclick={handleCreateTodo}
-								disabled={!newTodoContent.trim() || submitting}
-								class="rounded-full bg-zinc-900 px-4 py-1.5 text-xs font-semibold text-white dark:bg-zinc-100 dark:text-zinc-900 hover:opacity-90 active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed transition-all cursor-pointer shadow-xs"
-							>
-								{submitting ? '发布中...' : '发布'}
-							</button>
-						</div>
-					</div>
-				{/if}
-			</div>
-		</div>
-	</div>
+	<!-- 顶部 Twitter / X 风格极简快速发布框 (独立领域组件) -->
+	<TodoComposer onsubmit={handleCreateTodo} />
 
 	<!-- 下方主体：左侧最新待办 Feed + 右侧辅助 Widgets 左右双栏布局 -->
 	<div class="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8 items-start">
-		<!-- 左侧主流：最新公开待办动态流 (占 8 栏) -->
+		<!-- 左侧主流：最新公开待办动态流 (占 7~8 栏) -->
 		<div class="lg:col-span-7 xl:col-span-8 space-y-4">
 			<div class="flex items-center justify-between px-1">
 				<h2 class="text-xs font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">
@@ -439,7 +285,9 @@
 					<Spinner size="md" />
 				</div>
 			{:else if todos.length === 0}
-				<div class="rounded-2xl border border-dashed border-zinc-200 dark:border-zinc-800/80 py-20 text-center text-xs text-zinc-400">
+				<div
+					class="rounded-2xl border border-dashed border-zinc-200 dark:border-zinc-800/80 py-20 text-center text-xs text-zinc-400"
+				>
 					暂无公开待办，在上方发布第一条吧 ✨
 				</div>
 			{:else}
@@ -467,31 +315,29 @@
 								<Spinner size="xs" />
 								<span>加载中...</span>
 							{:else}
-								<span>加载更多历史待办</span>
+								<span>加载更多待办</span>
+								<svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+									<path
+										stroke-linecap="round"
+										stroke-linejoin="round"
+										stroke-width="2"
+										d="M19 9l-7 7-7-7"
+									/>
+								</svg>
 							{/if}
 						</button>
-					</div>
-				{:else if todos.length > 0}
-					<div class="py-6 text-center text-[11px] text-zinc-300 dark:text-zinc-700 select-none">
-						· 已呈现全网最新动态 ·
 					</div>
 				{/if}
 			{/if}
 		</div>
 
-		<!-- 右侧边栏：我的今日待办 (仅绑定邮箱显示) + 热门多人 Todo (占 4~5 栏) -->
-		<div class="lg:col-span-5 xl:col-span-4 space-y-5 lg:sticky lg:top-20">
-			<!-- 模块 1：我的今日待办 (未绑定邮箱自动隐藏) -->
-			<MyTodayWidget
-				bind:this={myTodayWidgetRef}
-				onTodoToggled={handleWidgetTodoToggled}
-			/>
+		<!-- 右侧副栏：辅助与概览组件库 (占 4~5 栏) -->
+		<aside class="lg:col-span-5 xl:col-span-4 space-y-6">
+			<!-- 1. 我的今日待办 (未绑定邮箱时组件内部完全隐藏) -->
+			<MyTodayWidget bind:this={myTodayWidgetRef} onTodoToggled={handleWidgetTodoToggled} />
 
-			<!-- 模块 2：热门多人 Todo (基于 topic_hash 聚合) -->
-			<TrendingTopicsWidget
-				bind:this={trendingWidgetRef}
-				onJoinTopic={handleJoinTopic}
-			/>
-		</div>
+			<!-- 2. 今日热闹多人待办榜 (基于 topicHash 聚合) -->
+			<TrendingTopicsWidget bind:this={trendingWidgetRef} onJoinTopic={handleJoinTopic} />
+		</aside>
 	</div>
 </div>
