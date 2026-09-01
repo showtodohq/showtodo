@@ -63,13 +63,13 @@
 		}
 	}
 
-	async function handleToggleStatus(todo: Todo, event?: MouseEvent) {
+	async function handleToggleStatus(todo: Todo, nextStatus: TodoStatus, event?: MouseEvent) {
 		if (!userStore.email) return;
 
 		const prevStatus = todo.status;
-		const nextStatus: TodoStatus = prevStatus === 'done' ? 'pending' : 'done';
+		const targetStatus: TodoStatus = nextStatus;
 
-		if (nextStatus === 'done') {
+		if (targetStatus === 'done') {
 			const isAllDone =
 				todayTodos.length > 0 &&
 				todayTodos.every((t) => (t.id === todo.id ? true : t.status === 'done'));
@@ -87,8 +87,8 @@
 		try {
 			await optimisticAction({
 				apply: () => {
-					todo.status = nextStatus;
-					onTodoToggled?.(todo.id, nextStatus);
+					todo.status = targetStatus;
+					onTodoToggled?.(todo.id, targetStatus);
 				},
 				rollback: () => {
 					todo.status = prevStatus;
@@ -97,7 +97,7 @@
 				action: async () => {
 					await api.updateTodo(todo.id, {
 						email: userStore.email!,
-						status: nextStatus
+						status: targetStatus
 					});
 				},
 				onError: (err) => {
@@ -140,13 +140,16 @@
 			<div class="space-y-1.5">
 				{#each todayTodos as todo (todo.id)}
 					{@const isDone = todo.status === 'done'}
+					{@const isAbandoned = todo.status === 'abandoned'}
 					<div
 						class="flex items-center justify-between gap-2 py-1.5 px-2 rounded-lg hover:bg-zinc-100/70 dark:hover:bg-zinc-900/60 transition-colors group/item"
 					>
 						<span
 							class="text-xs truncate flex-1 {isDone
 								? 'line-through text-zinc-400 dark:text-zinc-500'
-								: 'text-zinc-800 dark:text-zinc-200 font-medium'}"
+								: isAbandoned
+									? 'line-through text-zinc-300 dark:text-zinc-600 opacity-60'
+									: 'text-zinc-800 dark:text-zinc-200 font-medium'}"
 						>
 							{todo.content}
 						</span>
@@ -156,7 +159,7 @@
 							status={todo.status}
 							isMine={true}
 							size="sm"
-							ontoggle={(e) => handleToggleStatus(todo, e)}
+							ontoggle={(nextStatus, e) => handleToggleStatus(todo, nextStatus, e)}
 						/>
 					</div>
 				{/each}

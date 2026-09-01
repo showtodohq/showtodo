@@ -138,15 +138,16 @@
 	}
 
 	// ---------------------------------------------------------------------------
-	// 待办状态切换 (0ms 乐观更新与全屏纸屑)
+	// 待办 4 态流转切换 (0ms 乐观更新与全屏纸屑)
 	// ---------------------------------------------------------------------------
-	async function handleToggleStatus(todo: Todo, event?: MouseEvent) {
+	async function handleToggleStatus(todo: Todo, nextStatus?: TodoStatus, event?: MouseEvent) {
 		if (!userStore.email) return;
 
 		const prevStatus = todo.status;
-		const nextStatus: TodoStatus = prevStatus === 'done' ? 'pending' : 'done';
+		const targetStatus: TodoStatus =
+			nextStatus || (prevStatus === 'done' ? 'pending' : 'done');
 
-		if (nextStatus === 'done') {
+		if (targetStatus === 'done') {
 			if (event) {
 				confetti.burst(event.clientX, event.clientY, 300);
 			} else {
@@ -158,7 +159,7 @@
 		try {
 			await optimisticAction({
 				apply: () => {
-					todo.status = nextStatus;
+					todo.status = targetStatus;
 				},
 				rollback: () => {
 					todo.status = prevStatus;
@@ -166,7 +167,7 @@
 				action: async () => {
 					await api.updateTodo(todo.id, {
 						email: userStore.email!,
-						status: nextStatus
+						status: targetStatus
 					});
 					myTodayWidgetRef?.refresh();
 				},

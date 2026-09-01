@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { Todo, ReactionEmoji } from '$lib/types/todo';
+	import type { Todo, TodoStatus, ReactionEmoji } from '$lib/types/todo';
 	import { formatRelativeTime, formatScheduleRange } from '$lib/utils/format';
 	import UserAvatarTooltip from '$lib/components/user/UserAvatarTooltip.svelte';
 	import ReactionButton from '$lib/components/todo/ReactionButton.svelte';
@@ -9,7 +9,7 @@
 	interface Props {
 		todo: Todo;
 		isMine?: boolean;
-		ontoggle?: (todo: Todo, e?: MouseEvent) => void;
+		ontoggle?: (todo: Todo, nextStatus: TodoStatus, e?: MouseEvent) => void;
 		onreaction?: (todo: Todo, emoji?: ReactionEmoji) => void;
 		class?: string;
 	}
@@ -19,6 +19,8 @@
 	const scheduleText = $derived(formatScheduleRange(todo.startDate, todo.dueDate));
 	const relativeTime = $derived(formatRelativeTime(todo.createdAt));
 	const isDone = $derived(todo.status === 'done');
+	const isAbandoned = $derived(todo.status === 'abandoned');
+	const isInProgress = $derived(todo.status === 'in_progress');
 </script>
 
 <div
@@ -53,11 +55,15 @@
 			{/if}
 		</div>
 
-		<!-- 第二行：正文标题 -->
+		<!-- 第二行：正文标题 (4 态视觉区分) -->
 		<p
-			class="text-sm font-medium leading-snug break-words transition-colors duration-150 {isDone
-				? 'line-through text-zinc-400 dark:text-zinc-500'
-				: 'text-zinc-900 dark:text-zinc-100'}"
+			class="text-sm leading-snug break-words transition-colors duration-150 {isDone
+				? 'line-through text-zinc-400 dark:text-zinc-500 font-normal'
+				: isAbandoned
+					? 'line-through text-zinc-300 dark:text-zinc-600 opacity-60 font-normal'
+					: isInProgress
+						? 'text-zinc-900 dark:text-zinc-100 font-semibold'
+						: 'text-zinc-900 dark:text-zinc-100 font-medium'}"
 		>
 			{todo.content}
 		</p>
@@ -93,13 +99,13 @@
 		</div>
 	</div>
 
-	<!-- 右侧：果冻打勾复选框 (统一 TodoCheckbox 领域组件) - 垂直居中对齐 -->
+	<!-- 右侧：4 态果冻复选控制器 (统一 TodoCheckbox 领域组件) - 垂直居中对齐 -->
 	<div class="shrink-0 self-center pl-1 sm:pl-2">
 		<TodoCheckbox
 			status={todo.status}
 			{isMine}
 			size="md"
-			ontoggle={(e) => ontoggle?.(todo, e)}
+			ontoggle={(nextStatus, e) => ontoggle?.(todo, nextStatus, e)}
 		/>
 	</div>
 </div>
