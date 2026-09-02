@@ -12,10 +12,18 @@
 		isMine?: boolean;
 		ontoggle?: (todo: Todo, nextStatus: TodoStatus, e?: MouseEvent) => void;
 		onreaction?: (todo: Todo, emoji?: ReactionEmoji) => void;
+		oncategoryclick?: (categoryId: string) => void;
 		class?: string;
 	}
 
-	let { todo, isMine = false, ontoggle, onreaction, class: className = '' }: Props = $props();
+	let {
+		todo,
+		isMine = false,
+		ontoggle,
+		onreaction,
+		oncategoryclick,
+		class: className = ''
+	}: Props = $props();
 
 	const scheduleText = $derived(formatScheduleRange(todo.startDate, todo.dueDate));
 	const relativeTime = $derived(formatRelativeTime(todo.createdAt));
@@ -67,9 +75,13 @@
 
 		<!-- 第四行：分类徽标 · 发布相对时间 · 轻量表态互动 -->
 		<div class="flex items-center flex-wrap gap-2 pt-1 text-xs text-zinc-400 select-none">
-			<!-- 分类胶囊 (统一组件) -->
+			<!-- 分类胶囊 (统一组件，支持点击筛选) -->
 			{#if todo.category}
-				<CategoryBadge category={todo.category} mode="pill" />
+				<CategoryBadge
+					category={todo.category}
+					mode="pill"
+					onclick={(cat) => oncategoryclick?.(cat)}
+				/>
 				<span>·</span>
 			{/if}
 

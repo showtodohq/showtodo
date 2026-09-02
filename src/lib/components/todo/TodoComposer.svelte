@@ -11,16 +11,21 @@
 			note: string | null;
 			category: CategoryId | null;
 		}) => Promise<void> | void;
+		selectedCategory?: CategoryId | null;
 		placeholder?: string;
 		class?: string;
 	}
 
-	let { onsubmit, placeholder = '写下今天的一个目标... (Enter 发送)', class: className = '' }: Props = $props();
+	let {
+		onsubmit,
+		selectedCategory = $bindable<CategoryId | null>(null),
+		placeholder = '写下今天的一个目标... (Enter 发送)',
+		class: className = ''
+	}: Props = $props();
 
 	let content = $state('');
 	let note = $state('');
 	let isNoteOpen = $state(false);
-	let selectedCategory = $state<CategoryId | null>(null);
 	let isFocused = $state(false);
 	let submitting = $state(false);
 	let containerRef = $state<HTMLDivElement | null>(null);

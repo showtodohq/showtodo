@@ -1,7 +1,10 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import { page } from '$app/state';
+	import { goto } from '$app/navigation';
 	import { api } from '$lib/services/api';
 	import type { Todo, ReactionEmoji, TodoStatus, CategoryId } from '$lib/types/todo';
+	import { getCategoryConfig } from '$lib/constants/categories';
 	import { userStore } from '$lib/stores/user.svelte';
 	import { toast } from '$lib/stores/toast.svelte';
 	import { optimisticAction } from '$lib/utils/mutation';
@@ -20,6 +23,10 @@
 	let loading = $state(true);
 	let loadingMore = $state(false);
 
+	// 分类筛选与顶部联动状态
+	let activeCategoryFilter = $state<CategoryId | null>(null);
+	let composerCategory = $state<CategoryId | null>(null);
+
 	let myTodayWidgetRef = $state<ReturnType<typeof MyTodayWidget> | null>(null);
 	let trendingWidgetRef = $state<ReturnType<typeof TrendingTopicsWidget> | null>(null);
 
@@ -34,6 +41,7 @@
 
 		try {
 			const res = await api.getTodos({
+				category: activeCategoryFilter || undefined,
 				currentUserId: userStore.id,
 				cursor: isInitial ? undefined : (nextCursor ?? undefined),
 				limit: 20
@@ -54,6 +62,28 @@
 		}
 	}
 
+	function handleCategoryFilter(catId: string) {
+		if (activeCategoryFilter === catId) {
+			// 再次点击同一分类：清除筛选
+			activeCategoryFilter = null;
+			composerCategory = null;
+			goto('/', { replaceState: true, noScroll: true });
+		} else {
+			// 激活该分类筛选并联动顶部发布框预选
+			activeCategoryFilter = catId as CategoryId;
+			composerCategory = catId as CategoryId;
+			goto(`/?category=${catId}`, { replaceState: true, noScroll: true });
+		}
+		loadLatestTodos(true);
+	}
+
+	function handleClearCategoryFilter() {
+		activeCategoryFilter = null;
+		composerCategory = null;
+		goto('/', { replaceState: true, noScroll: true });
+		loadLatestTodos(true);
+	}
+
 	$effect(() => {
 		const curUserId = userStore.id;
 		if (curUserId !== prevUserId) {
@@ -63,6 +93,11 @@
 	});
 
 	onMount(() => {
+		const urlCat = page.url.searchParams.get('category');
+		if (urlCat) {
+			activeCategoryFilter = urlCat as CategoryId;
+			composerCategory = urlCat as CategoryId;
+		}
 		loadLatestTodos(true);
 	});
 
@@ -267,8 +302,8 @@
 </script>
 
 <div class="w-full space-y-6 sm:space-y-8">
-	<!-- 顶部 Twitter / X 风格极简快速发布框 (独立领域组件) -->
-	<TodoComposer onsubmit={handleCreateTodo} />
+	<!-- 顶部 Twitter / X 风格极简快速发布框 (独立领域组件，支持外部联动预选) -->
+	<TodoComposer bind:selectedCategory={composerCategory} onsubmit={handleCreateTodo} />
 
 	<!-- 下方主体：左侧最新待办 Feed + 右侧辅助 Widgets 左右双栏布局 -->
 	<div class="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8 items-start">
@@ -278,6 +313,31 @@
 				<h2 class="text-xs font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">
 					最新动态流 (Latest Stream)
 				</h2>
+
+				<!-- 分类筛选激活指示条与一键清除 -->
+				{#if activeCategoryFilter}
+					{@const catConfig = getCategoryConfig(activeCategoryFilter)}
+					<div class="flex items-center gap-1.5 animate-in fade-in duration-150">
+						<span class="text-xs text-zinc-400">正在筛选:</span>
+						<button
+							type="button"
+							onclick={handleClearCategoryFilter}
+							class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium border border-zinc-200 dark:border-zinc-800 bg-white/80 dark:bg-zinc-900/80 shadow-2xs hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-all cursor-pointer group"
+							style="color: {catConfig?.color};"
+							title="点击清除分类筛选并恢复全部"
+						>
+							<span
+								class="h-1.5 w-1.5 rounded-full shrink-0"
+								style="background-color: {catConfig?.color};"
+							></span>
+							<span>{catConfig?.name || activeCategoryFilter}</span>
+							<span
+								class="text-zinc-400 group-hover:text-zinc-700 dark:group-hover:text-zinc-200 text-xs ml-0.5"
+								>✕</span
+							>
+						</button>
+					</div>
+				{/if}
 			</div>
 
 			<!-- Feed 内容区 -->
@@ -289,7 +349,12 @@
 				<div
 					class="rounded-2xl border border-dashed border-zinc-200 dark:border-zinc-800/80 py-20 text-center text-xs text-zinc-400"
 				>
-					暂无公开待办，在上方发布第一条吧 ✨
+					{#if activeCategoryFilter}
+						{@const catConfig = getCategoryConfig(activeCategoryFilter)}
+						暂无「{catConfig?.name || activeCategoryFilter}」类公开待办，在上方发布第一条吧 ✨
+					{:else}
+						暂无公开待办，在上方发布第一条吧 ✨
+					{/if}
 				</div>
 			{:else}
 				<div class="space-y-1 sm:space-y-1.5">
@@ -299,6 +364,7 @@
 							isMine={isMyTodo(todo)}
 							ontoggle={handleToggleStatus}
 							onreaction={handleReaction}
+							oncategoryclick={handleCategoryFilter}
 						/>
 					{/each}
 				</div>
