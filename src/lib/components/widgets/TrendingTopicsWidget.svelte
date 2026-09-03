@@ -1,10 +1,9 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { api } from '$lib/services/api';
-	import type { DailyCard } from '$lib/types/todo';
 	import { userStore } from '$lib/stores/user.svelte';
+	import { todoStore } from '$lib/stores/todo.svelte';
 	import { toast } from '$lib/stores/toast.svelte';
-	import { getTodayString } from '$lib/utils/format';
+	import type { DailyCard } from '$lib/types/todo';
 	import UserAvatarTooltip from '$lib/components/user/UserAvatarTooltip.svelte';
 	import CategoryBadge from '$lib/components/todo/CategoryBadge.svelte';
 	import Spinner from '$lib/components/ui/Spinner.svelte';
@@ -15,40 +14,8 @@
 
 	let { onJoinTopic }: Props = $props();
 
-	let trendingCards = $state<DailyCard[]>([]);
-	let loading = $state(true);
-
-	export async function loadTrending() {
-		loading = true;
-		try {
-			const res = await api.getDailyCards({
-				date: getTodayString(),
-				currentUserId: userStore.id,
-				limit: 50
-			});
-
-			const allCards = res.cards || [];
-			// 优先选出多人参与的目标 (totalParticipants > 1)，按同行人数降序
-			const multi = allCards
-				.filter((c) => c.totalParticipants > 1)
-				.sort((a, b) => b.totalParticipants - a.totalParticipants);
-
-			if (multi.length >= 3) {
-				trendingCards = multi.slice(0, 5);
-			} else {
-				// 若多人较少，补充按同行人数/完成人数排列的 Top 目标
-				const sorted = [...allCards].sort((a, b) => b.totalParticipants - a.totalParticipants);
-				trendingCards = sorted.slice(0, 5);
-			}
-		} catch (e) {
-			console.error('Failed to load trending topics:', e);
-		} finally {
-			loading = false;
-		}
-	}
-
 	onMount(() => {
-		loadTrending();
+		todoStore.loadTrendingCards();
 	});
 
 	function handleJoin(card: DailyCard) {
@@ -56,7 +23,15 @@
 			toast.info('请先点击右上角头像绑定邮箱后再加入');
 			return;
 		}
-		onJoinTopic?.(card.content, card.category);
+
+		if (onJoinTopic) {
+			onJoinTopic(card.content, card.category);
+		} else {
+			todoStore.createTodo({
+				content: card.content,
+				category: card.category
+			});
+		}
 	}
 </script>
 
@@ -72,20 +47,20 @@
 	</div>
 
 	<!-- 列表内容 -->
-	{#if loading && trendingCards.length === 0}
+	{#if todoStore.trendingLoading && todoStore.trendingCards.length === 0}
 		<div class="flex justify-center py-4 text-zinc-400">
 			<Spinner size="sm" />
 		</div>
-	{:else if trendingCards.length === 0}
+	{:else if todoStore.trendingCards.length === 0}
 		<div class="py-3 text-center text-xs text-zinc-400">
 			暂无热门多人目标，发布一个让大家一起参与吧！
 		</div>
 	{:else}
 		<div class="space-y-2.5">
-			{#each trendingCards as card (card.topicHash)}
-				{@const hasJoined = card.participants.some(
-					(p) => p.isMe || Boolean(userStore.id && p.user.id === userStore.id)
-				)}
+			{#each todoStore.trendingCards as card (card.topicHash)}
+				{@const hasJoined =
+					card.participants.some((p) => p.isMe || Boolean(userStore.id && p.user.id === userStore.id)) ||
+					todoStore.isTopicJoined(card.content)}
 				<div
 					class="p-2.5 rounded-xl bg-zinc-50/90 dark:bg-zinc-900/50 hover:bg-zinc-100/90 dark:hover:bg-zinc-900/80 transition-all border border-zinc-200/50 dark:border-zinc-800/60 space-y-2 group/card"
 				>
