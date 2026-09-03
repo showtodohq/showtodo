@@ -26,6 +26,8 @@ export const GET: RequestHandler = async ({ url }) => {
 		const limit = validateLimit(url.searchParams.get('limit') ?? undefined);
 		const offsetParam = url.searchParams.get('offset');
 		const offset = offsetParam ? Math.max(parseInt(offsetParam, 10) || 0, 0) : 0;
+		const sortByParam = url.searchParams.get('sortBy');
+		const sortBy = sortByParam === 'participants' ? 'participants' : 'time';
 
 		const result = await todoService.listDailyCards(db, {
 			targetDate: date,
@@ -33,7 +35,8 @@ export const GET: RequestHandler = async ({ url }) => {
 			onlyMine,
 			currentUserId,
 			limit,
-			offset
+			offset,
+			sortBy
 		});
 
 		return json(result);

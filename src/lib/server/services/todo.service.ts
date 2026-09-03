@@ -7,7 +7,7 @@ import * as reactionService from './reaction.service';
 import * as activityService from './activity.service';
 import { AppError } from '../errors';
 import { computeTopicHash } from '../topic-hash';
-import type { DailyCardResponse, DailyCard, CardParticipant } from '$lib/types/todo';
+import type { DailyCardResponse, DailyCard, CardParticipant, TopicDetail, ReactionEmoji } from '$lib/types/todo';
 
 export interface CreateTodoData {
 	content: string;
@@ -50,6 +50,7 @@ export interface ListDailyCardsOptions {
 	currentUserId?: string;
 	limit?: number;
 	offset?: number;
+	sortBy?: 'time' | 'participants';
 }
 
 function sanitizeNote(todo: typeof todos.$inferSelect) {
@@ -155,8 +156,15 @@ export async function list(db: Database, filters: ListTodosFilters) {
 	if (filters.category) {
 		conditions.push(eq(todos.category, filters.category));
 	}
-	if (filters.authorId && isUUID(filters.authorId)) {
-		conditions.push(eq(todos.authorId, filters.authorId));
+	if (filters.authorId) {
+		if (isUUID(filters.authorId)) {
+			conditions.push(eq(todos.authorId, filters.authorId));
+		} else {
+			const cleanHandle = filters.authorId.startsWith('@')
+				? filters.authorId.slice(1)
+				: filters.authorId;
+			conditions.push(eq(users.handle, cleanHandle.toLowerCase()));
+		}
 	}
 	if (filters.startDateFrom) {
 		conditions.push(gte(todos.startDate, new Date(filters.startDateFrom)));
@@ -321,6 +329,105 @@ export async function getTopicInfoByTodoId(db: Database, idOrShortId: string) {
 	};
 }
 
+export async function getTopicByHash(
+	db: Database,
+	topicHash: string,
+	currentUserId?: string
+): Promise<TopicDetail> {
+	if (!topicHash) {
+		throw new AppError('VALIDATION_ERROR', 'topicHash is required');
+	}
+
+	const result = await db
+		.select()
+		.from(todos)
+		.innerJoin(users, eq(todos.authorId, users.id))
+		.where(eq(todos.topicHash, topicHash))
+		.orderBy(todos.createdAt);
+
+	if (result.length === 0) {
+		throw new AppError('NOT_FOUND', 'Topic not found');
+	}
+
+	const todoIds = result.map((r) => r.todos.id);
+	const [allReactionCounts, myReactionsMap] = await Promise.all([
+		reactionService.getCountsByTodoIds(db, todoIds),
+		currentUserId && isUUID(currentUserId)
+			? reactionService.getMyReactionsByTodoIds(db, todoIds, currentUserId)
+			: ({} as Record<string, string[]>)
+	]);
+
+	const firstTodo = result[0].todos;
+	const content = firstTodo.content;
+	const category = firstTodo.category;
+	const firstCreatedAt =
+		firstTodo.createdAt instanceof Date
+			? firstTodo.createdAt.toISOString()
+			: new Date(firstTodo.createdAt).toISOString();
+
+	const totalParticipants = result.length;
+	let doneCount = 0;
+	let inProgressCount = 0;
+
+	const participants = result.map(({ todos: t, users: u }) => {
+		if (t.status === 'done') doneCount++;
+		else if (t.status === 'in_progress') inProgressCount++;
+
+		return {
+			todoId: t.id,
+			shortId: t.shortId,
+			status: t.status as TodoStatus,
+			note: t.isNotePublic ? t.note : null,
+			startDate: t.startDate
+				? t.startDate instanceof Date
+					? t.startDate.toISOString()
+					: String(t.startDate)
+				: undefined,
+			dueDate: t.dueDate
+				? t.dueDate instanceof Date
+					? t.dueDate.toISOString()
+					: String(t.dueDate)
+				: null,
+			createdAt:
+				t.createdAt instanceof Date
+					? t.createdAt.toISOString()
+					: new Date(t.createdAt).toISOString(),
+			reactions:
+				allReactionCounts[t.id] ?? {
+					'❤️': 0,
+					'👍': 0,
+					'🔥': 0,
+					'💪': 0,
+					'👏': 0,
+					'🚀': 0,
+					'🎉': 0,
+					'👀': 0
+				},
+			myReactions: (myReactionsMap[t.id] ?? []) as ReactionEmoji[],
+			user: {
+				id: u.id,
+				nickname: u.nickname,
+				handle: u.handle,
+				avatar: u.avatar
+			}
+		};
+	});
+
+	const isAllDone = totalParticipants > 0 && doneCount >= totalParticipants;
+
+	return {
+		topicHash,
+		content,
+		category,
+		firstCreatedAt,
+		totalParticipants,
+		doneCount,
+		inProgressCount,
+		isAllDone,
+		participants
+	};
+}
+
 export async function listDailyCards(
 	db: Database,
 	options: ListDailyCardsOptions
@@ -371,6 +478,14 @@ export async function listDailyCards(
 		};
 	}
 
+	const orderBySql =
+		options.sortBy === 'participants'
+			? sql`COUNT(*)::int DESC, MIN(t.created_at) ASC`
+			: sql`COALESCE(
+				MAX(CASE WHEN ${isMeSql} THEN t.created_at ELSE NULL END),
+				MIN(t.created_at)
+			) DESC`;
+
 	// 2. 查询卡片明细
 	const cardsQuery = sql`
 		SELECT
@@ -403,11 +518,7 @@ export async function listDailyCards(
 			${categoryFilter}
 		GROUP BY t.topic_hash
 		${havingClause}
-		ORDER BY 
-			COALESCE(
-				MAX(CASE WHEN ${isMeSql} THEN t.created_at ELSE NULL END),
-				MIN(t.created_at)
-			) DESC
+		ORDER BY ${orderBySql}
 		LIMIT ${limit} OFFSET ${offset}
 	`;
 

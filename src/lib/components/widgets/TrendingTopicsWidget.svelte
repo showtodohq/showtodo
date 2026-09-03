@@ -43,7 +43,7 @@
 		<div class="flex items-center gap-1.5 font-semibold text-xs text-zinc-900 dark:text-zinc-100">
 			<span>🔥 热门多人 Todo</span>
 		</div>
-		<span class="text-[10px] text-zinc-400 font-mono">今日同行</span>
+		<span class="text-[10px] text-zinc-400 font-mono">今日 TOP 5</span>
 	</div>
 
 	<!-- 列表内容 -->
@@ -70,18 +70,22 @@
 						? 'border-amber-300/80 dark:border-amber-500/60 bg-gradient-to-br from-amber-50/90 via-yellow-50/40 to-amber-50/90 dark:from-amber-950/30 dark:via-yellow-950/15 dark:to-amber-950/30 shadow-[0_0_12px_rgba(245,158,11,0.15)]'
 						: 'border-zinc-200/50 dark:border-zinc-800/60 bg-zinc-50/90 dark:bg-zinc-900/50 hover:bg-zinc-100/90 dark:hover:bg-zinc-900/80'}"
 				>
-					<!-- 目标标题与分类 -->
+					<!-- 目标标题与分类 (点击直达多人 Todo 详情页) -->
 					<div class="flex items-start justify-between gap-2">
-						<div class="flex items-center gap-1.5 min-w-0 flex-1">
+						<a
+							href="/topics/{card.topicHash}"
+							class="flex items-center gap-1.5 min-w-0 flex-1 group/title focus:outline-hidden"
+							title="查看多人 Todo 详情"
+						>
 							<!-- 统一 CategoryBadge (dot 模式) -->
 							<CategoryBadge category={card.category} mode="dot" />
 
 							<span
-								class="text-xs font-semibold text-zinc-900 dark:text-zinc-100 truncate leading-snug {isAllDone ? 'text-amber-950 dark:text-amber-100' : ''}"
+								class="text-xs font-semibold text-zinc-900 dark:text-zinc-100 group-hover/title:underline truncate leading-snug {isAllDone ? 'text-amber-950 dark:text-amber-100' : ''}"
 							>
 								{card.content}
 							</span>
-						</div>
+						</a>
 
 						<div class="flex items-center gap-1 shrink-0">
 							{#if isAllDone}
@@ -119,7 +123,11 @@
 
 					<!-- 底部：参与人数与头像微堆叠 -->
 					<div class="flex items-center justify-between text-[11px] font-mono {isAllDone ? 'text-amber-600/90 dark:text-amber-400/90 font-medium' : 'text-zinc-400'}">
-						<div class="flex items-center gap-1">
+						<a
+							href="/topics/{card.topicHash}"
+							class="flex items-center gap-1 hover:underline cursor-pointer"
+							title="查看多人 Todo 详情"
+						>
 							{#if isAllDone}
 								<span class="text-amber-500">✨</span>
 								<span class="font-semibold text-amber-600 dark:text-amber-400">{card.totalParticipants} 人同行全部达成</span>
@@ -129,7 +137,7 @@
 								<span>·</span>
 								<span>{card.doneCount} 达成</span>
 							{/if}
-						</div>
+						</a>
 
 						<!-- 头像微堆叠：悬停展开并支持 Tooltip 气泡 (统一组件) -->
 						<div class="flex -space-x-1 hover:space-x-0.5 transition-all duration-200 items-center">

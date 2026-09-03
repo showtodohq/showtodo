@@ -91,12 +91,12 @@
 						? 'border-zinc-300 dark:border-zinc-700 bg-zinc-100 dark:bg-zinc-800 text-zinc-400'
 						: 'border-zinc-600 dark:border-zinc-300 hover:scale-110 hover:border-zinc-900 dark:hover:border-white hover:bg-zinc-100 dark:hover:bg-zinc-800'}"
 			title={currentStatus === 'done'
-				? '已达成 (点击重开，悬停切换4态)'
+				? '已完成 (点击重开，悬停切换状态)'
 				: currentStatus === 'in_progress'
-					? '推进中 (点击完成，悬停切换4态)'
+					? '进行中 (点击完成，悬停切换状态)'
 					: currentStatus === 'abandoned'
-						? '已放弃 (点击重开，悬停切换4态)'
-						: '待办中 (点击完成，悬停切换4态)'}
+						? '已放弃 (点击重开，悬停切换状态)'
+						: '待办 (点击完成，悬停切换状态)'}
 		>
 			{#if currentStatus === 'done'}
 				<!-- 已完成：加粗打勾 -->
@@ -232,7 +232,7 @@
 				class="shrink-0 rounded-full border border-dashed border-zinc-300 dark:border-zinc-600 bg-zinc-50/80 dark:bg-zinc-800/40 cursor-default select-none {sizeClasses[
 					size
 				].box}"
-				title="待办中（他人待办，只读）"
+				title="待办（他人待办，只读）"
 			></div>
 		{/if}
 	{/if}

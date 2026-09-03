@@ -108,13 +108,21 @@
 			<!-- 👤 【第 1 段：身份识别区 (Identity Header)】 -->
 			<div class="p-2">
 				{#if userStore.current}
+					{@const myProfileUrl = `/users/${userStore.handle || userStore.id}`}
 					<div class="flex items-center gap-3">
-						<Avatar src={userStore.avatar} name={userStore.nickname} size="md" class="shrink-0 ring-1 ring-zinc-200 dark:ring-zinc-700" />
+						<a href={myProfileUrl} onclick={closePopover} class="shrink-0 hover:opacity-85 transition-opacity" title="前往个人主页">
+							<Avatar src={userStore.avatar} name={userStore.nickname} size="md" class="ring-1 ring-zinc-200 dark:ring-zinc-700 cursor-pointer" />
+						</a>
 						<div class="min-w-0 flex-1">
 							<div class="flex items-center gap-1.5">
-								<span class="text-xs font-bold text-zinc-900 dark:text-zinc-100 truncate">
+								<a
+									href={myProfileUrl}
+									onclick={closePopover}
+									class="text-xs font-bold text-zinc-900 dark:text-zinc-100 truncate hover:underline"
+									title="前往个人主页"
+								>
 									{userStore.nickname}
-								</span>
+								</a>
 								<button
 									type="button"
 									onclick={copyHandle}
@@ -151,6 +159,21 @@
 			<!-- 📋 【第 2 段：业务与功能扩展槽位 (Feature Slots & Menu Items)】 -->
 			<div class="py-1.5 space-y-0.5">
 				{#if userStore.current}
+					<!-- 扩展槽位 0：个人主页 -->
+					<a
+						href={`/users/${userStore.handle || userStore.id}`}
+						onclick={closePopover}
+						class="flex items-center justify-between px-2.5 py-1.5 rounded-xl text-xs text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800/80 transition-colors cursor-pointer"
+					>
+						<span class="flex items-center gap-2 font-medium">
+							<svg class="h-3.5 w-3.5 text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+							</svg>
+							个人主页 (Profile)
+						</span>
+						<span class="text-[11px] text-zinc-400">查看待办与数据 →</span>
+					</a>
+
 					<!-- 扩展槽位 1：快捷键指南 -->
 					<div
 						class="flex items-center justify-between px-2.5 py-1.5 rounded-xl text-xs text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800/80 transition-colors cursor-default"

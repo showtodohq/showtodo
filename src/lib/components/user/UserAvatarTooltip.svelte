@@ -41,6 +41,10 @@
 				)
 	);
 
+	const profileUrl = $derived(
+		user?.handle ? `/users/${user.handle}` : user?.id ? `/users/${user.id}` : null
+	);
+
 	const alignClasses = {
 		left: 'left-0 items-start',
 		right: 'right-0 items-end',
@@ -49,17 +53,37 @@
 </script>
 
 <div class="relative group/avatar inline-flex items-center shrink-0 {className}">
-	<Avatar
-		src={user?.avatar}
-		name={nickname}
-		{size}
-		{goldBadge}
-		class="cursor-pointer transition-all duration-150 {goldBadge
-			? 'group-hover/avatar:scale-115 group-hover/avatar:z-20'
-			: isStack
-				? 'ring-1.5 ring-white dark:ring-zinc-900 group-hover/avatar:scale-115 group-hover/avatar:z-20 group-hover/avatar:ring-zinc-400 dark:group-hover/avatar:ring-zinc-600'
-				: 'ring-1 ring-zinc-200/80 dark:ring-zinc-800 group-hover/avatar:scale-105'}"
-	/>
+	{#if profileUrl}
+		<a
+			href={profileUrl}
+			class="inline-flex rounded-full focus:outline-hidden focus-visible:ring-2 focus-visible:ring-zinc-400"
+			onclick={(e) => e.stopPropagation()}
+		>
+			<Avatar
+				src={user?.avatar}
+				name={nickname}
+				{size}
+				{goldBadge}
+				class="cursor-pointer transition-all duration-150 {goldBadge
+					? 'group-hover/avatar:scale-115 group-hover/avatar:z-20'
+					: isStack
+						? 'ring-1.5 ring-white dark:ring-zinc-900 group-hover/avatar:scale-115 group-hover/avatar:z-20 group-hover/avatar:ring-zinc-400 dark:group-hover/avatar:ring-zinc-600'
+						: 'ring-1 ring-zinc-200/80 dark:ring-zinc-800 group-hover/avatar:scale-105'}"
+			/>
+		</a>
+	{:else}
+		<Avatar
+			src={user?.avatar}
+			name={nickname}
+			{size}
+			{goldBadge}
+			class="cursor-pointer transition-all duration-150 {goldBadge
+				? 'group-hover/avatar:scale-115 group-hover/avatar:z-20'
+				: isStack
+					? 'ring-1.5 ring-white dark:ring-zinc-900 group-hover/avatar:scale-115 group-hover/avatar:z-20 group-hover/avatar:ring-zinc-400 dark:group-hover/avatar:ring-zinc-600'
+					: 'ring-1 ring-zinc-200/80 dark:ring-zinc-800 group-hover/avatar:scale-105'}"
+		/>
+	{/if}
 
 	<!-- 悬停精致微型 Tooltip 气泡 (全站标准黑白反色胶囊) -->
 	<div

@@ -113,17 +113,13 @@ class TodoStore {
 			const res = await api.getDailyCards({
 				date: getTodayString(),
 				currentUserId: userStore.id,
-				limit: 50
+				limit: 5,
+				sortBy: 'participants'
 			});
-			const allCards = res.cards || [];
-			const multi = allCards
-				.filter((c) => c.totalParticipants > 1)
-				.sort((a, b) => b.totalParticipants - a.totalParticipants);
-
-			this.trendingCards =
-				multi.length >= 3
-					? multi.slice(0, 5)
-					: [...allCards].sort((a, b) => b.totalParticipants - a.totalParticipants).slice(0, 5);
+			// 固定展示 5 条，纯粹按同行者人数排序
+			this.trendingCards = (res.cards || [])
+				.sort((a, b) => b.totalParticipants - a.totalParticipants)
+				.slice(0, 5);
 		} catch (error) {
 			console.error('Failed to load trending topics:', error);
 		} finally {
@@ -277,7 +273,12 @@ class TodoStore {
 		}
 	}
 
-	async toggleStatus(todoId: string, nextStatus?: TodoStatus, event?: MouseEvent) {
+	async toggleStatus(
+		todoId: string,
+		nextStatus?: TodoStatus,
+		event?: MouseEvent,
+		fallbackTodo?: Todo
+	) {
 		if (!userStore.email) {
 			toast.info('请先点击右上角头像设置邮箱');
 			return;
@@ -288,7 +289,9 @@ class TodoStore {
 		}
 
 		const target =
-			this.feedTodos.find((t) => t.id === todoId) || this.todayTodos.find((t) => t.id === todoId);
+			this.feedTodos.find((t) => t.id === todoId) ||
+			this.todayTodos.find((t) => t.id === todoId) ||
+			fallbackTodo;
 		if (!target) return;
 
 		const prevStatus = target.status;
@@ -311,10 +314,12 @@ class TodoStore {
 			await optimisticAction({
 				apply: () => {
 					this.mutateTodo(todoId, (t) => (t.status = targetStatus));
+					if (fallbackTodo) fallbackTodo.status = targetStatus;
 					this.syncStatusTrendingCard(todoId, prevStatus, targetStatus);
 				},
 				rollback: () => {
 					this.mutateTodo(todoId, (t) => (t.status = prevStatus));
+					if (fallbackTodo) fallbackTodo.status = prevStatus;
 					this.syncStatusTrendingCard(todoId, targetStatus, prevStatus);
 				},
 				action: async () => {
@@ -332,7 +337,7 @@ class TodoStore {
 		}
 	}
 
-	async toggleReaction(todoId: string, emoji?: ReactionEmoji) {
+	async toggleReaction(todoId: string, emoji?: ReactionEmoji, fallbackTodo?: Todo) {
 		if (!userStore.email) {
 			toast.info('请先点击右上角头像绑定邮箱再表态');
 			return;
@@ -343,7 +348,9 @@ class TodoStore {
 		}
 
 		const target =
-			this.feedTodos.find((t) => t.id === todoId) || this.todayTodos.find((t) => t.id === todoId);
+			this.feedTodos.find((t) => t.id === todoId) ||
+			this.todayTodos.find((t) => t.id === todoId) ||
+			fallbackTodo;
 		if (!target) return;
 
 		target.reactions ??= { '❤️': 0, '👍': 0, '🔥': 0, '💪': 0, '👏': 0, '🚀': 0, '🎉': 0, '👀': 0 };
@@ -373,12 +380,20 @@ class TodoStore {
 
 		try {
 			await optimisticAction({
-				apply: () => this.mutateTodo(todoId, (item) => updateReactions(item, isLiked)),
-				rollback: () =>
+				apply: () => {
+					this.mutateTodo(todoId, (item) => updateReactions(item, isLiked));
+					if (fallbackTodo) updateReactions(fallbackTodo, isLiked);
+				},
+				rollback: () => {
 					this.mutateTodo(todoId, (item) => {
 						item.reactions = { ...prevReactions };
 						item.myReactions = [...prevMyReactions];
-					}),
+					});
+					if (fallbackTodo) {
+						fallbackTodo.reactions = { ...prevReactions };
+						fallbackTodo.myReactions = [...prevMyReactions];
+					}
+				},
 				action: async () => {
 					if (isLiked) {
 						await api.removeReaction(todoId, targetEmoji, userStore.email!);

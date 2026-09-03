@@ -44,14 +44,20 @@
 					<div
 						class="flex items-center justify-between gap-2 py-1.5 px-2 rounded-lg hover:bg-zinc-100/70 dark:hover:bg-zinc-900/60 transition-colors group/item"
 					>
-						<!-- 统一 TodoContent 组件 (紧凑截断模式) -->
-						<TodoContent
-							content={todo.content}
-							status={todo.status}
-							size="xs"
-							truncate={true}
-							class="flex-1 min-w-0"
-						/>
+						<!-- 统一 TodoContent 组件 (紧凑截断模式，点击进入详情) -->
+						<a
+							href="/todos/{todo.shortId || todo.id}"
+							class="flex-1 min-w-0 group/link focus:outline-hidden"
+							title="查看待办详情"
+						>
+							<TodoContent
+								content={todo.content}
+								status={todo.status}
+								size="xs"
+								truncate={true}
+								class="group-hover/link:text-zinc-600 dark:group-hover/link:text-zinc-300 transition-colors cursor-pointer"
+							/>
+						</a>
 
 						<!-- 统一 TodoCheckbox 组件 -->
 						<TodoCheckbox

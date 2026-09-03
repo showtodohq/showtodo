@@ -7,6 +7,7 @@ import type {
 	TodoListQuery,
 	TodoListResponse,
 	TopicInfoResponse,
+	TopicDetailResponse,
 	UpdateTodoInput
 } from '$lib/types/todo';
 import type { UpdateUserInput, UserProfile } from '$lib/types/user';
@@ -222,6 +223,7 @@ export const api = {
 			currentUserId?: string;
 			limit?: number;
 			offset?: number;
+			sortBy?: 'time' | 'participants';
 		},
 		customFetch?: typeof fetch
 	): Promise<DailyCardResponse> {
@@ -232,6 +234,7 @@ export const api = {
 		if (params.currentUserId) searchParams.set('currentUserId', params.currentUserId);
 		if (params.limit) searchParams.set('limit', String(params.limit));
 		if (params.offset) searchParams.set('offset', String(params.offset));
+		if (params.sortBy) searchParams.set('sortBy', params.sortBy);
 
 		return request<DailyCardResponse>(`/api/daily?${searchParams.toString()}`, undefined, customFetch);
 	},
@@ -241,5 +244,20 @@ export const api = {
 		customFetch?: typeof fetch
 	): Promise<TopicInfoResponse> {
 		return request<TopicInfoResponse>(`/api/todos/${id}/topic`, undefined, customFetch);
+	},
+
+	async getTopicByHash(
+		hash: string,
+		currentUserId?: string,
+		customFetch?: typeof fetch
+	): Promise<TopicDetailResponse> {
+		const searchParams = new URLSearchParams();
+		if (currentUserId) searchParams.set('currentUserId', currentUserId);
+		const qs = searchParams.toString();
+		return request<TopicDetailResponse>(
+			`/api/topics/${hash}${qs ? `?${qs}` : ''}`,
+			undefined,
+			customFetch
+		);
 	}
 };

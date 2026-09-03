@@ -132,3 +132,37 @@ export interface TopicInfoResponse {
 	participantCount: number;
 }
 
+export interface TopicParticipant {
+	todoId: string;
+	shortId: string;
+	status: TodoStatus;
+	note?: string | null;
+	startDate?: string;
+	dueDate?: string | null;
+	createdAt: string;
+	reactions?: Record<string, number>;
+	myReactions?: ReactionEmoji[];
+	user: {
+		id: string;
+		nickname: string;
+		handle: string;
+		avatar: string | null;
+	};
+}
+
+export interface TopicDetail {
+	topicHash: string;
+	content: string;
+	category: string | null;
+	firstCreatedAt: string;
+	totalParticipants: number;
+	doneCount: number;
+	inProgressCount: number;
+	isAllDone: boolean;
+	participants: TopicParticipant[];
+}
+
+export interface TopicDetailResponse {
+	topic: TopicDetail;
+}
+

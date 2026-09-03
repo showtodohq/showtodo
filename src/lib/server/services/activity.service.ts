@@ -1,4 +1,4 @@
-import { eq, asc, inArray } from 'drizzle-orm';
+import { eq, desc, inArray } from 'drizzle-orm';
 import { todoActivities } from '../db/schema';
 import type { Database } from '../db';
 import type { TodoActivity, TodoActivityType, TodoStatus } from '$lib/types/todo';
@@ -46,7 +46,7 @@ export async function listByTodoId(db: Database, todoId: string): Promise<TodoAc
 		.select()
 		.from(todoActivities)
 		.where(eq(todoActivities.todoId, todoId))
-		.orderBy(asc(todoActivities.createdAt));
+		.orderBy(desc(todoActivities.createdAt));
 
 	return rows.map((row) => ({
 		id: row.id,
@@ -70,7 +70,7 @@ export async function listByTodoIds(
 		.select()
 		.from(todoActivities)
 		.where(inArray(todoActivities.todoId, todoIds))
-		.orderBy(asc(todoActivities.createdAt));
+		.orderBy(desc(todoActivities.createdAt));
 
 	const map: Record<string, TodoActivity[]> = {};
 	for (const id of todoIds) {
