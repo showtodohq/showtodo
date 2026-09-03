@@ -18,6 +18,22 @@
 
 	let isEmojiPopOpen = $state(false);
 	let popCloseTimeout: ReturnType<typeof setTimeout> | null = null;
+	let isBouncing = $state(false);
+	let isCountBumping = $state(false);
+	let lastCount = $state<number | null>(null);
+
+	$effect(() => {
+		const current = totalReactionCount;
+		if (lastCount !== null && current !== lastCount) {
+			isCountBumping = true;
+			const timer = setTimeout(() => {
+				isCountBumping = false;
+			}, 320);
+			lastCount = current;
+			return () => clearTimeout(timer);
+		}
+		lastCount = current;
+	});
 
 	function handleMouseEnter() {
 		if (popCloseTimeout) {
@@ -35,6 +51,10 @@
 
 	function handleSelectEmoji(emoji?: ReactionEmoji) {
 		isEmojiPopOpen = false;
+		isBouncing = true;
+		setTimeout(() => {
+			isBouncing = false;
+		}, 450);
 		onreact?.(emoji);
 	}
 </script>
@@ -46,11 +66,11 @@
 	role="group"
 	aria-label="Reaction picker"
 >
-	<!-- 主互动按钮：爱心 SVG Icon + 反应总数 (点击触发一键全清或点赞爱心) -->
+	<!-- 主互动按钮：爱心 SVG Icon + 反应总数 (带弹性果冻微动效与光圈波纹) -->
 	<button
 		type="button"
 		onclick={() => handleSelectEmoji()}
-		class="group/heart inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-mono transition-all cursor-pointer select-none {hasMyReaction
+		class="group/heart relative inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-mono transition-all duration-150 cursor-pointer select-none active:scale-90 {hasMyReaction
 			? 'text-rose-600 dark:text-rose-400 bg-rose-50/80 dark:bg-rose-950/40 border border-rose-200/80 dark:border-rose-800/60 font-semibold shadow-2xs'
 			: 'text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800/80 border border-transparent'}"
 		title={hasMyReaction
@@ -58,29 +78,51 @@
 			: '点赞 (悬停选择更多表情)'}
 		aria-label="Reaction button"
 	>
-		{#if hasMyReaction}
-			<!-- 已点赞：实心高亮爱心 Icon -->
-			<svg
-				class="h-3.5 w-3.5 text-rose-500 fill-rose-500 transition-transform active:scale-85 animate-in zoom-in-75 duration-150"
-				viewBox="0 0 24 24"
-			>
-				<path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
-			</svg>
-		{:else}
-			<!-- 未点赞：极简描边空心爱心 Icon -->
-			<svg
-				class="h-3.5 w-3.5 stroke-[1.8] text-zinc-400 group-hover/heart:text-rose-500 group-hover/heart:scale-110 transition-all duration-150"
-				fill="none"
-				viewBox="0 0 24 24"
-				stroke="currentColor"
-			>
-				<path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />
-			</svg>
-		{/if}
+		<!-- 居中爱心与波纹扩散环 -->
+		<span class="relative flex items-center justify-center shrink-0">
+			{#if isBouncing}
+				<span
+					class="absolute h-4 w-4 rounded-full bg-rose-400/30 dark:bg-rose-500/30 animate-ripple-burst pointer-events-none"
+				></span>
+			{/if}
+
+			{#if hasMyReaction}
+				<!-- 已点赞：实心高亮爱心 Icon (带果冻回弹微动效) -->
+				<svg
+					class="h-3.5 w-3.5 text-rose-500 fill-rose-500 transition-transform {isBouncing
+						? 'animate-heart-bounce'
+						: ''}"
+					viewBox="0 0 24 24"
+				>
+					<path
+						d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"
+					/>
+				</svg>
+			{:else}
+				<!-- 未点赞：极简描边空心爱心 Icon -->
+				<svg
+					class="h-3.5 w-3.5 stroke-[1.8] text-zinc-400 group-hover/heart:text-rose-500 transition-all duration-150 {isBouncing
+						? 'animate-heart-bounce'
+						: 'group-hover/heart:scale-110'}"
+					fill="none"
+					viewBox="0 0 24 24"
+					stroke="currentColor"
+				>
+					<path
+						stroke-linecap="round"
+						stroke-linejoin="round"
+						d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z"
+					/>
+				</svg>
+			{/if}
+		</span>
 
 		{#if totalReactionCount > 0}
+			<!-- 数字跳动微动效 -->
 			<span
-				class="text-[11px] leading-none {hasMyReaction
+				class="text-[11px] leading-none transition-colors duration-150 {isCountBumping
+					? 'animate-count-bump'
+					: ''} {hasMyReaction
 					? 'text-rose-600 dark:text-rose-400 font-bold'
 					: 'text-zinc-500 dark:text-zinc-400 font-medium'}"
 			>
@@ -101,7 +143,7 @@
 					<button
 						type="button"
 						onclick={() => handleSelectEmoji(item.emoji)}
-						class="relative flex flex-col items-center justify-center h-10 w-9 rounded-xl hover:scale-110 active:scale-95 transition-all duration-100 cursor-pointer {isMyReaction
+						class="relative flex flex-col items-center justify-center h-10 w-9 rounded-xl hover:scale-110 active:scale-90 transition-all duration-100 cursor-pointer {isMyReaction
 							? 'bg-rose-50/90 dark:bg-rose-950/60 ring-1.5 ring-rose-400 dark:ring-rose-600 shadow-2xs'
 							: 'hover:bg-zinc-100 dark:hover:bg-zinc-800'}"
 						title="{item.label}: {item.description} ({count} 票){isMyReaction ? ' - 已表态(点击取消)' : ''}"
@@ -126,3 +168,61 @@
 		</div>
 	{/if}
 </div>
+
+<style>
+	@keyframes heart-elastic {
+		0% {
+			transform: scale(1);
+		}
+		22% {
+			transform: scale(0.68);
+		}
+		50% {
+			transform: scale(1.36);
+		}
+		75% {
+			transform: scale(0.92);
+		}
+		100% {
+			transform: scale(1);
+		}
+	}
+
+	@keyframes count-bump {
+		0% {
+			transform: translateY(3px) scale(0.9);
+			opacity: 0.6;
+		}
+		55% {
+			transform: translateY(-2px) scale(1.15);
+			opacity: 1;
+		}
+		100% {
+			transform: translateY(0) scale(1);
+			opacity: 1;
+		}
+	}
+
+	@keyframes ripple-burst {
+		0% {
+			transform: scale(0.5);
+			opacity: 0.8;
+		}
+		100% {
+			transform: scale(2.2);
+			opacity: 0;
+		}
+	}
+
+	:global(.animate-heart-bounce) {
+		animation: heart-elastic 450ms cubic-bezier(0.175, 0.885, 0.32, 1.275);
+	}
+
+	:global(.animate-count-bump) {
+		animation: count-bump 320ms cubic-bezier(0.34, 1.56, 0.64, 1);
+	}
+
+	:global(.animate-ripple-burst) {
+		animation: ripple-burst 400ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+	}
+</style>
