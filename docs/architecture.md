@@ -123,6 +123,7 @@
 |---|---|---|---|---|
 | `id` | `uuid` | `uuid` | `PRIMARY KEY`, `defaultRandom()` | 待办唯一主键 |
 | `short_id` | `text` | `text` | `NOT NULL`, `UNIQUE` | 6~12 位短标识（用于短链接分享） |
+| `topic_hash` | `text` | `text` | `NOT NULL`, `INDEX(idx_todos_topic_hash)` | 正文内容寻址哈希（SHA-256 前16位，仅基于归一化 content） |
 | `content` | `text` | `text` | `NOT NULL` | 待办正文内容（1-1000 字符） |
 | `note` | `text` | `text` | `NULL` | 详细规划/备注（<=5000 字符） |
 | `is_note_public`| `boolean` | `boolean` | `NOT NULL`, `default(true)` | 备注是否全网公开（false 时脱敏） |
