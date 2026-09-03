@@ -61,9 +61,9 @@ Accept: application/json
 | 枚举值 | 中文名称 | 说明 | 允许迁移的下一状态 |
 |---|---|---|---|
 | `pending` | 待办 | 初始状态 | `in_progress`, `done`, `abandoned` |
-| `in_progress` | 进行中 | 进行中状态 | `done`, `abandoned` |
-| `done` | 已完成 | 划线终态 | *不可迁移 (终态)* |
-| `abandoned` | 已放弃 | 划线置灰终态 | *不可迁移 (终态)* |
+| `in_progress` | 进行中 | 推进中状态 | `pending`, `done`, `abandoned` |
+| `done` | 已完成 | 达成状态（支持重开/修正） | `pending`, `in_progress`, `abandoned` |
+| `abandoned` | 已放弃 | 搁置状态（支持重启/补记） | `pending`, `in_progress`, `done` |
 
 ### 3.2 静态分类 (`category`)
 | ID | 名称 | 标准色值 | 适用场景 |
@@ -388,12 +388,12 @@ curl -X POST "http://localhost:3003/api/todos" \
     }
   }
   ```
-- **400 非法状态流转（如已完成试图倒退回待办）**:
+- **400 状态参数校验失败或非法状态变更**:
   ```json
   {
     "error": {
       "code": "INVALID_STATUS_TRANSITION",
-      "message": "Cannot transition status from 'done' to 'pending'"
+      "message": "Cannot transition status: invalid target status"
     }
   }
   ```

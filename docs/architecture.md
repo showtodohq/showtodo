@@ -195,6 +195,12 @@
 #### 3. `sanitizeNote(todo): Todo`
 - **隐私脱敏规范**: 若 `is_note_public === false`，强制将 `note` 字段重置为 `null`，保护用户未公开的敏感规划。
 
+#### 4. `updateStatus(db, todoId, email, targetStatus): Promise<Todo>`
+- **业务职责**: 待办状态流转核心。校验调用者身份是否为作者本人，通过后将待办状态原子流转为目标状态并刷新 `updated_at` 与用户的 `last_todo_updated_at`。
+- **状态流转规则**:
+  - `pending` (待办中) $\leftrightarrow$ `in_progress` (推进中) $\leftrightarrow$ `done` (已达成) $\leftrightarrow$ `abandoned` (已放弃)；
+  - 达成状态（`done`）与放弃状态（`abandoned`）均支持反向流转重开回 `pending` / `in_progress`。
+
 ---
 
 ### 3.3 表情反应服务 (`reaction.service.ts`)
