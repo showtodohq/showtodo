@@ -699,8 +699,16 @@
 				{#each cards as card (card.topicHash)}
 					{@const myParticipant = card.participants.find((p) => isCurrentParticipant(p))}
 					{@const isExpanded = expandedTopicHashes[card.topicHash] ?? false}
+					{@const isAllDone =
+						card.isMultiplayer &&
+						card.totalParticipants > 1 &&
+						card.doneCount >= card.totalParticipants}
 
-					<div class="group relative rounded-xl border border-zinc-200/80 bg-white p-5 shadow-xs transition-all hover:border-zinc-300 dark:border-zinc-800/80 dark:bg-zinc-900 dark:hover:border-zinc-700">
+					<div
+						class="group relative rounded-xl border p-5 shadow-xs transition-all {isAllDone
+							? 'border-amber-300/90 dark:border-amber-500/70 bg-gradient-to-br from-amber-50/70 via-white to-amber-50/70 dark:from-amber-950/30 dark:via-zinc-900 dark:to-amber-950/30 shadow-[0_0_15px_rgba(245,158,11,0.12)]'
+							: 'border-zinc-200/80 bg-white hover:border-zinc-300 dark:border-zinc-800/80 dark:bg-zinc-900 dark:hover:border-zinc-700'}"
+					>
 						<!-- 卡片顶部：分类、多人同行徽章、进度 -->
 						<div class="mb-3 flex items-center justify-between text-xs">
 							<div class="flex items-center gap-2">
@@ -710,7 +718,12 @@
 									</span>
 								{/if}
 
-								{#if card.isMultiplayer}
+								{#if isAllDone}
+									<span class="flex items-center gap-1 rounded bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-500 px-2 py-0.5 text-[11px] font-bold text-amber-950 shadow-xs animate-in zoom-in-90">
+										<Icon icon="lucide:trophy" class="h-3 w-3" />
+										<span>全员达成 ({card.totalParticipants}人)</span>
+									</span>
+								{:else if card.isMultiplayer}
 									<span class="flex items-center gap-1 rounded bg-zinc-900 px-2 py-0.5 text-[11px] font-semibold text-white dark:bg-white dark:text-zinc-900">
 										<Icon icon="lucide:users" class="h-3 w-3" />
 										<span>{card.totalParticipants} 人同行</span>
@@ -723,11 +736,11 @@
 							</div>
 
 							<!-- 完成进度 -->
-							<div class="flex items-center gap-2 font-mono text-xs text-zinc-400">
+							<div class="flex items-center gap-2 font-mono text-xs {isAllDone ? 'text-amber-600 dark:text-amber-400 font-semibold' : 'text-zinc-400'}">
 								<span>{card.doneCount}/{card.totalParticipants} 完成</span>
 								<div class="h-1.5 w-16 overflow-hidden rounded-full bg-zinc-100 dark:bg-zinc-800">
 									<div
-										class="h-full bg-zinc-900 dark:bg-white transition-all duration-300"
+										class="h-full transition-all duration-300 {isAllDone ? 'bg-gradient-to-r from-amber-400 to-yellow-300' : 'bg-zinc-900 dark:bg-white'}"
 										style="width: {card.totalParticipants > 0 ? (card.doneCount / card.totalParticipants) * 100 : 0}%"
 									></div>
 								</div>
@@ -812,6 +825,7 @@
 												src={p.user.avatar}
 												name={p.user.nickname}
 												size="xs"
+												goldBadge={isAllDone}
 												class="h-4.5 w-4.5"
 											/>
 											<span class="text-xs font-medium text-zinc-800 dark:text-zinc-200">

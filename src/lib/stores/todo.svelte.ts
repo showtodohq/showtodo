@@ -191,6 +191,7 @@ class TodoStore {
 	async createTodo(data: {
 		content: string;
 		note?: string | null;
+		isNotePublic?: boolean;
 		category?: CategoryId | string | null;
 	}) {
 		const email = userStore.email;
@@ -208,13 +209,15 @@ class TodoStore {
 			avatar: userStore.avatar
 		};
 
+		const isNotePublic = data.isNotePublic ?? true;
+
 		const tempTodo: Todo = {
 			id: tempId,
 			shortId: tempId,
 			topicHash: `topic-${Date.now()}`,
 			content: data.content,
 			note: data.note ?? null,
-			isNotePublic: true,
+			isNotePublic,
 			category: data.category ?? null,
 			authorId: currentUser.id,
 			status: 'pending',
@@ -247,6 +250,7 @@ class TodoStore {
 						email,
 						content: data.content,
 						note: data.note,
+						isNotePublic,
 						category: data.category ?? undefined
 					});
 					this.replaceTempTodo(tempId, res.todo);

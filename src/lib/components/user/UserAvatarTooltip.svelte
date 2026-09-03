@@ -16,6 +16,7 @@
 		isStack?: boolean;
 		align?: 'left' | 'right' | 'center';
 		isMe?: boolean;
+		goldBadge?: boolean;
 		class?: string;
 	}
 
@@ -25,6 +26,7 @@
 		isStack = false,
 		align = 'left',
 		isMe: explicitIsMe,
+		goldBadge = false,
 		class: className = ''
 	}: Props = $props();
 
@@ -51,9 +53,12 @@
 		src={user?.avatar}
 		name={nickname}
 		{size}
-		class="cursor-pointer transition-all duration-150 {isStack
-			? 'ring-1.5 ring-white dark:ring-zinc-900 group-hover/avatar:scale-115 group-hover/avatar:z-20 group-hover/avatar:ring-zinc-400 dark:group-hover/avatar:ring-zinc-600'
-			: 'ring-1 ring-zinc-200/80 dark:ring-zinc-800 group-hover/avatar:scale-105'}"
+		{goldBadge}
+		class="cursor-pointer transition-all duration-150 {goldBadge
+			? 'group-hover/avatar:scale-115 group-hover/avatar:z-20'
+			: isStack
+				? 'ring-1.5 ring-white dark:ring-zinc-900 group-hover/avatar:scale-115 group-hover/avatar:z-20 group-hover/avatar:ring-zinc-400 dark:group-hover/avatar:ring-zinc-600'
+				: 'ring-1 ring-zinc-200/80 dark:ring-zinc-800 group-hover/avatar:scale-105'}"
 	/>
 
 	<!-- 悬停精致微型 Tooltip 气泡 (全站标准黑白反色胶囊) -->
@@ -71,6 +76,9 @@
 			{/if}
 			{#if isMe}
 				<span class="ml-1 text-[10px] text-amber-300 dark:text-amber-600 font-semibold">(我)</span>
+			{/if}
+			{#if goldBadge}
+				<span class="ml-1 text-[10px] text-amber-400 font-medium">🏆 全员达成</span>
 			{/if}
 		</div>
 	</div>
