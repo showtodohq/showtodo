@@ -50,6 +50,35 @@ class TodoStore {
 		this.todayTodos = this.todayTodos.filter((t) => t.id !== tempId);
 	}
 
+	private todoCache = new Map<string, Todo>();
+
+	/**
+	 * 将已知的 Todo 缓存入全局缓存字典，支持按 UUID 或 shortId 0ms 预取
+	 */
+	cacheTodo(todo: Todo) {
+		this.todoCache.set(todo.id, todo);
+		if (todo.shortId) {
+			this.todoCache.set(todo.shortId, todo);
+		}
+	}
+
+	/**
+	 * 从本地 Store (feed/today/cache) 中检索待办条目，支持 0ms 瞬时预渲染
+	 */
+	getTodo(identifier: string): Todo | undefined {
+		if (this.todoCache.has(identifier)) {
+			return this.todoCache.get(identifier);
+		}
+		const found =
+			this.feedTodos.find((t) => t.id === identifier || t.shortId === identifier) ||
+			this.todayTodos.find((t) => t.id === identifier || t.shortId === identifier);
+		if (found) {
+			this.cacheTodo(found);
+			return found;
+		}
+		return undefined;
+	}
+
 	/**
 	 * 判断当前用户今日是否已加入某话题 (供热门卡片 0ms 派生「已同行」)
 	 */
@@ -277,7 +306,8 @@ class TodoStore {
 		todoId: string,
 		nextStatus?: TodoStatus,
 		event?: MouseEvent,
-		fallbackTodo?: Todo
+		fallbackTodo?: Todo,
+		options?: { activityNote?: string }
 	) {
 		if (!userStore.email) {
 			toast.info('请先点击右上角头像设置邮箱');
@@ -325,7 +355,8 @@ class TodoStore {
 				action: async () => {
 					await api.updateTodo(todoId, {
 						email: userStore.email!,
-						status: targetStatus
+						status: targetStatus,
+						activityNote: options?.activityNote
 					});
 				},
 				onError: (err) => {
