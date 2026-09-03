@@ -199,7 +199,10 @@ stateDiagram-v2
 
 * **核心待办正文**：统一采用 **`15px` (`text-[15px]`)**，行高 `leading-snug`，确保中文字符笔画饱满舒展，兼具桌面端高密度与阅读舒适度；
 * **作者昵称**：`12px` (`text-xs`)，`font-semibold`；
-* **时间范围与发布时间**：`11px` (`text-[11px]`)，等宽字体 `font-mono text-zinc-400`；
+* **时间范围、截止时刻与发布时间**：`11px` (`text-[11px]`)，等宽字体 `font-mono text-zinc-400 dark:text-zinc-500`；
+  - **当日具体时刻**：优先展示精简时分 `HH:mm`（如 `18:30 截止`）；
+  - **跨日时刻**：展示为 `MM-DD HH:mm`；
+  - **临期提示视觉**：距截止时间不足 2 小时未达成时，时间标签微高亮为琥珀暖色 (`text-amber-600 dark:text-amber-400 font-medium`)；
 * **分类徽标**：`10px` (`text-[10px]`)，`font-medium`；
 * **公开备注**：`12px` (`text-xs`)，行高 `leading-relaxed text-zinc-500`。
 
@@ -231,6 +234,19 @@ stateDiagram-v2
 ### 5.5 纯净沉浸流与灵动微动效 (Playful & Delightful Micro-interactions)
 - **背景统一与无边界留白**：全屏大背景、顶部标题栏与内容流统一为同一抹纯净白 (`bg-white`) / 深邃黑 (`dark:bg-zinc-950`)，采用行间距与内边距替代生硬分割线；
 - **全屏高饱和物理纸屑 (Canvas Confetti Engine)**：单次达成打卡喷发 300 颗高饱和 3D 纸片、彩带与星形粒子；当日全部达成触发连续三次全屏超级大礼炮 (800+ 颗) 狂欢。
+
+---
+
+### 5.6 待办动态时间线与打卡契约 (Activity Timeline & Check-in Contract)
+
+待办详情建立基于 `activities` 序列的生命周期动态流，维护目标推进的成长轨迹：
+
+1. **动态事件语义分级**：
+   * **起点创建 (`created`)**：待办初始化基准事件；
+   * **状态跃迁 (`status_change`)**：记录跨状态迁移轨迹，承载随状态流转附带的说明或原因；
+   * **进展打卡 (`progress_note`)**：记录在当前状态下追加的阶段性进展、心得或复盘，保留当时的状态阶段快照。
+2. **本地变异契约 (Local-First Mutation)**：
+   * 追加打卡与状态跃迁严格遵循 4.1 节就地变异原则，由客户端在本地时间线直接执行乐观插入，无需全量重新拉取待办详情；遇到网络异常时自动回滚快照。
 
 ---
 

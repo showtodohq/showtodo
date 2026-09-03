@@ -22,8 +22,8 @@ Accept: application/json
 ```
 
 ### 1.3 统一时间与标识符格式
-- **日期格式 (Date)**: 严格遵循 `YYYY-MM-DD`（ISO 8601 本地日历日），例如 `2026-08-26`。
-- **时间戳格式 (Timestamp)**: 严格遵循 ISO 8601 带时区字符串，例如 `2026-08-26T08:30:00.000Z`。
+- **日期格式 (Date)**: 遵循 `YYYY-MM-DD`（ISO 8601 本地日历日），例如 `2026-08-26`，用于日历看板与每日聚合查询入参。
+- **时间戳格式 (Timestamp)**: 严格遵循 ISO 8601 带时区字符串，例如 `2026-08-26T08:30:00.000Z` 或 `2026-08-26T18:00:00+08:00`，适用于 `startDate`、`dueDate`、`createdAt`、`updatedAt`。
 - **实体主键 (ID)**: 标准 UUID v4 格式（36 字符），例如 `a9bf1c17-646e-4401-9f93-5c026e64ec64`。
 - **短短链 ID (shortId)**: 6~12 位 URL 安全字符（仅字母与数字），用于分享与短链。
 
@@ -47,7 +47,7 @@ Accept: application/json
 | 错误码 (`code`) | HTTP Status | 触发业务场景 | 客户端建议处理 |
 |---|---|---|---|
 | `VALIDATION_ERROR` | `400 Bad Request` | 参数缺失、格式错误、日期非法、字符超长、枚举值不在白名单 | 高亮输入框并展示 `message` |
-| `INVALID_STATUS_TRANSITION` | `400 Bad Request` | Todo 状态迁移违反状态机约束（如已完成试图倒退为待办） | 提示“当前状态不允许该变更”并刷新状态 |
+| `INVALID_STATUS_TRANSITION` | `400 Bad Request` | Todo 状态迁移目标非法（目标状态值不在有效枚举集合中） | 提示“目标状态无效”并刷新状态 |
 | `FORBIDDEN` | `403 Forbidden` | 请求中的 `email` 与资源创建者邮箱不匹配 | 提示“无权操作该资源” |
 | `NOT_FOUND` | `404 Not Found` | 请求的 Todo 或 User 资源不存在 | 提示“内容已不存在或已被删除” |
 | `DUPLICATE_REACTION` | `409 Conflict` | 同一用户对同一 Todo 重复提交相同 Emoji 反应 | 忽略或提示“您已表态过该表情” |
@@ -272,8 +272,8 @@ curl -X GET "http://localhost:3003/api/calendar?startDateFrom=2026-08-24&startDa
 | `note` | `string` | 否 | `null` | 最大 5000 字符 | 详细备注或背景 |
 | `isNotePublic` | `boolean` | 否 | `true` | `true` 或 `false` | 备注是否全网公开 |
 | `category` | `string` | 否 | `null` | 见 3.2 分类白名单 | 分类 ID |
-| `startDate` | `string` | 否 | 当天日期 | `YYYY-MM-DD` 格式 | 计划开始日期 |
-| `dueDate` | `string` | 否 | `null` | `YYYY-MM-DD` 格式 | 计划截止日期 |
+| `startDate` | `string` | 否 | 当前时间戳 | ISO 8601 时间戳或 `YYYY-MM-DD` | 计划开始时间戳 |
+| `dueDate` | `string` | 否 | `null` | ISO 8601 时间戳或 `YYYY-MM-DD` | 计划截止时间戳 |
 
 ##### 响应报文 (201 Created)
 ```json
@@ -281,13 +281,14 @@ curl -X GET "http://localhost:3003/api/calendar?startDateFrom=2026-08-24&startDa
   "todo": {
     "id": "78c946e3-f661-4fa3-9f5b-1662991ddf31",
     "shortId": "8x2k9a1b",
+    "topicHash": "7f8b9a1c2d3e4f5a",
     "content": "完成 API 规格文档重构",
     "note": "严格按照工业级标准书写",
     "isNotePublic": true,
     "category": "dev",
     "authorId": "a9bf1c17-646e-4401-9f93-5c026e64ec64",
     "status": "pending",
-    "startDate": "2026-08-26",
+    "startDate": "2026-08-26T08:00:00.000Z",
     "dueDate": null,
     "createdAt": "2026-08-26T08:00:00.000Z",
     "updatedAt": "2026-08-26T08:00:00.000Z"
@@ -332,14 +333,92 @@ curl -X POST "http://localhost:3003/api/todos" \
     "email": "exc@example.com",
     "content": "明天早起晨跑 5 公里",
     "category": "fitness",
-    "startDate": "2026-08-27"
+    "startDate": "2026-08-27T06:30:00+08:00"
   }'
 ```
 
 ---
 
-#### `PATCH /api/todos/:id` — 更新待办 / 状态流转
-- **接口说明**: 修改 Todo 内容或流转状态。必须在 Body 中携带作者 `email` 进行权限验证。`:id` 既支持 36 位 UUID，也支持 8 位 `shortId`。
+#### `GET /api/todos/:id` — 获取待办详情与成长动态时间线
+- **接口说明**: 查看单条待办的完整详情，内嵌聚合创作者信息、表情点赞计数以及生命周期动态时间线（`activities`）。`:id` 既支持 36 位 UUID，也支持 8 位 `shortId`。若设置 `isNotePublic: false` 且非作者访问，备注将自动脱敏为 `null`。
+
+##### 路径参数 (Path Parameters)
+| 参数名 | 类型 | 必填 | 格式 | 描述 |
+|---|---|---|---|---|
+| `id` | `string` | **是** | UUID 或 shortId | 待办全局唯一标识或短链接 ID |
+
+##### 响应报文 (200 OK)
+```json
+{
+  "todo": {
+    "id": "78c946e3-f661-4fa3-9f5b-1662991ddf31",
+    "shortId": "8x2k9a1b",
+    "topicHash": "7f8b9a1c2d3e4f5a",
+    "content": "完成 API 规格文档重构",
+    "note": "严格按照工业级标准书写",
+    "isNotePublic": true,
+    "category": "dev",
+    "authorId": "a9bf1c17-646e-4401-9f93-5c026e64ec64",
+    "status": "in_progress",
+    "startDate": "2026-08-26T08:00:00.000Z",
+    "dueDate": "2026-08-28T18:00:00.000Z",
+    "createdAt": "2026-08-26T08:00:00.000Z",
+    "updatedAt": "2026-08-26T10:15:00.000Z",
+    "author": {
+      "id": "a9bf1c17-646e-4401-9f93-5c026e64ec64",
+      "nickname": "Alex Chen",
+      "handle": "alexchen",
+      "avatar": null
+    },
+    "reactions": {
+      "👀": 2,
+      "🔥": 5,
+      "💪": 3,
+      "👏": 1
+    },
+    "activities": [
+      {
+        "id": "11c946e3-f661-4fa3-9f5b-1662991ddf01",
+        "todoId": "78c946e3-f661-4fa3-9f5b-1662991ddf31",
+        "authorId": "a9bf1c17-646e-4401-9f93-5c026e64ec64",
+        "type": "created",
+        "fromStatus": null,
+        "toStatus": "pending",
+        "content": null,
+        "createdAt": "2026-08-26T08:00:00.000Z"
+      },
+      {
+        "id": "22c946e3-f661-4fa3-9f5b-1662991ddf02",
+        "todoId": "78c946e3-f661-4fa3-9f5b-1662991ddf31",
+        "authorId": "a9bf1c17-646e-4401-9f93-5c026e64ec64",
+        "type": "status_change",
+        "fromStatus": "pending",
+        "toStatus": "in_progress",
+        "content": "开始阅读需求并设计架构",
+        "createdAt": "2026-08-26T09:30:00.000Z"
+      },
+      {
+        "id": "33c946e3-f661-4fa3-9f5b-1662991ddf03",
+        "todoId": "78c946e3-f661-4fa3-9f5b-1662991ddf31",
+        "authorId": "a9bf1c17-646e-4401-9f93-5c026e64ec64",
+        "type": "progress_note",
+        "fromStatus": "in_progress",
+        "toStatus": "in_progress",
+        "content": "接口文档第一阶段已编写完毕",
+        "createdAt": "2026-08-26T11:00:00.000Z"
+      }
+    ]
+  }
+}
+```
+
+---
+
+#### `PATCH /api/todos/:id` — 更新待办 / 状态流转与打卡
+- **接口说明**: 修改 Todo 内容、流转状态或追加进展打卡。必须在 Body 中携带作者 `email` 进行权限验证。`:id` 既支持 36 位 UUID，也支持 8 位 `shortId`。
+- **动态日志联动机制**:
+  - 当 `status` 发生变更时，系统自动记一条 `type: 'status_change'` 动态，若携带 `activityNote` 则存入其备注内容；
+  - 当 `status` 未变但传入了非空 `activityNote` 时，系统自动记一条 `type: 'progress_note'` 纯进展打卡动态。
 
 ##### 路径参数 (Path Parameters)
 | 参数名 | 类型 | 必填 | 格式 | 描述 |
@@ -355,8 +434,9 @@ curl -X POST "http://localhost:3003/api/todos" \
 | `isNotePublic` | `boolean` | 否 | 修改备注公开性 |
 | `category` | `string \| null` | 否 | 修改分类 |
 | `status` | `string` | 否 | 流转状态：`pending` \| `in_progress` \| `done` \| `abandoned` |
-| `startDate` | `string` | 否 | 修改开始日期 (`YYYY-MM-DD`) |
-| `dueDate` | `string \| null` | 否 | 修改截止日期 (`YYYY-MM-DD` 或 null) |
+| `startDate` | `string` | 否 | 修改开始时间戳（ISO 8601 或 `YYYY-MM-DD`） |
+| `dueDate` | `string \| null` | 否 | 修改截止时间戳（ISO 8601 或 `YYYY-MM-DD` 或 null） |
+| `activityNote` | `string \| null` | 否 | 自定义状态变更原因说明，或进展打卡内容（<=1000 字符） |
 
 ##### 响应报文 (200 OK)
 ```json
@@ -370,8 +450,8 @@ curl -X POST "http://localhost:3003/api/todos" \
     "category": "dev",
     "authorId": "a9bf1c17-646e-4401-9f93-5c026e64ec64",
     "status": "done",
-    "startDate": "2026-08-26",
-    "dueDate": "2026-08-28",
+    "startDate": "2026-08-26T08:00:00.000Z",
+    "dueDate": "2026-08-28T18:00:00.000Z",
     "createdAt": "2026-08-26T08:00:00.000Z",
     "updatedAt": "2026-08-26T10:15:00.000Z"
   }

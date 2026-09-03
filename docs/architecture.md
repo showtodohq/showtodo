@@ -84,22 +84,27 @@
 │ created_at: timestamptz      │                                    │ is_note_public: boolean      │
 │ updated_at: timestamptz      │                                    │ category: text (nullable)    │
 │ last_todo_updated_at: tz     │                                    │ status: todo_status (enum)   │
-└──────────────────────────────┘                                    │ start_date: date             │
-               │                                                    │ due_date: date (nullable)    │
-               │ 1:N                                                │ created_at: timestamptz      │
-               │                                                    │ updated_at: timestamptz      │
-               ▼                                                    └──────────────────────────────┘
-┌──────────────────────────────┐                                                   │
-│          reactions           │                                                   │ 1:N (Cascade Delete)
-├──────────────────────────────┤                                                   │
-│ id: uuid (PK)                │                                                   │
-│ todo_id: uuid (FK->todos)    │<──────────────────────────────────────────────────┘
-│ user_id: uuid (FK->users)    │
-│ emoji: text                  │
-│ created_at: timestamptz      │
-├──────────────────────────────┤
-│ UK: (todo_id,user_id,emoji)  │
-└──────────────────────────────┘
+└──────────────────────────────┘                                    │ start_date: timestamptz      │
+        │               │                                           │ due_date: timestamptz (null) │
+        │ 1:N           │ 1:N                                       │ created_at: timestamptz      │
+        │               │                                           │ updated_at: timestamptz      │
+        ▼               ▼                                           └──────────────────────────────┘
+┌──────────────────────────────┐                                                   │       │
+│          reactions           │                                                   │       │ 1:N (Cascade Delete)
+├──────────────────────────────┤                                                   │       │
+│ id: uuid (PK)                │                                                   │       ▼
+│ todo_id: uuid (FK->todos)    │<──────────────────────────────────────────────────┘ ┌──────────────────────────────┐
+│ user_id: uuid (FK->users)    │                                                     │       todo_activities        │
+│ emoji: text                  │                                                     ├──────────────────────────────┤
+│ created_at: timestamptz      │                                                     │ id: uuid (PK)                │
+├──────────────────────────────┤                                                     │ todo_id: uuid (FK->todos)    │
+│ UK: (todo_id,user_id,emoji)  │                                                     │ author_id: uuid (FK->users)  │
+└──────────────────────────────┘                                                     │ type: activity_type (enum)   │
+                                                                                     │ from_status: status (null)   │
+                                                                                     │ to_status: status (null)     │
+                                                                                     │ content: text (nullable)     │
+                                                                                     │ created_at: timestamptz      │
+                                                                                     └──────────────────────────────┘
 ```
 
 ---
@@ -130,8 +135,8 @@
 | `category` | `text` | `text` | `NULL` | 分类 ID (`study`,`fitness`,`dev`等) |
 | `author_id` | `uuid` | `uuid` | `NOT NULL`, `REFERENCES users(id)` | 关联发布人外键 |
 | `status` | `todo_status` | `pgEnum` | `NOT NULL`, `default('pending')` | 状态机字段 (`pending`,`in_progress`等) |
-| `start_date` | `date` | `date` | `NOT NULL`, `defaultNow()` | 计划开始日期（日历矩阵 X 轴索引） |
-| `due_date` | `date` | `date` | `NULL` | 计划截止日期 |
+| `start_date` | `timestamptz` | `timestamp` | `NOT NULL`, `defaultNow()` | 计划开始时间戳（支持时分秒与时区，开闭区间索引聚合） |
+| `due_date` | `timestamptz` | `timestamp` | `NULL` | 计划截止时间戳（支持时分秒与时区） |
 | `created_at` | `timestamptz` | `timestamp` | `NOT NULL`, `defaultNow()` | 记录创建时间 |
 | `updated_at` | `timestamptz` | `timestamp` | `NOT NULL`, `defaultNow()` | 状态或内容最后更新时间 |
 
@@ -144,9 +149,22 @@
 | `emoji` | `text` | `text` | `NOT NULL` | 表情符号 (`👀`, `🔥`, `💪`, `👏`) |
 | `created_at` | `timestamptz` | `timestamp` | `NOT NULL`, `defaultNow()` | 表态时间 |
 
+#### 4. `todo_activities` (待办生命周期动态与进展日志表)
+| 字段名 | SQL 类型 | Drizzle 类型 | 约束与默认值 | 业务含义说明 |
+|---|---|---|---|---|
+| `id` | `uuid` | `uuid` | `PRIMARY KEY`, `defaultRandom()` | 主键 |
+| `todo_id` | `uuid` | `uuid` | `NOT NULL`, `FK(todos.id ON DELETE CASCADE)` | 关联 Todo（主待办删除时级联删除） |
+| `author_id` | `uuid` | `uuid` | `NOT NULL`, `REFERENCES users(id)` | 操作人/作者 ID |
+| `type` | `todo_activity_type` | `pgEnum` | `NOT NULL`, `default('status_change')` | 动态类型：`created` \| `status_change` \| `progress_note` |
+| `from_status` | `todo_status` | `pgEnum` | `NULL` | 变更前状态（状态跃迁或打卡快照） |
+| `to_status` | `todo_status` | `pgEnum` | `NULL` | 变更后状态 |
+| `content` | `text` | `text` | `NULL` | 自定义进展打卡文本或状态流转原因（<=1000 字符） |
+| `created_at` | `timestamptz` | `timestamp` | `NOT NULL`, `defaultNow()` | 动态产生时间戳 |
+
 ##### 关键约束清单:
 1. `UNIQUE("todo_id", "user_id", "emoji")`: 数据库级强保证同一用户对同一 Todo 的同款表情绝对不重复。
-2. `CASCADE DELETE`: 删除待办时，自动在数据库底层清除其关联的所有 reactions，无孤儿数据。
+2. `CASCADE DELETE`: 删除待办时，自动在底层清除其关联的所有 reactions 与 activities，无孤儿数据。
+3. `INDEX("idx_todo_activities_todo_created")`: 按 `(todo_id, created_at ASC)` 建立复合索引，保障单条待办生命周期时间线毫秒级装配。
 
 ---
 
@@ -195,15 +213,30 @@
 #### 3. `sanitizeNote(todo): Todo`
 - **隐私脱敏规范**: 若 `is_note_public === false`，强制将 `note` 字段重置为 `null`，保护用户未公开的敏感规划。
 
-#### 4. `updateStatus(db, todoId, email, targetStatus): Promise<Todo>`
-- **业务职责**: 待办状态流转核心。校验调用者身份是否为作者本人，通过后将待办状态原子流转为目标状态并刷新 `updated_at` 与用户的 `last_todo_updated_at`。
+#### 4. `update(db, idOrShortId, authorEmail, data): Promise<Todo>`
+- **业务职责**: 待办全量/增量编辑与状态流转核心。校验调用者身份是否为作者本人，处理 `topicHash` 变动，自动将状态变更或打卡记录同步写入 `todo_activities` 表，并刷新用户的 `last_todo_updated_at`。
 - **状态流转规则**:
   - `pending` (待办中) $\leftrightarrow$ `in_progress` (推进中) $\leftrightarrow$ `done` (已达成) $\leftrightarrow$ `abandoned` (已放弃)；
-  - 达成状态（`done`）与放弃状态（`abandoned`）均支持反向流转重开回 `pending` / `in_progress`。
+  - 达成状态（`done`）与放弃状态（`abandoned`）均支持反向流转重开回 `in_progress` 或 `pending`；
+  - 同状态流转（自指向）天然幂等放行。
 
 ---
 
-### 3.3 表情反应服务 (`reaction.service.ts`)
+### 3.3 动态日志服务 (`activity.service.ts`)
+
+#### 1. `recordActivity(db, data): Promise<TodoActivity>`
+- **业务职责**: 记录单条待办生命周期事件，写入 `todo_activities` 表。
+- **动态类型契约**:
+  - `created`: 待办创建时的起点动态；
+  - `status_change`: 状态跨跃迁时记录，`content` 承载随状态附带的原因/心得；
+  - `progress_note`: 状态未变时的纯进展打卡，记录当时的 `from_status` / `to_status` 快照与笔记正文。
+
+#### 2. `listByTodoId(db, todoId): Promise<TodoActivity[]>`
+- **业务职责**: 按 `created_at ASC` 正序提取指定待办的完整成长故事时间线。
+
+---
+
+### 3.4 表情反应服务 (`reaction.service.ts`)
 
 #### 1. `getCountsByTodoIds(db, todoIds): Promise<Record<string, Record<string, number>>>`
 - **聚合统计 SQL 原理**:
@@ -219,31 +252,42 @@
 
 ## 4. 关键防御与业务逻辑规范
 
-### 4.1 状态机单向流转法则 (Status State Machine)
+### 4.1 全连通自由流转状态机 (Full-Transition State Machine)
 
 ```
-        ┌─────────────┐
-        │   pending   │
-        └──────┬──────┘
-               │
-     ┌─────────┼─────────┐
-     ▼         ▼         ▼
-┌────────────┐ ┌────┐ ┌───────────┐
-│in_progress │ │done│ │ abandoned │
-└──────┬─────┘ └────┘ └───────────┘
-     │
- ┌───┴───┐
- ▼       ▼
-┌────┐ ┌───────────┐
-│done│ │ abandoned │
-└────┘ └───────────┘
+        ┌────────────────────────────────────────────────┐
+        │                                                │
+        │      ┌─────────────┐                           │
+        │      │   pending   │                           │
+        │      └──────┬──────┘                           │
+        │             ▲                                  │
+        │       重开  │  推进 / 达成 / 放弃             │
+        │             ▼                                  │
+        │      ┌─────────────┐                           │
+        │      │ in_progress │                           │
+        │      └──────┬──────┘                           │
+        │             ▲                                  │
+        │   重开/推进 │  达成 / 放弃                     │
+        │             ▼                                  │
+        │      ┌─────────────┐                           │
+        │      │    done     │                           │
+        │      └──────┬──────┘                           │
+        │             ▲                                  │
+        │   重启/补记 │  搁置 / 放弃                     │
+        │             ▼                                  │
+        │      ┌─────────────┐                           │
+        │      │  abandoned  │                           │
+        │      └─────────────┘                           │
+        │                                                │
+        └────────────────────────────────────────────────┘
 ```
 
-- **不可逆法则**: `done` (已完成) 与 `abandoned` (已放弃) 为绝对终态，不可逆向倒退回 `pending` 或 `in_progress`。
-- **执行层防御**: 由 `validateStatusTransition(currentStatus, nextStatus)` 在服务层变更前强行拦截，非法时抛出 `AppError('INVALID_STATUS_TRANSITION')`。
+- **全连通自由流转法则**: `pending`、`in_progress`、`done`、`abandoned` 允许任意双向迁移。支持快捷重新激活（默认推荐 `in_progress`）与误触撤销。
+- **自指向幂等性 (Idempotency)**：当目标状态与当前状态相同时（`from === to`），校验直接放行，不产生状态跃迁事件。
+- **执行层防御**: 由 `validateStatusTransition(currentStatus, nextStatus)` 校验目标状态是否在合法状态枚举集合内。
 
 ### 4.2 活跃时间戳维护机制
-每当用户**发布新待办**或**更新待办状态**时，后台自动触发更新该用户的 `users.last_todo_updated_at = NOW()`，使活跃打卡创作者在日历矩阵首屏保持优先展示。
+每当用户**发布新待办**、**更新待办状态**或**打卡追加进展**时，后台自动触发更新该用户的 `users.last_todo_updated_at = NOW()`，使活跃打卡创作者在日历矩阵首屏保持优先展示。
 
 ---
 
