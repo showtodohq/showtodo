@@ -21,7 +21,14 @@ export function createTodoDetailResource() {
 		)
 	);
 
+	let inFlightIdentifier: string | null = null;
+
 	async function load(identifier: string) {
+		// 在途请求去重：如果该 ID 正在请求中，不重复触发
+		if (inFlightIdentifier === identifier) {
+			return;
+		}
+		inFlightIdentifier = identifier;
 		error = null;
 
 		// 1. 0ms 瞬时预渲染：从实体仓库中检索已存在的 Todo
@@ -34,17 +41,34 @@ export function createTodoDetailResource() {
 		}
 
 		try {
-			// 2. 后台静默拉取最新全量数据（包括动态时间线与反应）
-			const res = await api.getTodoById(identifier);
-			// 实体仓库归一化合并，保持引用
-			todo = todoRegistry.upsert(res.todo);
+			// 2. 后台静默拉取数据：若已有 cached 且带话题，直接并行发起请求节省 RTT
+			if (cached?.topicHash && cached.id) {
+				const [todoRes, topicRes] = await Promise.allSettled([
+					api.getTodoById(identifier),
+					api.getTopicInfo(cached.id)
+				]);
 
-			if (todo.topicHash) {
-				try {
-					const info = await api.getTopicInfo(todo.id);
-					topicParticipantCount = info.participantCount || 0;
-				} catch {
-					// ignore topic info failure
+				if (todoRes.status === 'fulfilled') {
+					todo = todoRegistry.upsert(todoRes.value.todo);
+				} else {
+					throw todoRes.reason;
+				}
+
+				if (topicRes.status === 'fulfilled') {
+					topicParticipantCount = topicRes.value.participantCount || 0;
+				}
+			} else {
+				// 未缓存时正常先拉取 Todo
+				const res = await api.getTodoById(identifier);
+				todo = todoRegistry.upsert(res.todo);
+
+				if (todo.topicHash) {
+					try {
+						const info = await api.getTopicInfo(todo.id);
+						topicParticipantCount = info.participantCount || 0;
+					} catch {
+						// ignore topic info failure
+					}
 				}
 			}
 		} catch (err) {
@@ -54,6 +78,7 @@ export function createTodoDetailResource() {
 			}
 		} finally {
 			loading = false;
+			inFlightIdentifier = null;
 		}
 	}
 

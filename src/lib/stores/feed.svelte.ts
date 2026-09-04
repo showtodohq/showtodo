@@ -43,6 +43,10 @@ class FeedStore {
 		category: CategoryId | null = this.activeCategory,
 		force = false
 	) {
+		// 在途请求合并防抖：加载中避免重复发出相同请求
+		if (isInitial && this.loading) return;
+		if (!isInitial && this.loadingMore) return;
+
 		if (isInitial && !force && this.loaded && this.activeCategory === category) {
 			return;
 		}

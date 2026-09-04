@@ -54,7 +54,12 @@ class TodayStore {
 			this.loaded = false;
 			return;
 		}
-		if (!force && this.loaded && this.todayTodoIds.length > 0) {
+		// 在途请求合并防抖：若正在加载中，避免同一瞬间重复发出多次请求
+		if (this.loading) {
+			return;
+		}
+		// 内存缓存拦截：非强制刷新下，只要已经加载过（即使是 0 条待办），均不再发起重复网络请求
+		if (!force && this.loaded) {
 			return;
 		}
 

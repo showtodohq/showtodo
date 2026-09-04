@@ -13,7 +13,12 @@ class TrendingStore {
 	loaded = $state(false);
 
 	async load(force = false) {
-		if (!force && this.loaded && this.cards.length > 0) {
+		// 在途请求合并防抖：加载中避免重复发请求
+		if (this.loading) {
+			return;
+		}
+		// 内存缓存拦截：非强制刷新下，只要已加载过（即使卡片为 0 条），均不再重新发请求
+		if (!force && this.loaded) {
 			return;
 		}
 

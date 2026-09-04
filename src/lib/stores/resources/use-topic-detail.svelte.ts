@@ -26,7 +26,13 @@ export function createTopicDetailResource() {
 			: null
 	);
 
+	let inFlightHash: string | null = null;
+
 	async function load(hash: string) {
+		if (inFlightHash === hash) {
+			return;
+		}
+		inFlightHash = hash;
 		error = null;
 
 		// 1. 0ms 瞬时预渲染：从热门同行卡片中命中秒开
@@ -107,6 +113,7 @@ export function createTopicDetailResource() {
 			}
 		} finally {
 			loading = false;
+			inFlightHash = null;
 		}
 	}
 

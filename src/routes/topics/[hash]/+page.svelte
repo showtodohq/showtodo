@@ -9,10 +9,12 @@
 	import TopicParticipantList from '$lib/components/topic/TopicParticipantList.svelte';
 
 	const topicRes = createTopicDetailResource();
+	let currentLoadedHash = $state<string | null>(null);
 
 	$effect(() => {
 		const hash = page.params.hash;
-		if (hash) {
+		if (hash && hash !== currentLoadedHash) {
+			currentLoadedHash = hash;
 			topicRes.load(hash);
 		}
 	});

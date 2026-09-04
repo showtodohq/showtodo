@@ -1,8 +1,7 @@
 <script lang="ts">
 	import { page } from '$app/state';
 	import { goto } from '$app/navigation';
-	import { userStore } from '$lib/stores/user.svelte';
-	import { todayStore, todoMutations } from '$lib/stores/todo.svelte';
+	import { todoMutations } from '$lib/stores/todo.svelte';
 	import { createTodoDetailResource } from '$lib/stores/resources/use-todo-detail.svelte';
 	import type { ReactionEmoji } from '$lib/types/todo';
 	import Spinner from '$lib/components/ui/Spinner.svelte';
@@ -12,18 +11,13 @@
 	import TodoActivityTimeline from '$lib/components/todo/TodoActivityTimeline.svelte';
 
 	const detailRes = createTodoDetailResource();
+	let currentLoadedId = $state<string | null>(null);
 
 	$effect(() => {
 		const paramId = page.params.id;
-		if (paramId) {
+		if (paramId && paramId !== currentLoadedId) {
+			currentLoadedId = paramId;
 			detailRes.load(paramId);
-		}
-	});
-
-	// 确保当前用户的今日待办数据已预加载，以便准确判定“今日已全部完成”
-	$effect(() => {
-		if (userStore.id && todayStore.todos.length === 0 && !todayStore.loading) {
-			todayStore.load();
 		}
 	});
 

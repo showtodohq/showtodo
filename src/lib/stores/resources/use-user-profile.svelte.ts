@@ -74,13 +74,20 @@ export function createUserProfileResource() {
 			: categoryScopedTodos.filter((t) => t.status === activeTab)
 	);
 
+	let inFlightIdentifier: string | null = null;
+
 	async function load(identifier: string) {
+		if (inFlightIdentifier === identifier) {
+			return;
+		}
+		inFlightIdentifier = identifier;
 		error = null;
 
 		// 1. 0ms 瞬时预填充（优先从内存已有 store 中秒开呈现，消除白屏/转圈）
-		if (userStore.id && (userStore.id === identifier || userStore.handle === identifier)) {
+		const isMeIdentity = userStore.id && (userStore.id === identifier || userStore.handle === identifier);
+		if (isMeIdentity) {
 			user = {
-				id: userStore.id,
+				id: userStore.id!,
 				nickname: userStore.nickname || '用户',
 				handle: userStore.handle || 'user',
 				avatar: userStore.avatar || null,
@@ -118,19 +125,34 @@ export function createUserProfileResource() {
 		}
 
 		try {
-			// 2. 后台获取权威实体及全部待办列表
-			const res = await api.getUserById(identifier);
-			user = res.user;
+			// 2. 后台获取权威数据：若是本人 ID 已知，直接并行拉取节省等待延迟
+			if (isMeIdentity && userStore.id) {
+				const [userRes, todosRes] = await Promise.all([
+					api.getUserById(identifier),
+					api.getTodos({
+						authorId: userStore.id,
+						currentUserId: userStore.id,
+						limit: 100
+					})
+				]);
+				user = userRes.user;
+				const fetched = todosRes.todos || [];
+				todoRegistry.upsertMany(fetched);
+				userTodoIds = fetched.map((t) => t.id);
+			} else {
+				const res = await api.getUserById(identifier);
+				user = res.user;
 
-			const todosRes = await api.getTodos({
-				authorId: user.id,
-				currentUserId: userStore.id,
-				limit: 100
-			});
+				const todosRes = await api.getTodos({
+					authorId: user.id,
+					currentUserId: userStore.id,
+					limit: 100
+				});
 
-			const fetched = todosRes.todos || [];
-			todoRegistry.upsertMany(fetched);
-			userTodoIds = fetched.map((t) => t.id);
+				const fetched = todosRes.todos || [];
+				todoRegistry.upsertMany(fetched);
+				userTodoIds = fetched.map((t) => t.id);
+			}
 		} catch (err) {
 			console.error('Failed to load user profile:', err);
 			if (!user) {
@@ -138,6 +160,7 @@ export function createUserProfileResource() {
 			}
 		} finally {
 			loading = false;
+			inFlightIdentifier = null;
 		}
 	}
 
