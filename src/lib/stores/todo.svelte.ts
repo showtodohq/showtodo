@@ -17,12 +17,15 @@ class TodoStore {
 	feedLoadingMore = $state(false);
 	feedNextCursor = $state<string | null>(null);
 	activeCategory = $state<CategoryId | null>(null);
+	feedLoaded = $state(false);
 
 	todayTodos = $state<Todo[]>([]);
 	todayLoading = $state(false);
+	todayLoaded = $state(false);
 
 	trendingCards = $state<DailyCard[]>([]);
 	trendingLoading = $state(false);
+	trendingLoaded = $state(false);
 
 	// 派生指标
 	todayDoneCount = $derived(this.todayTodos.filter((t) => t.status === 'done').length);
@@ -90,7 +93,16 @@ class TodoStore {
 	// ---------------------------------------------------------------------------
 	// 1. 数据拉取方法
 	// ---------------------------------------------------------------------------
-	async loadFeed(isInitial = true, category: CategoryId | null = this.activeCategory) {
+	async loadFeed(
+		isInitial = true,
+		category: CategoryId | null = this.activeCategory,
+		force = false
+	) {
+		// 若属于初始化请求、未强制要求刷新、已加载过且分类保持一致，则复用现有内存数据，避免重新加载和转圈
+		if (isInitial && !force && this.feedLoaded && this.activeCategory === category) {
+			return;
+		}
+
 		this.activeCategory = category;
 		if (isInitial) this.feedLoading = true;
 		else this.feedLoadingMore = true;
@@ -104,6 +116,7 @@ class TodoStore {
 			});
 			this.feedTodos = isInitial ? res.todos || [] : [...this.feedTodos, ...(res.todos || [])];
 			this.feedNextCursor = res.nextCursor;
+			this.feedLoaded = true;
 		} catch (error) {
 			console.error('Failed to load feed todos:', error);
 			toast.error('加载待办流失败，请重试');
@@ -113,9 +126,13 @@ class TodoStore {
 		}
 	}
 
-	async loadTodayTodos() {
+	async loadTodayTodos(force = false) {
 		if (!userStore.id && !userStore.email) {
 			this.todayTodos = [];
+			this.todayLoaded = false;
+			return;
+		}
+		if (!force && this.todayLoaded && this.todayTodos.length > 0) {
 			return;
 		}
 
@@ -129,6 +146,7 @@ class TodoStore {
 				limit: 30
 			});
 			this.todayTodos = res.todos || [];
+			this.todayLoaded = true;
 		} catch (error) {
 			console.error('Failed to load today todos:', error);
 		} finally {
@@ -136,7 +154,11 @@ class TodoStore {
 		}
 	}
 
-	async loadTrendingCards() {
+	async loadTrendingCards(force = false) {
+		if (!force && this.trendingLoaded && this.trendingCards.length > 0) {
+			return;
+		}
+
 		this.trendingLoading = true;
 		try {
 			const res = await api.getDailyCards({
@@ -149,6 +171,7 @@ class TodoStore {
 			this.trendingCards = (res.cards || [])
 				.sort((a, b) => b.totalParticipants - a.totalParticipants)
 				.slice(0, 5);
+			this.trendingLoaded = true;
 		} catch (error) {
 			console.error('Failed to load trending topics:', error);
 		} finally {

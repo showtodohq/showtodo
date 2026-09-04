@@ -29,7 +29,7 @@
 				onclick={handleClick}
 				class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium select-none transition-all duration-150 cursor-pointer hover:scale-105 active:scale-95 hover:opacity-90 {className}"
 				style="background-color: {catConfig.color}15; color: {catConfig.color};"
-				title="点击按「{catConfig.name}」筛选 Feed"
+				title="点击按「{catConfig.name}」筛选"
 			>
 				<span
 					class="h-1.5 w-1.5 rounded-full shrink-0"

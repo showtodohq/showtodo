@@ -76,7 +76,8 @@
 		>
 			<Avatar
 				src={todo.author?.avatar}
-				alt={todo.author?.nickname || 'author'}
+				name={todo.author?.nickname}
+				alt={todo.author?.nickname}
 				size="md"
 			/>
 			<div>

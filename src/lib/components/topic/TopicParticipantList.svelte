@@ -24,8 +24,8 @@
 	</div>
 
 	<div class="space-y-2.5">
-		{#each participants as p (p.user.id)}
-			{@const isSelf = Boolean(currentUserId && p.user.id === currentUserId)}
+		{#each participants as p, index (p.todoId || `${p.user?.id || 'p'}-${index}`)}
+			{@const isSelf = Boolean(currentUserId && p.user?.id === currentUserId)}
 			<div
 				class="p-4 rounded-2xl border border-zinc-200/80 dark:border-zinc-800 bg-white/70 dark:bg-zinc-900/70 backdrop-blur-xs flex items-start justify-between gap-4 transition-colors {isSelf
 					? 'ring-2 ring-blue-500/20 dark:ring-blue-400/20'
@@ -33,12 +33,13 @@
 			>
 				<div class="flex items-start gap-3.5 min-w-0 flex-1">
 					<a
-						href="/users/{p.user.handle || p.user.id}"
+						href="/users/{p.user?.handle || p.user?.id || ''}"
 						class="shrink-0 group/avatar"
 					>
 						<Avatar
-							src={p.user.avatar}
-							alt={p.user.nickname}
+							src={p.user?.avatar}
+							name={p.user?.nickname}
+							alt={p.user?.nickname}
 							size="md"
 						/>
 					</a>
@@ -46,15 +47,17 @@
 					<div class="space-y-1.5 min-w-0 flex-1">
 						<div class="flex items-center gap-2 flex-wrap">
 							<a
-								href="/users/{p.user.handle || p.user.id}"
+								href="/users/{p.user?.handle || p.user?.id || ''}"
 								class="text-sm font-semibold text-zinc-900 dark:text-zinc-100 hover:text-blue-600 transition-colors"
 							>
-								{p.user.nickname}
+								{p.user?.nickname || '用户'}
 							</a>
 
-							<span class="text-xs text-zinc-400 font-mono">
-								@{p.user.handle}
-							</span>
+							{#if p.user?.handle}
+								<span class="text-xs text-zinc-400 font-mono">
+									@{p.user.handle}
+								</span>
+							{/if}
 
 							{#if isSelf}
 								<span
@@ -64,9 +67,11 @@
 								</span>
 							{/if}
 
-							<span class="text-[11px] text-zinc-400">
-								· 加入于 {formatRelativeTime(p.createdAt)}
-							</span>
+							{#if p.createdAt}
+								<span class="text-[11px] text-zinc-400">
+									· 加入于 {formatRelativeTime(p.createdAt)}
+								</span>
+							{/if}
 						</div>
 
 						<!-- 个人公开备注 -->
@@ -94,12 +99,12 @@
 				<div class="flex flex-col items-end gap-2 shrink-0">
 					<span
 						class="px-2.5 py-0.5 rounded-full text-xs font-medium {getStatusConfig(
-							p.status
-						).bgClass} {getStatusConfig(p.status).textClass} border {getStatusConfig(
-							p.status
+							p.status || 'pending'
+						).bgClass} {getStatusConfig(p.status || 'pending').textClass} border {getStatusConfig(
+							p.status || 'pending'
 						).borderClass}"
 					>
-						{getStatusConfig(p.status).label}
+						{getStatusConfig(p.status || 'pending').label}
 					</span>
 
 					{#if isSelf}

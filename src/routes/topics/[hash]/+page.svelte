@@ -47,17 +47,17 @@
 				isAllDone:
 					cachedCard.totalParticipants > 0 &&
 					cachedCard.doneCount >= cachedCard.totalParticipants,
-				participants: cachedCard.participants.map((p) => ({
-					todoId: p.todoId,
-					shortId: p.shortId,
+				participants: cachedCard.participants.map((p, idx) => ({
+					todoId: p.todoId || `cached-${idx}`,
+					shortId: p.shortId || '',
 					status: p.status,
 					note: p.note,
 					createdAt: p.createdAt,
 					user: {
-						id: p.user.id,
-						nickname: p.user.nickname,
-						handle: p.user.handle,
-						avatar: p.user.avatar,
+						id: p.user?.id || `u-${idx}`,
+						nickname: p.user?.nickname || '用户',
+						handle: p.user?.handle || 'user',
+						avatar: p.user?.avatar || null,
 						email: '',
 						createdAt: '',
 						updatedAt: ''

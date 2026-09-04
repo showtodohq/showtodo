@@ -6,7 +6,8 @@
 	import { todoStore } from '$lib/stores/todo.svelte';
 	import { toast } from '$lib/stores/toast.svelte';
 	import { TODO_STATUSES } from '$lib/constants/status';
-	import type { Todo, TodoStatus, ReactionEmoji } from '$lib/types/todo';
+	import { getCategoryConfig } from '$lib/constants/categories';
+	import type { Todo, TodoStatus, ReactionEmoji, CategoryId } from '$lib/types/todo';
 	import type { UserProfile } from '$lib/types/user';
 	import Spinner from '$lib/components/ui/Spinner.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
@@ -19,6 +20,61 @@
 	let user = $state<UserProfile | null>(null);
 	let userTodos = $state<Todo[]>([]);
 	let activeTab = $state<TodoStatus | 'all'>('all');
+	let activeCategory = $state<CategoryId | null>(null);
+	let isUrlInitialized = false;
+
+	$effect(() => {
+		if (!isUrlInitialized) {
+			const statusParam = page.url.searchParams.get('status');
+			const categoryParam = page.url.searchParams.get('category');
+			if (
+				statusParam &&
+				(['all', 'pending', 'in_progress', 'done', 'abandoned'] as string[]).includes(statusParam)
+			) {
+				activeTab = statusParam as TodoStatus | 'all';
+			}
+			if (categoryParam) {
+				activeCategory = categoryParam as CategoryId;
+			}
+			isUrlInitialized = true;
+		}
+	});
+
+	function updateQueryParams(tab: TodoStatus | 'all', cat: CategoryId | null) {
+		if (typeof window === 'undefined') return;
+		const url = new URL(window.location.href);
+		if (tab === 'all') {
+			url.searchParams.delete('status');
+		} else {
+			url.searchParams.set('status', tab);
+		}
+		if (!cat) {
+			url.searchParams.delete('category');
+		} else {
+			url.searchParams.set('category', cat);
+		}
+		// 原生静默更新地址栏，不触发任何 SvelteKit 导航或组件重新执行
+		window.history.replaceState(window.history.state, '', url.pathname + url.search);
+	}
+
+	function handleTabChange(tab: TodoStatus | 'all') {
+		activeTab = tab;
+		updateQueryParams(activeTab, activeCategory);
+	}
+
+	function handleCategoryClick(catId: string) {
+		if (activeCategory === catId) {
+			activeCategory = null;
+		} else {
+			activeCategory = catId as CategoryId;
+		}
+		updateQueryParams(activeTab, activeCategory);
+	}
+
+	function handleClearCategory() {
+		activeCategory = null;
+		updateQueryParams(activeTab, null);
+	}
 
 	const isMe = $derived(
 		Boolean(
@@ -29,7 +85,9 @@
 		)
 	);
 
-	const statusCounts = $derived.by(() => {
+	// 用户全局总计（供 UserStatsGrid 展示）
+	const globalTotalCount = $derived(userTodos.length);
+	const globalStatusCounts = $derived.by(() => {
 		const counts: Record<TodoStatus, number> = {
 			pending: 0,
 			in_progress: 0,
@@ -41,16 +99,32 @@
 		}
 		return counts;
 	});
-
-	const totalTodos = $derived(userTodos.length);
-	const completionRate = $derived(
-		totalTodos > 0 ? Math.round(((statusCounts.done || 0) / totalTodos) * 100) : 0
+	const globalCompletionRate = $derived(
+		globalTotalCount > 0 ? Math.round(((globalStatusCounts.done || 0) / globalTotalCount) * 100) : 0
 	);
+
+	// 当前分类作用域下的待办（供状态 Tab 数量统计与列表展示）
+	const categoryScopedTodos = $derived(
+		activeCategory ? userTodos.filter((t) => t.category === activeCategory) : userTodos
+	);
+	const scopedTotalCount = $derived(categoryScopedTodos.length);
+	const scopedStatusCounts = $derived.by(() => {
+		const counts: Record<TodoStatus, number> = {
+			pending: 0,
+			in_progress: 0,
+			done: 0,
+			abandoned: 0
+		};
+		for (const t of categoryScopedTodos) {
+			if (t.status in counts) counts[t.status]++;
+		}
+		return counts;
+	});
 
 	const filteredTodos = $derived(
 		activeTab === 'all'
-			? userTodos
-			: userTodos.filter((t) => t.status === activeTab)
+			? categoryScopedTodos
+			: categoryScopedTodos.filter((t) => t.status === activeTab)
 	);
 
 	async function loadUserData(identifier: string) {
@@ -112,9 +186,12 @@
 		}
 	}
 
+	let currentLoadedId = $state<string | null>(null);
+
 	$effect(() => {
 		const paramId = page.params.id;
-		if (paramId) {
+		if (paramId && paramId !== currentLoadedId) {
+			currentLoadedId = paramId;
 			loadUserData(paramId);
 		}
 	});
@@ -135,6 +212,11 @@
 			user = res.user;
 			userStore.updateUserFromProfile(res.user);
 			toast.success('资料已更新');
+
+			// 若 handle 发生变更，无感替换浏览器地址栏路由，防止刷新 404 或分享旧失效链接
+			if (page.params.id && page.params.id !== res.user.handle) {
+				goto(`/users/${res.user.handle}`, { replaceState: true, noScroll: true });
+			}
 		}
 	}
 
@@ -188,39 +270,67 @@
 		<!-- 用户名片与统计指标 -->
 		<UserProfileCard {user} {isMe} onsaveprofile={handleSaveProfile}>
 			<UserStatsGrid
-				totalCount={totalTodos}
-				{statusCounts}
-				{completionRate}
+				totalCount={globalTotalCount}
+				statusCounts={globalStatusCounts}
+				completionRate={globalCompletionRate}
 			/>
 		</UserProfileCard>
 
 		<!-- 待办清单与分类筛选 -->
 		<div class="space-y-4">
-			<!-- 状态筛选 Tab 胶囊 -->
+			<!-- 状态筛选 Tab 胶囊与激活分类轻量指示 -->
 			<div
-				class="flex items-center gap-1.5 text-xs font-medium border-b border-zinc-200/80 dark:border-zinc-800/80 pb-3 flex-wrap"
+				class="flex items-center justify-between gap-2 border-b border-zinc-200/80 dark:border-zinc-800/80 pb-3 flex-wrap"
 			>
-				<button
-					type="button"
-					onclick={() => (activeTab = 'all')}
-					class="px-3 py-1.5 rounded-lg transition-colors cursor-pointer {activeTab === 'all'
-						? 'bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900 font-semibold'
-						: 'text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800/60'}"
-				>
-					全部 ({totalTodos})
-				</button>
-
-				{#each TODO_STATUSES as st}
+				<!-- 左侧：状态筛选 Tab -->
+				<div class="flex items-center gap-1.5 text-xs font-medium flex-wrap">
 					<button
 						type="button"
-						onclick={() => (activeTab = st.id)}
-						class="px-3 py-1.5 rounded-lg transition-colors cursor-pointer {activeTab === st.id
+						onclick={() => handleTabChange('all')}
+						class="px-3 py-1.5 rounded-lg transition-colors cursor-pointer {activeTab === 'all'
 							? 'bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900 font-semibold'
 							: 'text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800/60'}"
 					>
-						{st.label} ({statusCounts[st.id] || 0})
+						全部 ({scopedTotalCount})
 					</button>
-				{/each}
+
+					{#each TODO_STATUSES as st}
+						<button
+							type="button"
+							onclick={() => handleTabChange(st.id)}
+							class="px-3 py-1.5 rounded-lg transition-colors cursor-pointer {activeTab === st.id
+								? 'bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900 font-semibold'
+								: 'text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800/60'}"
+						>
+							{st.label} ({scopedStatusCounts[st.id] || 0})
+						</button>
+					{/each}
+				</div>
+
+				<!-- 右侧：轻量级分类筛选指示条（仅在用户点击分类胶囊激活时出现，零额外常驻分类栏） -->
+				{#if activeCategory}
+					{@const catConfig = getCategoryConfig(activeCategory)}
+					<div class="flex items-center gap-1.5 animate-in fade-in duration-150 py-0.5">
+						<span class="text-xs text-zinc-400">正在筛选:</span>
+						<button
+							type="button"
+							onclick={handleClearCategory}
+							class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border border-zinc-200 dark:border-zinc-800 bg-white/90 dark:bg-zinc-900/90 shadow-2xs hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-all cursor-pointer group"
+							style="color: {catConfig?.color};"
+							title="点击清除分类筛选"
+						>
+							<span
+								class="h-1.5 w-1.5 rounded-full shrink-0"
+								style="background-color: {catConfig?.color};"
+							></span>
+							<span>{catConfig?.name || activeCategory}</span>
+							<span
+								class="text-zinc-400 group-hover:text-zinc-700 dark:group-hover:text-zinc-200 text-xs ml-0.5"
+								>✕</span
+							>
+						</button>
+					</div>
+				{/if}
 			</div>
 
 			<!-- 待办条目列表 -->
@@ -229,7 +339,21 @@
 					class="p-12 text-center rounded-3xl border border-dashed border-zinc-200 dark:border-zinc-800 text-zinc-400 space-y-2"
 				>
 					<div class="text-2xl">🌱</div>
-					<div class="text-xs">当前筛选下暂无待办事项</div>
+					<div class="text-xs">
+						{#if activeCategory}
+							{@const catConfig = getCategoryConfig(activeCategory)}
+							当前「{catConfig?.name || activeCategory}」分类下暂无对应待办
+							<button
+								type="button"
+								onclick={handleClearCategory}
+								class="block mx-auto mt-2 text-xs text-indigo-500 hover:text-indigo-600 underline cursor-pointer"
+							>
+								清除分类筛选并显示全部
+							</button>
+						{:else}
+							当前筛选下暂无待办事项
+						{/if}
+					</div>
 				</div>
 			{:else}
 				<div class="space-y-2">
@@ -242,6 +366,7 @@
 								isMine={Boolean(isMe)}
 								ontoggle={handleToggle}
 								onreaction={handleReaction}
+								oncategoryclick={handleCategoryClick}
 							/>
 						</div>
 					{/each}

@@ -27,21 +27,23 @@
 			composerCategory = catId as CategoryId;
 			goto(`/?category=${catId}`, { replaceState: true, noScroll: true });
 		}
-		todoStore.loadFeed(true, activeCategoryFilter);
+		todoStore.loadFeed(true, activeCategoryFilter, true);
 	}
 
 	function handleClearCategoryFilter() {
 		activeCategoryFilter = null;
 		composerCategory = null;
 		goto('/', { replaceState: true, noScroll: true });
-		todoStore.loadFeed(true, null);
+		todoStore.loadFeed(true, null, true);
 	}
 
 	$effect(() => {
 		const curUserId = userStore.id;
-		if (curUserId !== prevUserId) {
+		if (prevUserId !== undefined && curUserId !== prevUserId) {
 			prevUserId = curUserId;
-			todoStore.loadFeed(true, activeCategoryFilter);
+			todoStore.loadFeed(true, activeCategoryFilter, true);
+		} else if (prevUserId === undefined) {
+			prevUserId = curUserId;
 		}
 	});
 
@@ -51,7 +53,8 @@
 			activeCategoryFilter = urlCat as CategoryId;
 			composerCategory = urlCat as CategoryId;
 		}
-		todoStore.loadFeed(true, activeCategoryFilter);
+		// 若内存中已有该分类的 Feed 数据，0ms 秒开复用，不重新发起请求也不展示 Spinner
+		todoStore.loadFeed(true, activeCategoryFilter, false);
 	});
 
 	function isMyTodo(todo: Todo): boolean {
