@@ -4,12 +4,46 @@ import { toast } from '$lib/stores/toast.svelte';
 import { trendingStore } from '$lib/stores/trending.svelte';
 import { todoRegistry } from '$lib/stores/entities/todo-registry.svelte';
 import { todoMutations } from '$lib/stores/mutations.svelte';
-import type { TopicDetail, TodoStatus } from '$lib/types/todo';
+import type { TopicDetail, TodoStatus, DailyCard } from '$lib/types/todo';
 
-export function createTopicDetailResource() {
-	let loading = $state(true);
+function buildTopicFromCard(cachedCard: DailyCard): TopicDetail {
+	return {
+		topicHash: cachedCard.topicHash,
+		content: cachedCard.content,
+		category: cachedCard.category,
+		firstCreatedAt: new Date().toISOString(),
+		totalParticipants: cachedCard.totalParticipants,
+		doneCount: cachedCard.doneCount,
+		inProgressCount: 0,
+		isAllDone:
+			cachedCard.totalParticipants > 0 &&
+			cachedCard.doneCount >= cachedCard.totalParticipants,
+		participants: cachedCard.participants.map((p, idx) => ({
+			todoId: p.todoId || `cached-${idx}`,
+			shortId: p.shortId || '',
+			status: p.status,
+			note: p.note,
+			createdAt: p.createdAt,
+			user: {
+				id: p.user?.id || `u-${idx}`,
+				nickname: p.user?.nickname || '用户',
+				handle: p.user?.handle || 'user',
+				avatar: p.user?.avatar || null,
+				email: '',
+				createdAt: '',
+				updatedAt: ''
+			}
+		}))
+	};
+}
+
+export function createTopicDetailResource(initialHash?: string) {
+	const initialCard = initialHash ? trendingStore.cards.find((c) => c.topicHash === initialHash) : null;
+	const initialTopic = initialCard ? buildTopicFromCard(initialCard) : null;
+
+	let loading = $state(!initialTopic);
 	let error = $state<string | null>(null);
-	let topic = $state<TopicDetail | null>(null);
+	let topic = $state<TopicDetail | null>(initialTopic);
 	let isJoining = $state(false);
 
 	const hasJoined = $derived(
@@ -38,36 +72,9 @@ export function createTopicDetailResource() {
 		// 1. 0ms 瞬时预渲染：从热门同行卡片中命中秒开
 		const cachedCard = trendingStore.cards.find((c) => c.topicHash === hash);
 		if (cachedCard) {
-			topic = {
-				topicHash: cachedCard.topicHash,
-				content: cachedCard.content,
-				category: cachedCard.category,
-				firstCreatedAt: new Date().toISOString(),
-				totalParticipants: cachedCard.totalParticipants,
-				doneCount: cachedCard.doneCount,
-				inProgressCount: 0,
-				isAllDone:
-					cachedCard.totalParticipants > 0 &&
-					cachedCard.doneCount >= cachedCard.totalParticipants,
-				participants: cachedCard.participants.map((p, idx) => ({
-					todoId: p.todoId || `cached-${idx}`,
-					shortId: p.shortId || '',
-					status: p.status,
-					note: p.note,
-					createdAt: p.createdAt,
-					user: {
-						id: p.user?.id || `u-${idx}`,
-						nickname: p.user?.nickname || '用户',
-						handle: p.user?.handle || 'user',
-						avatar: p.user?.avatar || null,
-						email: '',
-						createdAt: '',
-						updatedAt: ''
-					}
-				}))
-			};
+			topic = buildTopicFromCard(cachedCard);
 			loading = false;
-		} else {
+		} else if (!topic) {
 			loading = true;
 		}
 

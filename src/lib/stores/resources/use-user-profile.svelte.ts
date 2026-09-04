@@ -8,11 +8,55 @@ import { todoMutations } from '$lib/stores/mutations.svelte';
 import type { Todo, TodoStatus, ReactionEmoji, CategoryId } from '$lib/types/todo';
 import type { UserProfile } from '$lib/types/user';
 
-export function createUserProfileResource() {
-	let loading = $state(true);
+function getInitialProfileAndTodos(identifier?: string): { user: UserProfile | null; todoIds: string[] } {
+	if (!identifier) return { user: null, todoIds: [] };
+
+	const isMeIdentity = userStore.id && (userStore.id === identifier || userStore.handle === identifier);
+	if (isMeIdentity) {
+		const user: UserProfile = {
+			id: userStore.id!,
+			nickname: userStore.nickname || '用户',
+			handle: userStore.handle || 'user',
+			avatar: userStore.avatar || null,
+			email: userStore.email || '',
+			createdAt: '',
+			updatedAt: ''
+		};
+		const todoIds = todayStore.todayTodoIds.length > 0 ? [...todayStore.todayTodoIds] : [];
+		return { user, todoIds };
+	}
+
+	const knownTodo = feedStore.todos.find(
+		(t) => t.author?.id === identifier || t.author?.handle === identifier
+	);
+	const author = knownTodo?.author;
+	if (author) {
+		const user: UserProfile = {
+			id: author.id,
+			nickname: author.nickname,
+			handle: author.handle,
+			avatar: author.avatar || null,
+			email: '',
+			createdAt: '',
+			updatedAt: ''
+		};
+		const matchingTodos = feedStore.todos.filter(
+			(t) => t.author?.id === author.id || t.author?.handle === author.handle
+		);
+		const todoIds = matchingTodos.map((t) => t.id);
+		return { user, todoIds };
+	}
+
+	return { user: null, todoIds: [] };
+}
+
+export function createUserProfileResource(initialIdentifier?: string) {
+	const initial = getInitialProfileAndTodos(initialIdentifier);
+
+	let loading = $state(!initial.user);
 	let error = $state<string | null>(null);
-	let user = $state<UserProfile | null>(null);
-	let userTodoIds = $state<string[]>([]);
+	let user = $state<UserProfile | null>(initial.user);
+	let userTodoIds = $state<string[]>(initial.todoIds);
 	let activeTab = $state<TodoStatus | 'all'>('all');
 	let activeCategory = $state<CategoryId | null>(null);
 
@@ -85,43 +129,15 @@ export function createUserProfileResource() {
 
 		// 1. 0ms 瞬时预填充（优先从内存已有 store 中秒开呈现，消除白屏/转圈）
 		const isMeIdentity = userStore.id && (userStore.id === identifier || userStore.handle === identifier);
-		if (isMeIdentity) {
-			user = {
-				id: userStore.id!,
-				nickname: userStore.nickname || '用户',
-				handle: userStore.handle || 'user',
-				avatar: userStore.avatar || null,
-				email: userStore.email || '',
-				createdAt: '',
-				updatedAt: ''
-			};
-			if (todayStore.todayTodoIds.length > 0) {
-				userTodoIds = [...todayStore.todayTodoIds];
+		const initialPrefill = getInitialProfileAndTodos(identifier);
+		if (initialPrefill.user) {
+			user = initialPrefill.user;
+			if (initialPrefill.todoIds.length > 0) {
+				userTodoIds = initialPrefill.todoIds;
 			}
 			loading = false;
-		} else {
-			const knownTodo = feedStore.todos.find(
-				(t) => t.author?.id === identifier || t.author?.handle === identifier
-			);
-			const author = knownTodo?.author;
-			if (author) {
-				user = {
-					id: author.id,
-					nickname: author.nickname,
-					handle: author.handle,
-					avatar: author.avatar || null,
-					email: '',
-					createdAt: '',
-					updatedAt: ''
-				};
-				const matchingTodos = feedStore.todos.filter(
-					(t) => t.author?.id === author.id || t.author?.handle === author.handle
-				);
-				userTodoIds = matchingTodos.map((t) => t.id);
-				loading = false;
-			} else {
-				loading = true;
-			}
+		} else if (!user) {
+			loading = true;
 		}
 
 		try {

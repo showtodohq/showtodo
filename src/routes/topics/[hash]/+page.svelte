@@ -8,7 +8,7 @@
 	import TopicHeaderCard from '$lib/components/topic/TopicHeaderCard.svelte';
 	import TopicParticipantList from '$lib/components/topic/TopicParticipantList.svelte';
 
-	const topicRes = createTopicDetailResource();
+	const topicRes = createTopicDetailResource(page.params.hash);
 	let currentLoadedHash = $state<string | null>(null);
 
 	$effect(() => {

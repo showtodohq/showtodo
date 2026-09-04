@@ -5,10 +5,11 @@ import { todoRegistry } from '$lib/stores/entities/todo-registry.svelte';
 import { todoMutations } from '$lib/stores/mutations.svelte';
 import type { Todo, TodoStatus, TodoActivityType } from '$lib/types/todo';
 
-export function createTodoDetailResource() {
-	let loading = $state(true);
+export function createTodoDetailResource(initialIdentifier?: string) {
+	const initialCached = initialIdentifier ? (todoRegistry.get(initialIdentifier) || null) : null;
+	let loading = $state(!initialCached);
 	let error = $state<string | null>(null);
-	let todo = $state<Todo | null>(null);
+	let todo = $state<Todo | null>(initialCached);
 	let topicParticipantCount = $state<number>(0);
 	let isSubmittingCheckIn = $state(false);
 

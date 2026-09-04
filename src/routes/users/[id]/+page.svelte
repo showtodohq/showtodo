@@ -11,7 +11,7 @@
 	import UserProfileCard from '$lib/components/user/UserProfileCard.svelte';
 	import UserStatsGrid from '$lib/components/user/UserStatsGrid.svelte';
 
-	const profileRes = createUserProfileResource();
+	const profileRes = createUserProfileResource(page.params.id);
 
 	let isUrlInitialized = false;
 

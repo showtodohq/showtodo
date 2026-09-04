@@ -47,7 +47,7 @@
 	</div>
 
 	<!-- 列表内容 -->
-	{#if trendingStore.loading && trendingStore.cards.length === 0}
+	{#if (!trendingStore.loaded || trendingStore.loading) && trendingStore.cards.length === 0}
 		<div class="flex justify-center py-4 text-zinc-400">
 			<Spinner size="sm" />
 		</div>

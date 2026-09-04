@@ -105,7 +105,7 @@
 			</div>
 
 			<!-- Feed 内容区 -->
-			{#if feedStore.loading}
+			{#if (!feedStore.loaded || feedStore.loading) && feedStore.todos.length === 0}
 				<div class="flex justify-center py-20 text-zinc-400">
 					<Spinner size="md" />
 				</div>

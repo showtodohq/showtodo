@@ -30,7 +30,7 @@
 		</div>
 
 		<!-- 待办清单内容 -->
-		{#if todayStore.loading && todayStore.todos.length === 0}
+		{#if (!todayStore.loaded || todayStore.loading) && todayStore.todos.length === 0}
 			<div class="flex justify-center py-4 text-zinc-400">
 				<Spinner size="sm" />
 			</div>

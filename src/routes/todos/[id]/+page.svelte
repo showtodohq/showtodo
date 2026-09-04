@@ -10,7 +10,7 @@
 	import TodoCheckInForm from '$lib/components/todo/TodoCheckInForm.svelte';
 	import TodoActivityTimeline from '$lib/components/todo/TodoActivityTimeline.svelte';
 
-	const detailRes = createTodoDetailResource();
+	const detailRes = createTodoDetailResource(page.params.id);
 	let currentLoadedId = $state<string | null>(null);
 
 	$effect(() => {
