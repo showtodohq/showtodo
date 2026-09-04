@@ -2,10 +2,10 @@
 	import { onMount } from 'svelte';
 	import { page } from '$app/state';
 	import { goto } from '$app/navigation';
-	import type { Todo, ReactionEmoji, TodoStatus, CategoryId } from '$lib/types/todo';
+	import type { Todo, CategoryId } from '$lib/types/todo';
 	import { getCategoryConfig } from '$lib/constants/categories';
 	import { userStore } from '$lib/stores/user.svelte';
-	import { todoStore } from '$lib/stores/todo.svelte';
+	import { feedStore, todoMutations } from '$lib/stores/todo.svelte';
 	import Spinner from '$lib/components/ui/Spinner.svelte';
 	import TodoItem from '$lib/components/todo/TodoItem.svelte';
 	import TodoComposer from '$lib/components/todo/TodoComposer.svelte';
@@ -27,21 +27,21 @@
 			composerCategory = catId as CategoryId;
 			goto(`/?category=${catId}`, { replaceState: true, noScroll: true });
 		}
-		todoStore.loadFeed(true, activeCategoryFilter, true);
+		feedStore.load(true, activeCategoryFilter, true);
 	}
 
 	function handleClearCategoryFilter() {
 		activeCategoryFilter = null;
 		composerCategory = null;
 		goto('/', { replaceState: true, noScroll: true });
-		todoStore.loadFeed(true, null, true);
+		feedStore.load(true, null, true);
 	}
 
 	$effect(() => {
 		const curUserId = userStore.id;
 		if (prevUserId !== undefined && curUserId !== prevUserId) {
 			prevUserId = curUserId;
-			todoStore.loadFeed(true, activeCategoryFilter, true);
+			feedStore.load(true, activeCategoryFilter, true);
 		} else if (prevUserId === undefined) {
 			prevUserId = curUserId;
 		}
@@ -54,22 +54,19 @@
 			composerCategory = urlCat as CategoryId;
 		}
 		// 若内存中已有该分类的 Feed 数据，0ms 秒开复用，不重新发起请求也不展示 Spinner
-		todoStore.loadFeed(true, activeCategoryFilter, false);
+		feedStore.load(true, activeCategoryFilter, false);
 	});
 
 	function isMyTodo(todo: Todo): boolean {
-		if (!userStore.current && !userStore.id) return false;
-		if (userStore.id && todo.authorId === userStore.id) return true;
-		if (userStore.handle && todo.author?.handle === userStore.handle) return true;
-		return false;
+		return userStore.isAuthor(todo.authorId, todo.author?.email, todo.author?.handle);
 	}
 </script>
 
 <div class="w-full space-y-6 sm:space-y-8">
-	<!-- 顶部 Twitter / X 风格极简快速发布框 (直接委托 todoStore) -->
+	<!-- 顶部 Twitter / X 风格极简快速发布框 (直接委托 todoMutations) -->
 	<TodoComposer
 		bind:selectedCategory={composerCategory}
-		onsubmit={(data) => todoStore.createTodo(data)}
+		onsubmit={(data) => todoMutations.createTodo(data)}
 	/>
 
 	<!-- 下方主体：左侧最新待办 Feed + 右侧辅助 Widgets 左右双栏布局 -->
@@ -108,11 +105,11 @@
 			</div>
 
 			<!-- Feed 内容区 -->
-			{#if todoStore.feedLoading}
+			{#if feedStore.loading}
 				<div class="flex justify-center py-20 text-zinc-400">
 					<Spinner size="md" />
 				</div>
-			{:else if todoStore.feedTodos.length === 0}
+			{:else if feedStore.todos.length === 0}
 				<div
 					class="rounded-2xl border border-dashed border-zinc-200 dark:border-zinc-800/80 py-20 text-center text-xs text-zinc-400"
 				>
@@ -125,27 +122,27 @@
 				</div>
 			{:else}
 				<div class="space-y-1 sm:space-y-1.5">
-					{#each todoStore.feedTodos as todo (todo.id)}
+					{#each feedStore.todos as todo (todo.id)}
 						<TodoItem
 							{todo}
 							isMine={isMyTodo(todo)}
-							ontoggle={(t, status, e) => todoStore.toggleStatus(t.id, status, e)}
-							onreaction={(t, emoji) => todoStore.toggleReaction(t.id, emoji)}
+							ontoggle={(t, status, e) => todoMutations.toggleStatus(t.id, status, e)}
+							onreaction={(t, emoji) => todoMutations.toggleReaction(t.id, emoji)}
 							oncategoryclick={handleCategoryFilter}
 						/>
 					{/each}
 				</div>
 
 				<!-- 分页加载更多 -->
-				{#if todoStore.feedNextCursor}
+				{#if feedStore.nextCursor}
 					<div class="pt-4 flex justify-center">
 						<button
 							type="button"
-							onclick={() => todoStore.loadFeed(false, activeCategoryFilter)}
-							disabled={todoStore.feedLoadingMore}
+							onclick={() => feedStore.load(false, activeCategoryFilter)}
+							disabled={feedStore.loadingMore}
 							class="flex items-center gap-1.5 px-4 py-2 text-xs font-medium text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-xl transition-all cursor-pointer disabled:opacity-50"
 						>
-							{#if todoStore.feedLoadingMore}
+							{#if feedStore.loadingMore}
 								<Spinner size="xs" />
 								<span>加载中...</span>
 							{:else}
@@ -172,7 +169,7 @@
 
 			<!-- 2. 今日热闹多人待办榜 -->
 			<TrendingTopicsWidget
-				onJoinTopic={(content, category) => todoStore.createTodo({ content, category })}
+				onJoinTopic={(content, category) => todoMutations.joinTopic({ content, category })}
 			/>
 		</aside>
 	</div>

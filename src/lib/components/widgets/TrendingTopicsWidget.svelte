@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { userStore } from '$lib/stores/user.svelte';
-	import { todoStore } from '$lib/stores/todo.svelte';
+	import { trendingStore, todayStore, todoMutations } from '$lib/stores/todo.svelte';
 	import { toast } from '$lib/stores/toast.svelte';
 	import type { DailyCard } from '$lib/types/todo';
 	import UserAvatarTooltip from '$lib/components/user/UserAvatarTooltip.svelte';
@@ -15,7 +15,7 @@
 	let { onJoinTopic }: Props = $props();
 
 	onMount(() => {
-		todoStore.loadTrendingCards();
+		trendingStore.load();
 	});
 
 	function handleJoin(card: DailyCard) {
@@ -27,7 +27,7 @@
 		if (onJoinTopic) {
 			onJoinTopic(card.content, card.category);
 		} else {
-			todoStore.createTodo({
+			todoMutations.joinTopic({
 				content: card.content,
 				category: card.category
 			});
@@ -47,24 +47,24 @@
 	</div>
 
 	<!-- 列表内容 -->
-	{#if todoStore.trendingLoading && todoStore.trendingCards.length === 0}
+	{#if trendingStore.loading && trendingStore.cards.length === 0}
 		<div class="flex justify-center py-4 text-zinc-400">
 			<Spinner size="sm" />
 		</div>
-	{:else if todoStore.trendingCards.length === 0}
+	{:else if trendingStore.cards.length === 0}
 		<div class="py-3 text-center text-xs text-zinc-400">
 			暂无热门多人目标，发布一个让大家一起参与吧！
 		</div>
 	{:else}
 		<div class="space-y-2.5">
-			{#each todoStore.trendingCards as card (card.topicHash)}
+			{#each trendingStore.cards as card (card.topicHash)}
 				{@const isAllDone =
 					(card.isMultiplayer || card.totalParticipants > 1) &&
 					card.totalParticipants > 0 &&
 					card.doneCount >= card.totalParticipants}
 				{@const hasJoined =
 					card.participants.some((p) => p.isMe || Boolean(userStore.id && p.user.id === userStore.id)) ||
-					todoStore.isTopicJoined(card.content)}
+					todayStore.isTopicJoined(card.content)}
 				<div
 					class="p-2.5 rounded-xl transition-all space-y-2 group/card border {isAllDone
 						? 'border-amber-300/80 dark:border-amber-500/60 bg-gradient-to-br from-amber-50/90 via-yellow-50/40 to-amber-50/90 dark:from-amber-950/30 dark:via-yellow-950/15 dark:to-amber-950/30 shadow-[0_0_12px_rgba(245,158,11,0.15)]'
