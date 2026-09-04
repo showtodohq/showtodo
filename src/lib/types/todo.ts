@@ -43,6 +43,7 @@ export interface Todo {
 	reactions?: Record<string, number>;
 	myReactions?: ReactionEmoji[];
 	activities?: TodoActivity[];
+	topicParticipantCount?: number;
 }
 
 export interface ReactionDetail {

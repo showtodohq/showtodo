@@ -10,7 +10,7 @@ export function createTodoDetailResource(initialIdentifier?: string) {
 	let loading = $state(!initialCached);
 	let error = $state<string | null>(null);
 	let todo = $state<Todo | null>(initialCached);
-	let topicParticipantCount = $state<number>(0);
+	let topicParticipantCount = $state<number>(initialCached?.topicParticipantCount || 0);
 	let isSubmittingCheckIn = $state(false);
 
 	const isMine = $derived(
@@ -36,41 +36,20 @@ export function createTodoDetailResource(initialIdentifier?: string) {
 		const cached = todoRegistry.get(identifier);
 		if (cached) {
 			todo = cached;
+			if (cached.topicParticipantCount !== undefined) {
+				topicParticipantCount = cached.topicParticipantCount;
+			}
 			loading = false;
 		} else {
 			loading = true;
 		}
 
 		try {
-			// 2. 后台静默拉取数据：若已有 cached 且带话题，直接并行发起请求节省 RTT
-			if (cached?.topicHash && cached.id) {
-				const [todoRes, topicRes] = await Promise.allSettled([
-					api.getTodoById(identifier),
-					api.getTopicInfo(cached.id)
-				]);
-
-				if (todoRes.status === 'fulfilled') {
-					todo = todoRegistry.upsert(todoRes.value.todo);
-				} else {
-					throw todoRes.reason;
-				}
-
-				if (topicRes.status === 'fulfilled') {
-					topicParticipantCount = topicRes.value.participantCount || 0;
-				}
-			} else {
-				// 未缓存时正常先拉取 Todo
-				const res = await api.getTodoById(identifier);
-				todo = todoRegistry.upsert(res.todo);
-
-				if (todo.topicHash) {
-					try {
-						const info = await api.getTopicInfo(todo.id);
-						topicParticipantCount = info.participantCount || 0;
-					} catch {
-						// ignore topic info failure
-					}
-				}
+			// 2. 后台拉取单条待办完整数据（已聚合返回 topicParticipantCount，仅需单次 HTTP 请求）
+			const res = await api.getTodoById(identifier);
+			todo = todoRegistry.upsert(res.todo);
+			if (res.todo.topicParticipantCount !== undefined) {
+				topicParticipantCount = res.todo.topicParticipantCount;
 			}
 		} catch (err) {
 			console.error('Failed to load todo detail:', err);

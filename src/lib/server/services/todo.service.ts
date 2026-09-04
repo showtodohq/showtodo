@@ -133,16 +133,25 @@ export async function findByIdOrShortId(db: Database, identifier: string) {
 	if (!result[0]) return null;
 
 	const { todos: todo, users: author } = result[0];
-	const [reactionCounts, activities] = await Promise.all([
+	const [reactionCounts, activities, topicCountResult] = await Promise.all([
 		reactionService.getCountsByTodoIds(db, [todo.id]),
-		activityService.listByTodoId(db, todo.id)
+		activityService.listByTodoId(db, todo.id),
+		todo.topicHash
+			? db
+					.select({ count: sql<number>`count(*)::int` })
+					.from(todos)
+					.where(eq(todos.topicHash, todo.topicHash))
+			: Promise.resolve([])
 	]);
+
+	const participantCount = topicCountResult[0]?.count ?? 0;
 
 	return {
 		...sanitizeNote(todo),
 		author: { id: author.id, nickname: author.nickname, handle: author.handle, avatar: author.avatar },
 		reactions: reactionCounts[todo.id] ?? { '❤️': 0, '👍': 0, '🔥': 0, '💪': 0, '👏': 0, '🚀': 0, '🎉': 0, '👀': 0 },
-		activities
+		activities,
+		topicParticipantCount: participantCount
 	};
 }
 
