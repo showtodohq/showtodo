@@ -1,5 +1,7 @@
 import { api } from '$lib/services/api';
 import { userStore } from '$lib/stores/user.svelte';
+import { todayStore } from '$lib/stores/today.svelte';
+import { feedStore } from '$lib/stores/feed.svelte';
 import { toast } from '$lib/stores/toast.svelte';
 import { todoRegistry } from '$lib/stores/entities/todo-registry.svelte';
 import { todoMutations } from '$lib/stores/mutations.svelte';
@@ -75,7 +77,7 @@ export function createUserProfileResource() {
 	async function load(identifier: string) {
 		error = null;
 
-		// 1. 0ms 瞬时预填充
+		// 1. 0ms 瞬时预填充（优先从内存已有 store 中秒开呈现，消除白屏/转圈）
 		if (userStore.id && (userStore.id === identifier || userStore.handle === identifier)) {
 			user = {
 				id: userStore.id,
@@ -86,9 +88,33 @@ export function createUserProfileResource() {
 				createdAt: '',
 				updatedAt: ''
 			};
+			if (todayStore.todayTodoIds.length > 0) {
+				userTodoIds = [...todayStore.todayTodoIds];
+			}
 			loading = false;
 		} else {
-			loading = true;
+			const knownTodo = feedStore.todos.find(
+				(t) => t.author?.id === identifier || t.author?.handle === identifier
+			);
+			const author = knownTodo?.author;
+			if (author) {
+				user = {
+					id: author.id,
+					nickname: author.nickname,
+					handle: author.handle,
+					avatar: author.avatar || null,
+					email: '',
+					createdAt: '',
+					updatedAt: ''
+				};
+				const matchingTodos = feedStore.todos.filter(
+					(t) => t.author?.id === author.id || t.author?.handle === author.handle
+				);
+				userTodoIds = matchingTodos.map((t) => t.id);
+				loading = false;
+			} else {
+				loading = true;
+			}
 		}
 
 		try {

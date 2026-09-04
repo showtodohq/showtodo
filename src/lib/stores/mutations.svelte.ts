@@ -223,20 +223,26 @@ class TodoMutations {
 		const isLiked = targetEmoji ? target.myReactions.includes(targetEmoji) : true;
 
 		const updateReactions = (item: Todo, liked: boolean) => {
-			item.reactions ??= { '❤️': 0, '👍': 0, '🔥': 0, '💪': 0, '👏': 0, '🚀': 0, '🎉': 0, '👀': 0 };
-			item.myReactions ??= [];
+			const nextReactions = {
+				...(item.reactions || { '❤️': 0, '👍': 0, '🔥': 0, '💪': 0, '👏': 0, '🚀': 0, '🎉': 0, '👀': 0 })
+			};
+			let nextMyReactions = [...(item.myReactions || [])];
+
 			if (liked) {
 				if (!targetEmoji) {
-					for (const e of prevMyReactions) item.reactions[e] = Math.max(0, (item.reactions[e] || 1) - 1);
-					item.myReactions = [];
+					for (const e of prevMyReactions) nextReactions[e] = Math.max(0, (nextReactions[e] || 1) - 1);
+					nextMyReactions = [];
 				} else {
-					item.reactions[targetEmoji] = Math.max(0, (item.reactions[targetEmoji] || 1) - 1);
-					item.myReactions = item.myReactions.filter((e) => e !== targetEmoji);
+					nextReactions[targetEmoji] = Math.max(0, (nextReactions[targetEmoji] || 1) - 1);
+					nextMyReactions = nextMyReactions.filter((e) => e !== targetEmoji);
 				}
 			} else {
-				item.reactions[targetEmoji!] = (item.reactions[targetEmoji!] || 0) + 1;
-				item.myReactions = [...item.myReactions, targetEmoji!];
+				nextReactions[targetEmoji!] = (nextReactions[targetEmoji!] || 0) + 1;
+				nextMyReactions = [...nextMyReactions, targetEmoji!];
 			}
+
+			item.reactions = nextReactions;
+			item.myReactions = nextMyReactions;
 		};
 
 		try {

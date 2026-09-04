@@ -41,8 +41,11 @@ class TrendingStore {
 	 * 0ms 乐观同步话题卡片的达成人数与 participant 状态
 	 */
 	syncStatus(todoId: string, prevStatus: TodoStatus, targetStatus: TodoStatus) {
+		let changed = false;
 		for (const card of this.cards) {
-			const p = card.participants.find((item) => item.todoId === todoId);
+			const p = card.participants.find(
+				(item) => item.todoId === todoId || (item.shortId && item.shortId === todoId)
+			);
 			if (p) {
 				p.status = targetStatus;
 				if (prevStatus !== 'done' && targetStatus === 'done') {
@@ -50,7 +53,11 @@ class TrendingStore {
 				} else if (prevStatus === 'done' && targetStatus !== 'done') {
 					card.doneCount = Math.max(0, card.doneCount - 1);
 				}
+				changed = true;
 			}
+		}
+		if (changed) {
+			this.cards = [...this.cards];
 		}
 	}
 
@@ -80,24 +87,31 @@ class TrendingStore {
 				avatar: currentUser.avatar
 			}
 		};
-		card.participants.unshift(participant);
+		card.participants = [participant, ...card.participants];
 		card.totalParticipants += 1;
 		card.isMultiplayer = card.totalParticipants > 1;
+		this.cards = [...this.cards];
 
 		return () => {
 			card.participants = card.participants.filter((p) => p.todoId !== tempId);
 			card.totalParticipants = Math.max(0, card.totalParticipants - 1);
 			card.isMultiplayer = card.totalParticipants > 1;
+			this.cards = [...this.cards];
 		};
 	}
 
 	syncReplaceId(tempId: string, realTodo: Todo) {
+		let replaced = false;
 		for (const card of this.cards) {
 			const p = card.participants.find((item) => item.todoId === tempId);
 			if (p) {
 				p.todoId = realTodo.id;
 				p.shortId = realTodo.shortId;
+				replaced = true;
 			}
+		}
+		if (replaced) {
+			this.cards = [...this.cards];
 		}
 	}
 }

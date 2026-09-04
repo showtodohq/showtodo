@@ -3,7 +3,7 @@ import { userStore } from '$lib/stores/user.svelte';
 import { toast } from '$lib/stores/toast.svelte';
 import { todoRegistry } from '$lib/stores/entities/todo-registry.svelte';
 import { todoMutations } from '$lib/stores/mutations.svelte';
-import type { Todo, TodoStatus } from '$lib/types/todo';
+import type { Todo, TodoStatus, TodoActivityType } from '$lib/types/todo';
 
 export function createTodoDetailResource() {
 	let loading = $state(true);
@@ -63,16 +63,34 @@ export function createTodoDetailResource() {
 			return;
 		}
 
-		await todoMutations.toggleStatus(todo.id, nextStatus, e, todo);
+		const prevStatus = todo.status;
+		const prevActivities = [...(todo.activities || [])];
+		const optimisticActivity = {
+			id: `temp-act-${Date.now()}`,
+			todoId: todo.id,
+			authorId: userStore.id || '',
+			type: 'status_change' as const,
+			fromStatus: prevStatus,
+			toStatus: nextStatus,
+			content: null,
+			createdAt: new Date().toISOString()
+		};
 
-		// 静默刷新动态时间线
+		// 0ms 乐观在动态时间线顶端插入记录
+		todo.activities = [optimisticActivity, ...prevActivities];
+
 		try {
+			await todoMutations.toggleStatus(todo.id, nextStatus, e, todo);
+
+			// 静默刷新权威动态时间线
 			const updated = await api.getTodoById(todo.id);
 			if (todo) {
 				todo.activities = updated.todo.activities;
 			}
 		} catch {
-			// ignore activity sync error
+			if (todo) {
+				todo.activities = prevActivities;
+			}
 		}
 	}
 
@@ -80,8 +98,23 @@ export function createTodoDetailResource() {
 		if (!todo || !userStore.email) return;
 
 		isSubmittingCheckIn = true;
+		const prevActivities = [...(todo.activities || [])];
+		const statusChanged = status !== todo.status;
+		const optimisticActivity = {
+			id: `temp-act-${Date.now()}`,
+			todoId: todo.id,
+			authorId: userStore.id || '',
+			type: (statusChanged ? 'status_change' : 'progress_note') as TodoActivityType,
+			fromStatus: todo.status,
+			toStatus: status,
+			content: note,
+			createdAt: new Date().toISOString()
+		};
+
+		// 0ms 乐观插入最新打卡动态
+		todo.activities = [optimisticActivity, ...prevActivities];
+
 		try {
-			const statusChanged = status !== todo.status;
 			if (statusChanged) {
 				await todoMutations.toggleStatus(todo.id, status, undefined, todo, {
 					activityNote: note
@@ -100,6 +133,9 @@ export function createTodoDetailResource() {
 			}
 			toast.success('已记录最新进展！');
 		} catch (err) {
+			if (todo) {
+				todo.activities = prevActivities;
+			}
 			console.error('Failed to submit check-in:', err);
 			toast.error(`记录进展失败: ${(err as Error).message}`);
 		} finally {

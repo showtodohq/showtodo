@@ -62,12 +62,17 @@ class TodoRegistry {
 	}
 
 	/**
-	 * 就地变异待办实体，直接触发响应式更新
+	 * 就地变异待办实体，重新分配浅拷贝以强制触发所有深度/浅度订阅方 0ms 即时重绘
 	 */
 	mutate(identifier: string, updater: (todo: Todo) => void): boolean {
 		const item = this.get(identifier);
 		if (item) {
 			updater(item);
+			// 重新赋予浅拷贝，保证所有只监听引用的视图与 prop 100% 原地刷新
+			this.entities[item.id] = { ...item };
+			if (item.shortId) {
+				this.aliasMap[item.shortId] = item.id;
+			}
 			return true;
 		}
 		return false;
