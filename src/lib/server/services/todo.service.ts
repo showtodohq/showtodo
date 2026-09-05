@@ -341,18 +341,24 @@ export async function getTopicInfoByTodoId(db: Database, idOrShortId: string) {
 export async function getTopicByHash(
 	db: Database,
 	topicHash: string,
-	currentUserId?: string
+	currentUserId?: string,
+	targetDate?: string
 ): Promise<TopicDetail> {
 	if (!topicHash) {
 		throw new AppError('VALIDATION_ERROR', 'topicHash is required');
 	}
+
+	const orderByClauses =
+		currentUserId && isUUID(currentUserId)
+			? [sql`(${todos.authorId} = ${currentUserId}::uuid) DESC`, todos.createdAt]
+			: [todos.createdAt];
 
 	const result = await db
 		.select()
 		.from(todos)
 		.innerJoin(users, eq(todos.authorId, users.id))
 		.where(eq(todos.topicHash, topicHash))
-		.orderBy(todos.createdAt);
+		.orderBy(...orderByClauses);
 
 	if (result.length === 0) {
 		throw new AppError('NOT_FOUND', 'Topic not found');
@@ -366,74 +372,134 @@ export async function getTopicByHash(
 			: ({} as Record<string, string[]>)
 	]);
 
-	const firstTodo = result[0].todos;
-	const content = firstTodo.content;
-	const category = firstTodo.category;
+	// 找到最早发起/立项的待办，作为话题元信息的基准（内容、分类、立项时间）
+	const earliestTodo = result.reduce((earliest, curr) => {
+		const currTime =
+			curr.todos.createdAt instanceof Date
+				? curr.todos.createdAt.getTime()
+				: new Date(curr.todos.createdAt).getTime();
+		const earliestTime =
+			earliest.todos.createdAt instanceof Date
+				? earliest.todos.createdAt.getTime()
+				: new Date(earliest.todos.createdAt).getTime();
+		return currTime < earliestTime ? curr : earliest;
+	}, result[0]).todos;
+
+	const content = earliestTodo.content;
+	const category = earliestTodo.category;
 	const firstCreatedAt =
-		firstTodo.createdAt instanceof Date
-			? firstTodo.createdAt.toISOString()
-			: new Date(firstTodo.createdAt).toISOString();
+		earliestTodo.createdAt instanceof Date
+			? earliestTodo.createdAt.toISOString()
+			: new Date(earliestTodo.createdAt).toISOString();
 
-	const totalParticipants = result.length;
-	let doneCount = 0;
-	let inProgressCount = 0;
+	// 映射全量 participant 结构
+	const allRawParticipants = result.map(({ todos: t, users: u }) => ({
+		todoId: t.id,
+		shortId: t.shortId,
+		status: t.status as TodoStatus,
+		note: t.isNotePublic ? t.note : null,
+		startDate: t.startDate
+			? t.startDate instanceof Date
+				? t.startDate.toISOString()
+				: String(t.startDate)
+			: undefined,
+		dueDate: t.dueDate
+			? t.dueDate instanceof Date
+				? t.dueDate.toISOString()
+				: String(t.dueDate)
+			: null,
+		createdAt:
+			t.createdAt instanceof Date
+				? t.createdAt.toISOString()
+				: new Date(t.createdAt).toISOString(),
+		isMe: Boolean(currentUserId && isUUID(currentUserId) && u.id === currentUserId),
+		reactions:
+			allReactionCounts[t.id] ?? {
+				'❤️': 0,
+				'👍': 0,
+				'🔥': 0,
+				'💪': 0,
+				'👏': 0,
+				'🚀': 0,
+				'🎉': 0,
+				'👀': 0
+			},
+		myReactions: (myReactionsMap[t.id] ?? []) as ReactionEmoji[],
+		user: {
+			id: u.id,
+			nickname: u.nickname,
+			handle: u.handle,
+			avatar: u.avatar
+		}
+	}));
 
-	const participants = result.map(({ todos: t, users: u }) => {
-		if (t.status === 'done') doneCount++;
-		else if (t.status === 'in_progress') inProgressCount++;
-
-		return {
-			todoId: t.id,
-			shortId: t.shortId,
-			status: t.status as TodoStatus,
-			note: t.isNotePublic ? t.note : null,
-			startDate: t.startDate
-				? t.startDate instanceof Date
-					? t.startDate.toISOString()
-					: String(t.startDate)
-				: undefined,
-			dueDate: t.dueDate
-				? t.dueDate instanceof Date
-					? t.dueDate.toISOString()
-					: String(t.dueDate)
-				: null,
-			createdAt:
-				t.createdAt instanceof Date
-					? t.createdAt.toISOString()
-					: new Date(t.createdAt).toISOString(),
-			reactions:
-				allReactionCounts[t.id] ?? {
-					'❤️': 0,
-					'👍': 0,
-					'🔥': 0,
-					'💪': 0,
-					'👏': 0,
-					'🚀': 0,
-					'🎉': 0,
-					'👀': 0
-				},
-			myReactions: (myReactionsMap[t.id] ?? []) as ReactionEmoji[],
-			user: {
-				id: u.id,
-				nickname: u.nickname,
-				handle: u.handle,
-				avatar: u.avatar
+	// 辅助去重函数：按 user.id 归集自然人伙伴，优先保留已达成 (done) 状态
+	function deduplicateParticipants(list: typeof allRawParticipants) {
+		const map = new Map<string, (typeof allRawParticipants)[0]>();
+		for (const item of list) {
+			const existing = map.get(item.user.id);
+			if (!existing) {
+				map.set(item.user.id, item);
+			} else if (item.status === 'done' && existing.status !== 'done') {
+				map.set(item.user.id, item);
 			}
-		};
-	});
+		}
+		return Array.from(map.values());
+	}
 
-	const isAllDone = totalParticipants > 0 && doneCount >= totalParticipants;
+	const effectiveDate = targetDate || new Date().toISOString().slice(0, 10);
+
+	// 判定待办是否落在指定的 targetDate 当天
+	function isDateMatch(dateVal?: string | Date | null, targetStr?: string): boolean {
+		if (!dateVal || !targetStr) return false;
+		const dStr = dateVal instanceof Date ? dateVal.toISOString().slice(0, 10) : String(dateVal).slice(0, 10);
+		return dStr === targetStr;
+	}
+
+	// 1. 全周期历史去重伙伴列表
+	const allParticipantsList = deduplicateParticipants(allRawParticipants);
+	const totalParticipants = allParticipantsList.length;
+	const allDoneCount = allParticipantsList.filter((p) => p.status === 'done').length;
+
+	// 2. 今日切片去重伙伴列表
+	const todayRawParticipants = allRawParticipants.filter((p) =>
+		isDateMatch(p.startDate, effectiveDate)
+	);
+	const todayParticipantsList = deduplicateParticipants(todayRawParticipants);
+	const todayParticipants = todayParticipantsList.length;
+	const todayDoneCount = todayParticipantsList.filter((p) => p.status === 'done').length;
+	const todayInProgressCount = todayParticipantsList.filter((p) => p.status === 'in_progress').length;
+	const isTodayAllDone = todayParticipants > 0 && todayDoneCount >= todayParticipants;
+
+	// 若今日有同行伙伴，默认展示今日伙伴；若今日暂无伙伴，展示历史全量伙伴保证页面不为空
+	const activeParticipants = todayParticipants > 0 ? todayParticipantsList : allParticipantsList;
+	const doneCount = todayParticipants > 0 ? todayDoneCount : allDoneCount;
+	const inProgressCount =
+		todayParticipants > 0
+			? todayInProgressCount
+			: allParticipantsList.filter((p) => p.status === 'in_progress').length;
+	const isAllDone =
+		todayParticipants > 0
+			? isTodayAllDone
+			: totalParticipants > 0 && allDoneCount >= totalParticipants;
 
 	return {
 		topicHash,
 		content,
 		category,
 		firstCreatedAt,
+		targetDate: effectiveDate,
+		todayParticipants,
+		todayDoneCount,
+		todayInProgressCount,
+		isTodayAllDone,
 		totalParticipants,
+		allDoneCount,
 		doneCount,
 		inProgressCount,
 		isAllDone,
-		participants
+		participants: activeParticipants,
+		allParticipants: allParticipantsList
 	};
 }
 
@@ -489,21 +555,21 @@ export async function listDailyCards(
 
 	const orderBySql =
 		options.sortBy === 'participants'
-			? sql`COUNT(*)::int DESC, MIN(t.created_at) ASC`
+			? sql`COUNT(DISTINCT t.author_id)::int DESC, MIN(t.created_at) ASC`
 			: sql`COALESCE(
 				MAX(CASE WHEN ${isMeSql} THEN t.created_at ELSE NULL END),
 				MIN(t.created_at)
 			) DESC`;
 
-	// 2. 查询卡片明细
+	// 2. 查询卡片明细 (使用 COUNT(DISTINCT t.author_id) 按自然人去重)
 	const cardsQuery = sql`
 		SELECT
 			t.topic_hash,
 			MAX(t.content) AS content,
 			MAX(t.category) AS category,
 			MIN(t.created_at) AS first_created_at,
-			COUNT(*)::int AS total_participants,
-			COUNT(*) FILTER (WHERE t.status = 'done')::int AS done_count,
+			COUNT(DISTINCT t.author_id)::int AS total_participants,
+			COUNT(DISTINCT CASE WHEN t.status = 'done' THEN t.author_id ELSE NULL END)::int AS done_count,
 			json_agg(
 				json_build_object(
 					'todoId', t.id,
@@ -541,8 +607,20 @@ export async function listDailyCards(
 				? JSON.parse(row.participants)
 				: [];
 
-		const totalParticipants = Number(row.total_participants || rawParticipants.length);
-		const participants: CardParticipant[] = rawParticipants.map((p: any) => ({
+		// 自然人去重归集，同一用户保留最优状态
+		const userMap = new Map<string, any>();
+		for (const p of rawParticipants) {
+			const existing = userMap.get(p.user?.id);
+			if (!existing) {
+				userMap.set(p.user?.id, p);
+			} else if (p.status === 'done' && existing.status !== 'done') {
+				userMap.set(p.user?.id, p);
+			}
+		}
+		const uniqueParticipants = Array.from(userMap.values());
+
+		const totalParticipants = Number(row.total_participants || uniqueParticipants.length);
+		const participants: CardParticipant[] = uniqueParticipants.map((p: any) => ({
 			todoId: p.todoId,
 			shortId: p.shortId,
 			status: p.status,

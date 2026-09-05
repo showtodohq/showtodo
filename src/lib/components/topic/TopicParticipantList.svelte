@@ -7,25 +7,88 @@
 
 	interface Props {
 		participants?: TopicParticipant[];
+		allParticipants?: TopicParticipant[];
+		todayParticipantsCount?: number;
+		totalParticipantsCount?: number;
 		currentUserId?: string;
 		onstatuschange?: (nextStatus: TodoStatus, e?: MouseEvent) => void;
 	}
 
-	let { participants = [], currentUserId, onstatuschange }: Props = $props();
+	let {
+		participants = [],
+		allParticipants = [],
+		todayParticipantsCount,
+		totalParticipantsCount,
+		currentUserId,
+		onstatuschange
+	}: Props = $props();
+
+	let activeTab = $state<'today' | 'all'>('today');
+
+	const hasHistoryDiff = $derived(
+		(allParticipants.length > 0 && allParticipants.length !== participants.length) ||
+		(totalParticipantsCount !== undefined && todayParticipantsCount !== undefined && totalParticipantsCount > todayParticipantsCount)
+	);
+
+	const activeList = $derived(
+		activeTab === 'today'
+			? participants
+			: allParticipants.length > 0
+				? allParticipants
+				: participants
+	);
+
+	// 统一展示排序：若当前登录用户已在列表中，置顶保证首位；其余伙伴按时间顺序排列
+	const displayParticipants = $derived.by(() => {
+		const list = activeList;
+		if (!currentUserId || list.length <= 1) return list;
+		const myIndex = list.findIndex(
+			(p) => p.isMe || (currentUserId && p.user?.id === currentUserId)
+		);
+		if (myIndex <= 0) return list;
+		return [
+			list[myIndex],
+			...list.slice(0, myIndex),
+			...list.slice(myIndex + 1)
+		];
+	});
 </script>
 
 <div class="space-y-4">
 	<div class="flex items-center justify-between px-1">
-		<h2
-			class="text-xs font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-500"
-		>
-			同行伙伴 ({participants.length})
-		</h2>
+		<div class="flex items-center gap-2">
+			<h2
+				class="text-xs font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-500"
+			>
+				同行伙伴
+			</h2>
+
+			{#if hasHistoryDiff}
+				<div class="inline-flex items-center p-0.5 rounded-lg bg-zinc-100 dark:bg-zinc-800 text-[11px] font-medium text-zinc-500 dark:text-zinc-400">
+					<button
+						type="button"
+						class="px-2 py-0.5 rounded-md transition-colors cursor-pointer {activeTab === 'today' ? 'bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 shadow-2xs font-semibold' : 'hover:text-zinc-700 dark:hover:text-zinc-200'}"
+						onclick={() => (activeTab = 'today')}
+					>
+						今日同行 ({participants.length})
+					</button>
+					<button
+						type="button"
+						class="px-2 py-0.5 rounded-md transition-colors cursor-pointer {activeTab === 'all' ? 'bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 shadow-2xs font-semibold' : 'hover:text-zinc-700 dark:hover:text-zinc-200'}"
+						onclick={() => (activeTab = 'all')}
+					>
+						全部同行 ({allParticipants.length > 0 ? allParticipants.length : (totalParticipantsCount || participants.length)})
+					</button>
+				</div>
+			{:else}
+				<span class="text-xs text-zinc-400 font-mono">({participants.length})</span>
+			{/if}
+		</div>
 	</div>
 
 	<div class="space-y-2.5">
-		{#each participants as p, index (p.todoId || `${p.user?.id || 'p'}-${index}`)}
-			{@const isSelf = Boolean(currentUserId && p.user?.id === currentUserId)}
+		{#each displayParticipants as p, index (p.todoId || `${p.user?.id || 'p'}-${index}`)}
+			{@const isSelf = Boolean(p.isMe || (currentUserId && p.user?.id === currentUserId))}
 			<div
 				class="p-4 rounded-2xl border border-zinc-200/80 dark:border-zinc-800 bg-white/70 dark:bg-zinc-900/70 backdrop-blur-xs flex items-start justify-between gap-4 transition-colors {isSelf
 					? 'ring-2 ring-blue-500/20 dark:ring-blue-400/20'

@@ -256,10 +256,12 @@ export const api = {
 	async getTopicByHash(
 		hash: string,
 		currentUserId?: string,
+		date?: string,
 		customFetch?: typeof fetch
 	): Promise<TopicDetailResponse> {
 		const searchParams = new URLSearchParams();
 		if (currentUserId) searchParams.set('currentUserId', currentUserId);
+		if (date) searchParams.set('date', date);
 		const qs = searchParams.toString();
 		return request<TopicDetailResponse>(
 			`/api/topics/${hash}${qs ? `?${qs}` : ''}`,

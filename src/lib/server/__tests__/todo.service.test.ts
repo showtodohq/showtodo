@@ -94,7 +94,7 @@ describe('findById', () => {
 		expect(found!.content).toBe('Find me');
 		expect(found!.author.id).toBe(testUser.id);
 		expect(found!.author.nickname).toBe('test');
-		expect(found!.reactions).toEqual({ '👀': 0, '🔥': 0, '💪': 0, '👏': 0 });
+		expect(found!.reactions).toEqual({ '❤️': 0, '👍': 0, '🔥': 0, '💪': 0, '👏': 0, '🚀': 0, '🎉': 0, '👀': 0 });
 	});
 
 	test('hides note when isNotePublic is false', async () => {
@@ -406,11 +406,11 @@ describe('activities behavior', () => {
 		const found = await todoService.findById(testDb, todo.id);
 		expect(found!.activities).toHaveLength(2);
 
-		const second = found!.activities![1];
-		expect(second.type).toBe('status_change');
-		expect(second.fromStatus).toBe('pending');
-		expect(second.toStatus).toBe('in_progress');
-		expect(second.content).toBe('Starting right now');
+		const latest = found!.activities![0];
+		expect(latest.type).toBe('status_change');
+		expect(latest.fromStatus).toBe('pending');
+		expect(latest.toStatus).toBe('in_progress');
+		expect(latest.content).toBe('Starting right now');
 	});
 
 	test('records progress_note when status is unchanged but activityNote is provided', async () => {
@@ -422,11 +422,11 @@ describe('activities behavior', () => {
 		const found = await todoService.findById(testDb, todo.id);
 		expect(found!.activities).toHaveLength(2);
 
-		const second = found!.activities![1];
-		expect(second.type).toBe('progress_note');
-		expect(second.fromStatus).toBe('pending');
-		expect(second.toStatus).toBe('pending');
-		expect(second.content).toBe('Finished part 1 today');
+		const latest = found!.activities![0];
+		expect(latest.type).toBe('progress_note');
+		expect(latest.fromStatus).toBe('pending');
+		expect(latest.toStatus).toBe('pending');
+		expect(latest.content).toBe('Finished part 1 today');
 	});
 
 	test('does not record activity when neither status changes nor activityNote is provided', async () => {
@@ -545,6 +545,116 @@ describe('getTopicInfoByTodoId', () => {
 		await expect(
 			todoService.getTopicInfoByTodoId(testDb, '00000000-0000-0000-0000-000000000000')
 		).rejects.toThrow(AppError);
+	});
+});
+
+describe('getTopicByHash', () => {
+	test('orders participants by isMe first when currentUserId is provided, with correct topic metadata', async () => {
+		const creator = await userService.findOrCreate(testDb, 'creator@example.com');
+		const joiner = await userService.findOrCreate(testDb, 'joiner@example.com');
+
+		const todoCreator = await todoService.create(testDb, {
+			content: '多人目标测试',
+			category: 'study',
+			authorId: creator.id
+		});
+
+		const todoJoiner = await todoService.create(testDb, {
+			content: '多人目标测试',
+			category: 'study',
+			authorId: joiner.id
+		});
+
+		expect(todoCreator.topicHash).toBe(todoJoiner.topicHash);
+		const hash = todoCreator.topicHash!;
+
+		// 当以 joiner (后加入者) 的身份查询时，joiner 应被置顶排在第 1 位，且 isMe 为 true
+		const topicAsJoiner = await todoService.getTopicByHash(testDb, hash, joiner.id);
+		expect(topicAsJoiner.participants.length).toBe(2);
+		expect(topicAsJoiner.participants[0].user.id).toBe(joiner.id);
+		expect(topicAsJoiner.participants[0].isMe).toBe(true);
+		expect(topicAsJoiner.participants[1].user.id).toBe(creator.id);
+		expect(topicAsJoiner.participants[1].isMe).toBe(false);
+		// 话题元信息仍为最早发起时间，不受置顶影响
+		expect(topicAsJoiner.firstCreatedAt).toBe(todoCreator.createdAt.toISOString());
+
+		// 当未提供 currentUserId (访客身份) 查询时，按时间正序排列 (发起者第 1 位)
+		const topicAsGuest = await todoService.getTopicByHash(testDb, hash);
+		expect(topicAsGuest.participants[0].user.id).toBe(creator.id);
+		expect(topicAsGuest.participants[0].isMe).toBe(false);
+		expect(topicAsGuest.participants[1].user.id).toBe(joiner.id);
+		expect(topicAsGuest.participants[1].isMe).toBe(false);
+	});
+
+	test('correctly calculates todayParticipants and totalParticipants across dates with user deduplication', async () => {
+		const userA = await userService.findOrCreate(testDb, 'usera@example.com');
+		const userB = await userService.findOrCreate(testDb, 'userb@example.com');
+		const userC = await userService.findOrCreate(testDb, 'userc@example.com');
+
+		const todayStr = '2026-09-05';
+		const yesterdayStr = '2026-09-04';
+
+		// User A: 今天打卡并完成
+		const todoA1 = await todoService.create(testDb, {
+			content: '每日读书打卡',
+			category: 'study',
+			authorId: userA.id,
+			startDate: todayStr
+		});
+		await todoService.update(testDb, todoA1.id, 'usera@example.com', { status: 'done' });
+
+		// User B: 今天打卡进行中
+		await todoService.create(testDb, {
+			content: '每日读书打卡',
+			category: 'study',
+			authorId: userB.id,
+			startDate: todayStr
+		});
+
+		// User C: 昨天打卡已完成
+		const todoC = await todoService.create(testDb, {
+			content: '每日读书打卡',
+			category: 'study',
+			authorId: userC.id,
+			startDate: yesterdayStr
+		});
+		await todoService.update(testDb, todoC.id, 'userc@example.com', { status: 'done' });
+
+		// User A: 昨天也曾打卡过该目标
+		await todoService.create(testDb, {
+			content: '每日读书打卡',
+			category: 'study',
+			authorId: userA.id,
+			startDate: yesterdayStr
+		});
+
+		const hash = todoA1.topicHash!;
+
+		// 1. 验证详情页按今日 targetDate 查询
+		const topicDetail = await todoService.getTopicByHash(testDb, hash, userA.id, todayStr);
+
+		// 今日同行：A 和 B，共 2 人
+		expect(topicDetail.todayParticipants).toBe(2);
+		expect(topicDetail.todayDoneCount).toBe(1);
+		expect(topicDetail.isTodayAllDone).toBe(false);
+		expect(topicDetail.participants.length).toBe(2);
+
+		// 累计同行（去重后的自然人数）：A、B、C 共 3 位伙伴
+		expect(topicDetail.totalParticipants).toBe(3);
+		expect(topicDetail.allParticipants?.length).toBe(3);
+
+		// 2. 验证首页每日卡片查询结果（100% 对齐）
+		const dailyRes = await todoService.listDailyCards(testDb, {
+			targetDate: todayStr,
+			currentUserId: userA.id
+		});
+
+		const card = dailyRes.cards.find((c) => c.topicHash === hash);
+		expect(card).toBeDefined();
+		expect(card!.totalParticipants).toBe(2);
+		expect(card!.doneCount).toBe(1);
+		expect(card!.totalParticipants).toBe(topicDetail.todayParticipants);
+		expect(card!.doneCount).toBe(topicDetail.todayDoneCount);
 	});
 });
 

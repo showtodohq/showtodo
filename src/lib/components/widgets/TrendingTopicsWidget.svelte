@@ -3,6 +3,7 @@
 	import { userStore } from '$lib/stores/user.svelte';
 	import { trendingStore, todayStore, todoMutations } from '$lib/stores/todo.svelte';
 	import { toast } from '$lib/stores/toast.svelte';
+	import { getTodayString } from '$lib/utils/format';
 	import type { DailyCard } from '$lib/types/todo';
 	import UserAvatarTooltip from '$lib/components/user/UserAvatarTooltip.svelte';
 	import CategoryBadge from '$lib/components/todo/CategoryBadge.svelte';
@@ -79,7 +80,7 @@
 					<!-- 目标标题与分类 (点击直达多人 Todo 详情页) -->
 					<div class="flex items-start justify-between gap-2">
 						<a
-							href="/topics/{card.topicHash}"
+							href="/topics/{card.topicHash}?date={getTodayString()}"
 							class="flex items-center gap-1.5 min-w-0 flex-1 group/title focus:outline-hidden"
 							title="查看多人 Todo 详情"
 						>
@@ -130,7 +131,7 @@
 					<!-- 底部：参与人数与头像微堆叠 -->
 					<div class="flex items-center justify-between text-[11px] font-mono {isAllDone ? 'text-amber-600/90 dark:text-amber-400/90 font-medium' : 'text-zinc-400'}">
 						<a
-							href="/topics/{card.topicHash}"
+							href="/topics/{card.topicHash}?date={getTodayString()}"
 							class="flex items-center gap-1 hover:underline cursor-pointer"
 							title="查看多人 Todo 详情"
 						>

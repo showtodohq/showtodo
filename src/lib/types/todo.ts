@@ -141,6 +141,7 @@ export interface TopicParticipant {
 	startDate?: string;
 	dueDate?: string | null;
 	createdAt: string;
+	isMe?: boolean;
 	reactions?: Record<string, number>;
 	myReactions?: ReactionEmoji[];
 	user: {
@@ -156,11 +157,18 @@ export interface TopicDetail {
 	content: string;
 	category: string | null;
 	firstCreatedAt: string;
+	targetDate?: string;
+	todayParticipants: number;
+	todayDoneCount: number;
+	todayInProgressCount: number;
+	isTodayAllDone: boolean;
 	totalParticipants: number;
+	allDoneCount?: number;
 	doneCount: number;
 	inProgressCount: number;
 	isAllDone: boolean;
 	participants: TopicParticipant[];
+	allParticipants?: TopicParticipant[];
 }
 
 export interface TopicDetailResponse {

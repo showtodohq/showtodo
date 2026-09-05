@@ -12,7 +12,8 @@ export const GET: RequestHandler = async ({ params, url }) => {
 		}
 
 		const currentUserId = url.searchParams.get('currentUserId') ?? undefined;
-		const topic = await todoService.getTopicByHash(db, topicHash, currentUserId);
+		const date = url.searchParams.get('date') ?? undefined;
+		const topic = await todoService.getTopicByHash(db, topicHash, currentUserId, date);
 
 		return json({ topic });
 	} catch (e) {

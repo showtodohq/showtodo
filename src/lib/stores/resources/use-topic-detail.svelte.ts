@@ -7,40 +7,56 @@ import { todoMutations } from '$lib/stores/mutations.svelte';
 import type { TopicDetail, TodoStatus, DailyCard } from '$lib/types/todo';
 
 function buildTopicFromCard(cachedCard: DailyCard): TopicDetail {
+	const participants = cachedCard.participants.map((p, idx) => ({
+		todoId: p.todoId || `cached-${idx}`,
+		shortId: p.shortId || '',
+		status: p.status,
+		note: p.note,
+		createdAt: p.createdAt,
+		isMe: p.isMe,
+		user: {
+			id: p.user?.id || `u-${idx}`,
+			nickname: p.user?.nickname || '用户',
+			handle: p.user?.handle || 'user',
+			avatar: p.user?.avatar || null,
+			email: '',
+			createdAt: '',
+			updatedAt: ''
+		}
+	}));
+
+	const isAllDone =
+		cachedCard.totalParticipants > 0 &&
+		cachedCard.doneCount >= cachedCard.totalParticipants;
+
 	return {
 		topicHash: cachedCard.topicHash,
 		content: cachedCard.content,
 		category: cachedCard.category,
 		firstCreatedAt: new Date().toISOString(),
+		todayParticipants: cachedCard.totalParticipants,
+		todayDoneCount: cachedCard.doneCount,
+		todayInProgressCount: 0,
+		isTodayAllDone: isAllDone,
 		totalParticipants: cachedCard.totalParticipants,
+		allDoneCount: cachedCard.doneCount,
 		doneCount: cachedCard.doneCount,
 		inProgressCount: 0,
-		isAllDone:
-			cachedCard.totalParticipants > 0 &&
-			cachedCard.doneCount >= cachedCard.totalParticipants,
-		participants: cachedCard.participants.map((p, idx) => ({
-			todoId: p.todoId || `cached-${idx}`,
-			shortId: p.shortId || '',
-			status: p.status,
-			note: p.note,
-			createdAt: p.createdAt,
-			user: {
-				id: p.user?.id || `u-${idx}`,
-				nickname: p.user?.nickname || '用户',
-				handle: p.user?.handle || 'user',
-				avatar: p.user?.avatar || null,
-				email: '',
-				createdAt: '',
-				updatedAt: ''
-			}
-		}))
+		isAllDone,
+		participants,
+		allParticipants: participants
 	};
 }
 
 const topicDetailCache = new Map<string, TopicDetail>();
 
+function getTopicCacheKey(hash: string, userId?: string, date?: string) {
+	return `${hash}:${userId || 'anon'}:${date || 'all'}`;
+}
+
 export function createTopicDetailResource(initialHash?: string) {
-	const initialFromCache = initialHash ? topicDetailCache.get(initialHash) : undefined;
+	const initialCacheKey = initialHash ? getTopicCacheKey(initialHash, userStore.id) : '';
+	const initialFromCache = initialCacheKey ? topicDetailCache.get(initialCacheKey) : undefined;
 	const initialCard = !initialFromCache && initialHash ? trendingStore.cards.find((c) => c.topicHash === initialHash) : null;
 	const initialTopic = initialFromCache || (initialCard ? buildTopicFromCard(initialCard) : null);
 
@@ -64,17 +80,19 @@ export function createTopicDetailResource(initialHash?: string) {
 			: null
 	);
 
-	let inFlightHash: string | null = null;
+	let inFlightKey: string | null = null;
 
-	async function load(hash: string) {
-		if (inFlightHash === hash) {
+	async function load(hash: string, date?: string) {
+		const requestKey = `${hash}:${date || ''}`;
+		if (inFlightKey === requestKey) {
 			return;
 		}
-		inFlightHash = hash;
+		inFlightKey = requestKey;
 		error = null;
 
 		// 1. 0ms 瞬时预渲染：优先从话题详情缓存，其次从热门同行卡片命中秒开
-		const cachedDetail = topicDetailCache.get(hash);
+		const cacheKey = getTopicCacheKey(hash, userStore.id, date);
+		const cachedDetail = topicDetailCache.get(cacheKey);
 		const cachedCard = trendingStore.cards.find((c) => c.topicHash === hash);
 		if (cachedDetail) {
 			topic = cachedDetail;
@@ -91,10 +109,10 @@ export function createTopicDetailResource(initialHash?: string) {
 
 		try {
 			// 2. 后台获取全量同行清单数据注水
-			const res = await api.getTopicByHash(hash, userStore.id);
+			const res = await api.getTopicByHash(hash, userStore.id, date);
 			topic = res.topic;
 			if (topic) {
-				topicDetailCache.set(hash, topic);
+				topicDetailCache.set(cacheKey, topic);
 			}
 
 			// 将参与者条目纳管进 todoRegistry，确保本页或其他页面打勾能 0ms 命中与同步
@@ -135,7 +153,7 @@ export function createTopicDetailResource(initialHash?: string) {
 		} finally {
 			loading = false;
 			isRevalidating = false;
-			inFlightHash = null;
+			inFlightKey = null;
 		}
 	}
 
@@ -167,12 +185,14 @@ export function createTopicDetailResource(initialHash?: string) {
 			status: 'in_progress' as TodoStatus,
 			note: null,
 			createdAt: new Date().toISOString(),
+			isMe: true,
 			user: currentUser
 		};
 
 		// 0ms 乐观在本地话题列表插入自己
 		topic.participants.unshift(optimisticParticipant);
 		topic.totalParticipants += 1;
+		topic.todayParticipants += 1;
 
 		try {
 			const realTodo = await todoMutations.joinTopic({
@@ -193,6 +213,7 @@ export function createTopicDetailResource(initialHash?: string) {
 			// 回滚
 			topic.participants = topic.participants.filter((p) => p.todoId !== tempTodoId);
 			topic.totalParticipants = Math.max(0, topic.totalParticipants - 1);
+			topic.todayParticipants = Math.max(0, topic.todayParticipants - 1);
 			toast.error(`加入失败: ${(err as Error).message}`);
 		} finally {
 			isJoining = false;
@@ -211,10 +232,13 @@ export function createTopicDetailResource(initialHash?: string) {
 		// 同步完成计数
 		if (prevStatus !== 'done' && nextStatus === 'done') {
 			topic.doneCount += 1;
+			topic.todayDoneCount += 1;
 		} else if (prevStatus === 'done' && nextStatus !== 'done') {
 			topic.doneCount = Math.max(0, topic.doneCount - 1);
+			topic.todayDoneCount = Math.max(0, topic.todayDoneCount - 1);
 		}
-		topic.isAllDone = topic.totalParticipants > 0 && topic.doneCount >= topic.totalParticipants;
+		topic.isTodayAllDone = topic.todayParticipants > 0 && topic.todayDoneCount >= topic.todayParticipants;
+		topic.isAllDone = topic.isTodayAllDone;
 
 		try {
 			await todoMutations.toggleStatus(myParticipant.todoId, nextStatus, e);
@@ -223,10 +247,13 @@ export function createTopicDetailResource(initialHash?: string) {
 			myParticipant.status = prevStatus;
 			if (prevStatus !== 'done' && nextStatus === 'done') {
 				topic.doneCount = Math.max(0, topic.doneCount - 1);
+				topic.todayDoneCount = Math.max(0, topic.todayDoneCount - 1);
 			} else if (prevStatus === 'done' && nextStatus !== 'done') {
 				topic.doneCount += 1;
+				topic.todayDoneCount += 1;
 			}
-			topic.isAllDone = topic.totalParticipants > 0 && topic.doneCount >= topic.totalParticipants;
+			topic.isTodayAllDone = topic.todayParticipants > 0 && topic.todayDoneCount >= topic.todayParticipants;
+			topic.isAllDone = topic.isTodayAllDone;
 		}
 	}
 

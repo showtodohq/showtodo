@@ -133,7 +133,16 @@ describe('getCountsByTodoIds', () => {
 
 	test('returns all zeros for todo with no reactions', async () => {
 		const counts = await reactionService.getCountsByTodoIds(testDb, [testTodo.id]);
-		expect(counts[testTodo.id]).toEqual({ '👀': 0, '🔥': 0, '💪': 0, '👏': 0 });
+		expect(counts[testTodo.id]).toEqual({
+			'❤️': 0,
+			'👍': 0,
+			'🔥': 0,
+			'💪': 0,
+			'👏': 0,
+			'🚀': 0,
+			'🎉': 0,
+			'👀': 0
+		});
 	});
 
 	test('returns empty object for empty input', async () => {

@@ -10,14 +10,18 @@
 	import TopicHeaderCard from '$lib/components/topic/TopicHeaderCard.svelte';
 	import TopicParticipantList from '$lib/components/topic/TopicParticipantList.svelte';
 
+	import { getTodayString } from '$lib/utils/format';
+
 	const topicRes = createTopicDetailResource(page.params.hash);
-	let currentLoadedHash = $state<string | null>(null);
+	let currentLoadedKey = $state<string | null>(null);
 
 	$effect(() => {
 		const hash = page.params.hash;
-		if (hash && hash !== currentLoadedHash) {
-			currentLoadedHash = hash;
-			topicRes.load(hash);
+		const targetDate = page.url.searchParams.get('date') || getTodayString();
+		const key = `${hash}:${targetDate}`;
+		if (hash && key !== currentLoadedKey) {
+			currentLoadedKey = key;
+			topicRes.load(hash, targetDate);
 		}
 	});
 </script>
@@ -93,6 +97,9 @@
 				<!-- 同行伙伴列表 -->
 				<TopicParticipantList
 					participants={topicRes.topic.participants}
+					allParticipants={topicRes.topic.allParticipants}
+					todayParticipantsCount={topicRes.topic.todayParticipants}
+					totalParticipantsCount={topicRes.topic.totalParticipants}
 					currentUserId={userStore.id}
 					onstatuschange={topicRes.handleToggleMyStatus}
 				/>

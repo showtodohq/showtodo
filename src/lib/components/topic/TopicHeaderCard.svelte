@@ -24,9 +24,11 @@
 	}: Props = $props();
 
 	const completionRate = $derived(
-		topic.totalParticipants > 0
-			? Math.round((topic.doneCount / topic.totalParticipants) * 100)
-			: 0
+		topic.todayParticipants > 0
+			? Math.round((topic.todayDoneCount / topic.todayParticipants) * 100)
+			: topic.totalParticipants > 0
+				? Math.round((topic.doneCount / topic.totalParticipants) * 100)
+				: 0
 	);
 </script>
 
@@ -40,12 +42,12 @@
 				<CategoryBadge category={topic.category} />
 			{/if}
 
-			{#if topic.isAllDone}
+			{#if topic.isTodayAllDone || topic.isAllDone}
 				<span
 					class="inline-flex items-center gap-1 text-xs font-bold text-amber-900 dark:text-amber-100 bg-gradient-to-r from-amber-300 via-yellow-300 to-amber-400 dark:from-amber-600 dark:via-yellow-600 dark:to-amber-500 px-2.5 py-0.5 rounded-full shadow-xs select-none animate-in zoom-in-95 duration-150"
 				>
 					<span>🏆</span>
-					<span>全员达成勋章</span>
+					<span>今日全员达成</span>
 				</span>
 			{/if}
 
@@ -55,7 +57,7 @@
 		</div>
 
 		<h1
-			class="text-2xl sm:text-3xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100 leading-snug {topic.isAllDone
+			class="text-2xl sm:text-3xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100 leading-snug {topic.isTodayAllDone || topic.isAllDone
 				? 'text-amber-950 dark:text-amber-100'
 				: ''}"
 		>
@@ -67,15 +69,26 @@
 	<div class="space-y-2">
 		<div class="flex items-center justify-between text-xs">
 			<div
-				class="flex items-center gap-1.5 font-medium text-zinc-700 dark:text-zinc-300"
+				class="flex items-center gap-1.5 font-medium text-zinc-700 dark:text-zinc-300 flex-wrap"
 			>
 				<span class="text-amber-500">🔥</span>
-				<span><strong>{topic.totalParticipants}</strong> 位伙伴正在同行</span>
-				<span>·</span>
-				<span><strong>{topic.doneCount}</strong> 位{getStatusConfig('done').label}</span>
+				{#if topic.todayParticipants > 0}
+					<span><strong>{topic.todayParticipants}</strong> 位伙伴今日同行</span>
+					<span>·</span>
+					<span><strong>{topic.todayDoneCount}</strong> 位{getStatusConfig('done').label}</span>
+					{#if topic.totalParticipants > topic.todayParticipants}
+						<span class="text-zinc-400 dark:text-zinc-500 font-normal">
+							(累计 {topic.totalParticipants} 位伙伴曾加入)
+						</span>
+					{/if}
+				{:else}
+					<span><strong>{topic.totalParticipants}</strong> 位伙伴累计同行</span>
+					<span>·</span>
+					<span><strong>{topic.doneCount}</strong> 位{getStatusConfig('done').label}</span>
+				{/if}
 			</div>
 			<div class="font-mono font-semibold text-zinc-900 dark:text-zinc-100">
-				{completionRate}% 完成率
+				{completionRate}% {topic.todayParticipants > 0 ? '今日完成率' : '完成率'}
 			</div>
 		</div>
 
@@ -84,7 +97,7 @@
 			class="w-full h-2.5 bg-zinc-100 dark:bg-zinc-800 rounded-full overflow-hidden"
 		>
 			<div
-				class="h-full transition-all duration-300 rounded-full {topic.isAllDone
+				class="h-full transition-all duration-300 rounded-full {topic.isTodayAllDone || topic.isAllDone
 					? 'bg-gradient-to-r from-amber-400 to-yellow-400'
 					: 'bg-emerald-500'}"
 				style="width: {completionRate}%;"
