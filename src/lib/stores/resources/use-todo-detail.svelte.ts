@@ -8,6 +8,7 @@ import type { Todo, TodoStatus, TodoActivityType } from '$lib/types/todo';
 export function createTodoDetailResource(initialIdentifier?: string) {
 	const initialCached = initialIdentifier ? (todoRegistry.get(initialIdentifier) || null) : null;
 	let loading = $state(!initialCached);
+	let isRevalidating = $state(false);
 	let error = $state<string | null>(null);
 	let todo = $state<Todo | null>(initialCached);
 	let topicParticipantCount = $state<number>(initialCached?.topicParticipantCount || 0);
@@ -40,8 +41,10 @@ export function createTodoDetailResource(initialIdentifier?: string) {
 				topicParticipantCount = cached.topicParticipantCount;
 			}
 			loading = false;
-		} else {
+			isRevalidating = true;
+		} else if (!todo) {
 			loading = true;
+			isRevalidating = false;
 		}
 
 		try {
@@ -58,6 +61,7 @@ export function createTodoDetailResource(initialIdentifier?: string) {
 			}
 		} finally {
 			loading = false;
+			isRevalidating = false;
 			inFlightIdentifier = null;
 		}
 	}
@@ -171,6 +175,9 @@ export function createTodoDetailResource(initialIdentifier?: string) {
 	return {
 		get loading() {
 			return loading;
+		},
+		get isRevalidating() {
+			return isRevalidating;
 		},
 		get error() {
 			return error;

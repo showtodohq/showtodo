@@ -5,11 +5,22 @@ import { feedStore } from '$lib/stores/feed.svelte';
 import { toast } from '$lib/stores/toast.svelte';
 import { todoRegistry } from '$lib/stores/entities/todo-registry.svelte';
 import { todoMutations } from '$lib/stores/mutations.svelte';
+import { userProfileRegistry } from '$lib/stores/entities/user-registry.svelte';
 import type { Todo, TodoStatus, ReactionEmoji, CategoryId } from '$lib/types/todo';
 import type { UserProfile } from '$lib/types/user';
 
 function getInitialProfileAndTodos(identifier?: string): { user: UserProfile | null; todoIds: string[] } {
 	if (!identifier) return { user: null, todoIds: [] };
+
+	// 0. 优先从全局用户中心命中缓存（支持 ID 和 Handle，跨页面 0ms 秒开）
+	const cachedUser = userProfileRegistry.getProfile(identifier);
+	const cachedTodoIds = userProfileRegistry.getUserTodoIds(identifier);
+	if (cachedUser) {
+		return {
+			user: cachedUser,
+			todoIds: cachedTodoIds || []
+		};
+	}
 
 	const isMeIdentity = userStore.id && (userStore.id === identifier || userStore.handle === identifier);
 	if (isMeIdentity) {
@@ -54,6 +65,8 @@ export function createUserProfileResource(initialIdentifier?: string) {
 	const initial = getInitialProfileAndTodos(initialIdentifier);
 
 	let loading = $state(!initial.user);
+	let isTodosLoading = $state(initial.todoIds.length === 0);
+	let isRevalidating = $state(false);
 	let error = $state<string | null>(null);
 	let user = $state<UserProfile | null>(initial.user);
 	let userTodoIds = $state<string[]>(initial.todoIds);
@@ -134,10 +147,16 @@ export function createUserProfileResource(initialIdentifier?: string) {
 			user = initialPrefill.user;
 			if (initialPrefill.todoIds.length > 0) {
 				userTodoIds = initialPrefill.todoIds;
+				isTodosLoading = false;
+			} else {
+				isTodosLoading = true;
 			}
 			loading = false;
+			isRevalidating = true;
 		} else if (!user) {
 			loading = true;
+			isTodosLoading = true;
+			isRevalidating = false;
 		}
 
 		try {
@@ -155,6 +174,10 @@ export function createUserProfileResource(initialIdentifier?: string) {
 				const fetched = todosRes.todos || [];
 				todoRegistry.upsertMany(fetched);
 				userTodoIds = fetched.map((t) => t.id);
+
+				// 存入全局缓存中心，确保下次再进 100% 具备完整缓存
+				userProfileRegistry.upsertProfile(user);
+				userProfileRegistry.setUserTodoIds(user.id, userTodoIds);
 			} else {
 				const res = await api.getUserById(identifier);
 				user = res.user;
@@ -168,6 +191,10 @@ export function createUserProfileResource(initialIdentifier?: string) {
 				const fetched = todosRes.todos || [];
 				todoRegistry.upsertMany(fetched);
 				userTodoIds = fetched.map((t) => t.id);
+
+				// 存入全局缓存中心，确保下次再进 100% 具备完整缓存
+				userProfileRegistry.upsertProfile(user);
+				userProfileRegistry.setUserTodoIds(user.id, userTodoIds);
 			}
 		} catch (err) {
 			console.error('Failed to load user profile:', err);
@@ -176,6 +203,8 @@ export function createUserProfileResource(initialIdentifier?: string) {
 			}
 		} finally {
 			loading = false;
+			isTodosLoading = false;
+			isRevalidating = false;
 			inFlightIdentifier = null;
 		}
 	}
@@ -211,6 +240,12 @@ export function createUserProfileResource(initialIdentifier?: string) {
 	return {
 		get loading() {
 			return loading;
+		},
+		get isTodosLoading() {
+			return isTodosLoading;
+		},
+		get isRevalidating() {
+			return isRevalidating;
 		},
 		get error() {
 			return error;

@@ -6,7 +6,8 @@
 	import type { DailyCard } from '$lib/types/todo';
 	import UserAvatarTooltip from '$lib/components/user/UserAvatarTooltip.svelte';
 	import CategoryBadge from '$lib/components/todo/CategoryBadge.svelte';
-	import Spinner from '$lib/components/ui/Spinner.svelte';
+	import DataView from '$lib/components/ui/DataView.svelte';
+	import WidgetSkeleton from '$lib/components/skeleton/WidgetSkeleton.svelte';
 
 	interface Props {
 		onJoinTopic?: (content: string, category?: string | null) => void;
@@ -47,15 +48,20 @@
 	</div>
 
 	<!-- 列表内容 -->
-	{#if (!trendingStore.loaded || trendingStore.loading) && trendingStore.cards.length === 0}
-		<div class="flex justify-center py-4 text-zinc-400">
-			<Spinner size="sm" />
-		</div>
-	{:else if trendingStore.cards.length === 0}
-		<div class="py-3 text-center text-xs text-zinc-400">
-			暂无热门多人目标，发布一个让大家一起参与吧！
-		</div>
-	{:else}
+	<DataView
+		loading={!trendingStore.loaded || trendingStore.loading}
+		empty={trendingStore.cards.length === 0}
+	>
+		{#snippet skeleton()}
+			<WidgetSkeleton rows={3} />
+		{/snippet}
+
+		{#snippet emptyView()}
+			<div class="py-3 text-center text-xs text-zinc-400">
+				暂无热门多人目标，发布一个让大家一起参与吧！
+			</div>
+		{/snippet}
+
 		<div class="space-y-2.5">
 			{#each trendingStore.cards as card (card.topicHash)}
 				{@const isAllDone =
@@ -156,5 +162,5 @@
 				</div>
 			{/each}
 		</div>
-	{/if}
+	</DataView>
 </div>

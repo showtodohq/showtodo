@@ -5,9 +5,10 @@
 
 	interface Props {
 		activities?: TodoActivity[];
+		isLoading?: boolean;
 	}
 
-	let { activities = [] }: Props = $props();
+	let { activities = [], isLoading = false }: Props = $props();
 
 	const sortedActivities = $derived(
 		[...activities].sort(
@@ -19,11 +20,28 @@
 <div class="space-y-4">
 	<div class="flex items-center justify-between px-1">
 		<h2 class="text-xs font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">
-			🌱 成长动态与打卡记录 ({sortedActivities.length})
+			🌱 成长动态与打卡记录 ({isLoading && sortedActivities.length === 0 ? '...' : sortedActivities.length})
 		</h2>
 	</div>
 
-	{#if sortedActivities.length === 0}
+	{#if isLoading && sortedActivities.length === 0}
+		<div
+			class="relative pl-6 space-y-3 before:absolute before:left-2.5 before:top-2 before:bottom-2 before:w-0.5 before:bg-zinc-200 dark:before:bg-zinc-800 animate-pulse"
+			aria-busy="true"
+		>
+			{#each Array(2) as _, i (i)}
+				<div class="relative">
+					<div class="absolute -left-6 top-1 h-5 w-5 rounded-full bg-zinc-200/80 dark:bg-zinc-800/80"></div>
+					<div
+						class="p-3 rounded-xl bg-zinc-100/70 dark:bg-zinc-900/40 border border-zinc-200/50 dark:border-zinc-800/60 space-y-2"
+					>
+						<div class="h-3 w-28 bg-zinc-200/80 dark:bg-zinc-800/80 rounded"></div>
+						<div class="h-2.5 w-48 bg-zinc-200/60 dark:bg-zinc-800/60 rounded"></div>
+					</div>
+				</div>
+			{/each}
+		</div>
+	{:else if sortedActivities.length === 0}
 		<div
 			class="rounded-2xl border border-dashed border-zinc-200 dark:border-zinc-800/80 py-10 text-center text-xs text-zinc-400"
 		>

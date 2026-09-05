@@ -1,7 +1,8 @@
 <script lang="ts">
 	import { userStore } from '$lib/stores/user.svelte';
 	import { todayStore, todoMutations } from '$lib/stores/todo.svelte';
-	import Spinner from '$lib/components/ui/Spinner.svelte';
+	import DataView from '$lib/components/ui/DataView.svelte';
+	import WidgetSkeleton from '$lib/components/skeleton/WidgetSkeleton.svelte';
 	import TodoCheckbox from '$lib/components/todo/TodoCheckbox.svelte';
 	import TodoContent from '$lib/components/todo/TodoContent.svelte';
 
@@ -30,15 +31,20 @@
 		</div>
 
 		<!-- 待办清单内容 -->
-		{#if (!todayStore.loaded || todayStore.loading) && todayStore.todos.length === 0}
-			<div class="flex justify-center py-4 text-zinc-400">
-				<Spinner size="sm" />
-			</div>
-		{:else if todayStore.todos.length === 0}
-			<div class="py-3 text-center text-xs text-zinc-400">
-				今天还没有发布待办，在上方写一个吧 ✨
-			</div>
-		{:else}
+		<DataView
+			loading={!todayStore.loaded || todayStore.loading}
+			empty={todayStore.todos.length === 0}
+		>
+			{#snippet skeleton()}
+				<WidgetSkeleton rows={2} />
+			{/snippet}
+
+			{#snippet emptyView()}
+				<div class="py-3 text-center text-xs text-zinc-400">
+					今天还没有发布待办，在上方写一个吧 ✨
+				</div>
+			{/snippet}
+
 			<div class="space-y-1.5">
 				{#each todayStore.todos as todo (todo.id)}
 					<div
@@ -69,6 +75,6 @@
 					</div>
 				{/each}
 			</div>
-		{/if}
+		</DataView>
 	</div>
 {/if}

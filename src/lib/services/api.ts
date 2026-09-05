@@ -12,6 +12,8 @@ import type {
 } from '$lib/types/todo';
 import type { UpdateUserInput, UserProfile } from '$lib/types/user';
 
+import { progressStore } from '$lib/stores/progress.svelte';
+
 export class ApiError extends Error {
 	code: string;
 	status: number;
@@ -38,31 +40,36 @@ async function request<T>(
 	options?: RequestInit,
 	customFetch?: typeof fetch
 ): Promise<T> {
-	const fetcher = customFetch || fetch;
-	const res = await fetcher(url, {
-		...options,
-		headers: {
-			'Content-Type': 'application/json',
-			...(options?.headers || {})
-		}
-	});
-
-	if (!res.ok) {
-		let code = 'INTERNAL_ERROR';
-		let message = '请求失败，请稍后重试';
-		try {
-			const data = await res.json();
-			if (data?.error) {
-				code = data.error.code || code;
-				message = data.error.message || ERROR_MESSAGE_MAP[code] || message;
+	progressStore.start();
+	try {
+		const fetcher = customFetch || fetch;
+		const res = await fetcher(url, {
+			...options,
+			headers: {
+				'Content-Type': 'application/json',
+				...(options?.headers || {})
 			}
-		} catch {
-			// ignore json parse error
-		}
-		throw new ApiError(code, message, res.status);
-	}
+		});
 
-	return (await res.json()) as T;
+		if (!res.ok) {
+			let code = 'INTERNAL_ERROR';
+			let message = '请求失败，请稍后重试';
+			try {
+				const data = await res.json();
+				if (data?.error) {
+					code = data.error.code || code;
+					message = data.error.message || ERROR_MESSAGE_MAP[code] || message;
+				}
+			} catch {
+				// ignore json parse error
+			}
+			throw new ApiError(code, message, res.status);
+		}
+
+		return (await res.json()) as T;
+	} finally {
+		progressStore.done();
+	}
 }
 
 export const api = {

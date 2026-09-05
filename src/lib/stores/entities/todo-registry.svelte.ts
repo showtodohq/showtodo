@@ -28,8 +28,12 @@ class TodoRegistry {
 		let target: Todo;
 
 		if (existing) {
-			// 原地合并字段，触发既有 Proxy 的 setter
-			Object.assign(existing, todo);
+			// 原地合并有效字段，避免被缺少 activities / topicParticipantCount 的列表接口覆盖丢失
+			for (const [key, val] of Object.entries(todo)) {
+				if (val !== undefined) {
+					(existing as unknown as Record<string, unknown>)[key] = val;
+				}
+			}
 			target = existing;
 		} else {
 			// 直接赋值给 $state 字典，Svelte 5 自动赋予全字段深层响应式能力
@@ -37,9 +41,10 @@ class TodoRegistry {
 			target = this.entities[todo.id];
 		}
 
-		// 注册 shortId 别名索引
+		// 注册 shortId 别名索引（支持原样与小写索引）
 		if (target.shortId) {
 			this.aliasMap[target.shortId] = target.id;
+			this.aliasMap[target.shortId.toLowerCase()] = target.id;
 		}
 
 		return target;
@@ -57,7 +62,10 @@ class TodoRegistry {
 	 */
 	get(identifier?: string | null): Todo | undefined {
 		if (!identifier) return undefined;
-		const realId = this.aliasMap[identifier] || identifier;
+		const realId =
+			this.aliasMap[identifier] ||
+			this.aliasMap[identifier.toLowerCase()] ||
+			identifier;
 		return this.entities[realId];
 	}
 

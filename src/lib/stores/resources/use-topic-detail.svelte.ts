@@ -37,11 +37,15 @@ function buildTopicFromCard(cachedCard: DailyCard): TopicDetail {
 	};
 }
 
+const topicDetailCache = new Map<string, TopicDetail>();
+
 export function createTopicDetailResource(initialHash?: string) {
-	const initialCard = initialHash ? trendingStore.cards.find((c) => c.topicHash === initialHash) : null;
-	const initialTopic = initialCard ? buildTopicFromCard(initialCard) : null;
+	const initialFromCache = initialHash ? topicDetailCache.get(initialHash) : undefined;
+	const initialCard = !initialFromCache && initialHash ? trendingStore.cards.find((c) => c.topicHash === initialHash) : null;
+	const initialTopic = initialFromCache || (initialCard ? buildTopicFromCard(initialCard) : null);
 
 	let loading = $state(!initialTopic);
+	let isRevalidating = $state(false);
 	let error = $state<string | null>(null);
 	let topic = $state<TopicDetail | null>(initialTopic);
 	let isJoining = $state(false);
@@ -69,19 +73,29 @@ export function createTopicDetailResource(initialHash?: string) {
 		inFlightHash = hash;
 		error = null;
 
-		// 1. 0ms 瞬时预渲染：从热门同行卡片中命中秒开
+		// 1. 0ms 瞬时预渲染：优先从话题详情缓存，其次从热门同行卡片命中秒开
+		const cachedDetail = topicDetailCache.get(hash);
 		const cachedCard = trendingStore.cards.find((c) => c.topicHash === hash);
-		if (cachedCard) {
+		if (cachedDetail) {
+			topic = cachedDetail;
+			loading = false;
+			isRevalidating = true;
+		} else if (cachedCard) {
 			topic = buildTopicFromCard(cachedCard);
 			loading = false;
+			isRevalidating = true;
 		} else if (!topic) {
 			loading = true;
+			isRevalidating = false;
 		}
 
 		try {
 			// 2. 后台获取全量同行清单数据注水
 			const res = await api.getTopicByHash(hash, userStore.id);
 			topic = res.topic;
+			if (topic) {
+				topicDetailCache.set(hash, topic);
+			}
 
 			// 将参与者条目纳管进 todoRegistry，确保本页或其他页面打勾能 0ms 命中与同步
 			if (topic?.participants) {
@@ -120,6 +134,7 @@ export function createTopicDetailResource(initialHash?: string) {
 			}
 		} finally {
 			loading = false;
+			isRevalidating = false;
 			inFlightHash = null;
 		}
 	}
@@ -218,6 +233,9 @@ export function createTopicDetailResource(initialHash?: string) {
 	return {
 		get loading() {
 			return loading;
+		},
+		get isRevalidating() {
+			return isRevalidating;
 		},
 		get error() {
 			return error;

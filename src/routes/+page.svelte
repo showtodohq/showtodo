@@ -7,6 +7,8 @@
 	import { userStore } from '$lib/stores/user.svelte';
 	import { feedStore, todoMutations } from '$lib/stores/todo.svelte';
 	import Spinner from '$lib/components/ui/Spinner.svelte';
+	import DataView from '$lib/components/ui/DataView.svelte';
+	import FeedSkeleton from '$lib/components/skeleton/FeedSkeleton.svelte';
 	import TodoItem from '$lib/components/todo/TodoItem.svelte';
 	import TodoComposer from '$lib/components/todo/TodoComposer.svelte';
 	import MyTodayWidget from '$lib/components/widgets/MyTodayWidget.svelte';
@@ -105,22 +107,27 @@
 			</div>
 
 			<!-- Feed 内容区 -->
-			{#if (!feedStore.loaded || feedStore.loading) && feedStore.todos.length === 0}
-				<div class="flex justify-center py-20 text-zinc-400">
-					<Spinner size="md" />
-				</div>
-			{:else if feedStore.todos.length === 0}
-				<div
-					class="rounded-2xl border border-dashed border-zinc-200 dark:border-zinc-800/80 py-20 text-center text-xs text-zinc-400"
-				>
-					{#if activeCategoryFilter}
-						{@const catConfig = getCategoryConfig(activeCategoryFilter)}
-						暂无「{catConfig?.name || activeCategoryFilter}」类公开待办，在上方发布第一条吧 ✨
-					{:else}
-						暂无公开待办，在上方发布第一条吧 ✨
-					{/if}
-				</div>
-			{:else}
+			<DataView
+				loading={!feedStore.loaded || feedStore.loading}
+				empty={feedStore.todos.length === 0}
+			>
+				{#snippet skeleton()}
+					<FeedSkeleton count={3} />
+				{/snippet}
+
+				{#snippet emptyView()}
+					<div
+						class="rounded-2xl border border-dashed border-zinc-200 dark:border-zinc-800/80 py-20 text-center text-xs text-zinc-400"
+					>
+						{#if activeCategoryFilter}
+							{@const catConfig = getCategoryConfig(activeCategoryFilter)}
+							暂无「{catConfig?.name || activeCategoryFilter}」类公开待办，在上方发布第一条吧 ✨
+						{:else}
+							暂无公开待办，在上方发布第一条吧 ✨
+						{/if}
+					</div>
+				{/snippet}
+
 				<div class="space-y-1 sm:space-y-1.5">
 					{#each feedStore.todos as todo (todo.id)}
 						<TodoItem
@@ -159,7 +166,7 @@
 						</button>
 					</div>
 				{/if}
-			{/if}
+			</DataView>
 		</div>
 
 		<!-- 右侧副栏：辅助与概览组件库 (完全解耦，0 胶水 ref 绑定) -->
