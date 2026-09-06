@@ -116,8 +116,9 @@ export const api = {
 		return request<TodoListResponse>(`/api/todos${qs ? `?${qs}` : ''}`, undefined, customFetch);
 	},
 
-	async getTodoById(id: string, customFetch?: typeof fetch): Promise<{ todo: Todo }> {
-		return request<{ todo: Todo }>(`/api/todos/${id}`, undefined, customFetch);
+	async getTodoById(id: string, currentUserId?: string, customFetch?: typeof fetch): Promise<{ todo: Todo }> {
+		const query = currentUserId ? `?currentUserId=${encodeURIComponent(currentUserId)}` : '';
+		return request<{ todo: Todo }>(`/api/todos/${id}${query}`, undefined, customFetch);
 	},
 
 	async createTodo(

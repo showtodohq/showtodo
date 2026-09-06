@@ -15,6 +15,9 @@ export function createTodoDetailResource(initialIdentifier?: string) {
 	let topicParticipantCount = $state<number>(initialCached?.topicParticipantCount || 0);
 	let isSubmittingCheckIn = $state(false);
 	let isJoining = $state(false);
+	let serverMyJoinedTodo = $state<{ id: string; shortId?: string | null; status: TodoStatus } | null>(
+		initialCached?.myJoinedTodo || null
+	);
 
 	const isMine = $derived(
 		Boolean(
@@ -35,19 +38,46 @@ export function createTodoDetailResource(initialIdentifier?: string) {
 		const targetHash = todo.topicHash;
 		const targetContentNorm = todo.content.trim().toLowerCase();
 
-		return todayStore.todos.find((t) => {
+		// 1. 优先从本地已载入的待办实体中寻找（保证 0ms 乐观更新与打勾即时联动）
+		const inStore = todayStore.todos.find((t) => {
 			const isMyTodo = userStore.isAuthor(t.authorId, t.author?.email, t.author?.handle);
 			if (!isMyTodo) return false;
 			if (targetHash && t.topicHash === targetHash) return true;
 			return t.content.trim().toLowerCase() === targetContentNorm;
 		});
+		if (inStore) return inStore;
+
+		// 2. 若本地今日待办未包含，但服务端权威返回了当前用户的参与记录
+		if (serverMyJoinedTodo?.id) {
+			const cached = todoRegistry.get(serverMyJoinedTodo.id);
+			if (cached) return cached;
+			return {
+				id: serverMyJoinedTodo.id,
+				shortId: serverMyJoinedTodo.shortId || serverMyJoinedTodo.id,
+				status: serverMyJoinedTodo.status,
+				content: todo.content,
+				topicHash: todo.topicHash,
+				authorId: userStore.id || '',
+				isNotePublic: true,
+				note: null,
+				category: todo.category,
+				startDate: new Date().toISOString(),
+				dueDate: null,
+				createdAt: new Date().toISOString(),
+				updatedAt: new Date().toISOString()
+			} as Todo;
+		}
+
+		return undefined;
 	});
 
 	const hasJoined = $derived(
 		Boolean(
 			!isMine &&
 				todo &&
-				(Boolean(myJoinedTodo) || (Boolean(userStore.email) && todayStore.isTopicJoined(todo.content)))
+				(Boolean(myJoinedTodo) ||
+					Boolean(serverMyJoinedTodo) ||
+					(Boolean(userStore.email) && todayStore.isTopicJoined(todo.content)))
 		)
 	);
 
@@ -68,19 +98,26 @@ export function createTodoDetailResource(initialIdentifier?: string) {
 			if (cached.topicParticipantCount !== undefined) {
 				topicParticipantCount = cached.topicParticipantCount;
 			}
+			if (cached.myJoinedTodo !== undefined) {
+				serverMyJoinedTodo = cached.myJoinedTodo;
+			}
 			loading = false;
 			isRevalidating = true;
 		} else if (!todo) {
 			loading = true;
 			isRevalidating = false;
+			serverMyJoinedTodo = null;
 		}
 
 		try {
-			// 2. 后台拉取单条待办完整数据（已聚合返回 topicParticipantCount，仅需单次 HTTP 请求）
-			const res = await api.getTodoById(identifier);
+			// 2. 后台拉取单条待办完整数据（携带当前登录用户 ID，已聚合返回 topicParticipantCount 及 myJoinedTodo）
+			const res = await api.getTodoById(identifier, userStore.id);
 			todo = todoRegistry.upsert(res.todo);
 			if (res.todo.topicParticipantCount !== undefined) {
 				topicParticipantCount = res.todo.topicParticipantCount;
+			}
+			if (res.todo.myJoinedTodo !== undefined) {
+				serverMyJoinedTodo = res.todo.myJoinedTodo;
 			}
 		} catch (err) {
 			console.error('Failed to load todo detail:', err);
@@ -216,6 +253,11 @@ export function createTodoDetailResource(initialIdentifier?: string) {
 				category: todo.category
 			});
 			if (joined) {
+				serverMyJoinedTodo = {
+					id: joined.id,
+					shortId: joined.shortId,
+					status: joined.status
+				};
 				toast.success('🎉 成功加入该目标！');
 			}
 		} catch (err) {
@@ -229,7 +271,21 @@ export function createTodoDetailResource(initialIdentifier?: string) {
 
 	async function handleToggleMyStatus(nextStatus?: TodoStatus, e?: MouseEvent) {
 		if (!myJoinedTodo || !userStore.email) return;
-		await todoMutations.toggleStatus(myJoinedTodo.id, nextStatus, e, myJoinedTodo);
+
+		const targetStatus: TodoStatus = nextStatus || (myJoinedTodo.status === 'done' ? 'pending' : 'done');
+		const prevStatus = myJoinedTodo.status;
+		if (serverMyJoinedTodo) {
+			serverMyJoinedTodo.status = targetStatus;
+		}
+
+		try {
+			await todoMutations.toggleStatus(myJoinedTodo.id, targetStatus, e, myJoinedTodo);
+		} catch (err) {
+			if (serverMyJoinedTodo) {
+				serverMyJoinedTodo.status = prevStatus;
+			}
+			throw err;
+		}
 	}
 
 	return {

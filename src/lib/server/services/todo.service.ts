@@ -112,11 +112,11 @@ export async function create(db: Database, data: CreateTodoData) {
 	return createdTodo;
 }
 
-export async function findById(db: Database, id: string) {
-	return findByIdOrShortId(db, id);
+export async function findById(db: Database, id: string, currentUserId?: string) {
+	return findByIdOrShortId(db, id, currentUserId);
 }
 
-export async function findByIdOrShortId(db: Database, identifier: string) {
+export async function findByIdOrShortId(db: Database, identifier: string, currentUserId?: string) {
 	if (!identifier) return null;
 
 	const condition = isUUID(identifier)
@@ -133,7 +133,14 @@ export async function findByIdOrShortId(db: Database, identifier: string) {
 	if (!result[0]) return null;
 
 	const { todos: todo, users: author } = result[0];
-	const [reactionCounts, activities, topicCountResult] = await Promise.all([
+	const shouldQueryMyJoined = Boolean(
+		todo.topicHash &&
+			currentUserId &&
+			isUUID(currentUserId) &&
+			currentUserId !== todo.authorId
+	);
+
+	const [reactionCounts, activities, topicCountResult, myJoinedResult] = await Promise.all([
 		reactionService.getCountsByTodoIds(db, [todo.id]),
 		activityService.listByTodoId(db, todo.id),
 		todo.topicHash
@@ -141,17 +148,37 @@ export async function findByIdOrShortId(db: Database, identifier: string) {
 					.select({ count: sql<number>`count(*)::int` })
 					.from(todos)
 					.where(eq(todos.topicHash, todo.topicHash))
+			: Promise.resolve([]),
+		shouldQueryMyJoined
+			? db
+					.select({
+						id: todos.id,
+						shortId: todos.shortId,
+						status: todos.status
+					})
+					.from(todos)
+					.where(and(eq(todos.topicHash, todo.topicHash!), eq(todos.authorId, currentUserId!)))
+					.orderBy(desc(todos.createdAt))
+					.limit(1)
 			: Promise.resolve([])
 	]);
 
 	const participantCount = topicCountResult[0]?.count ?? 0;
+	const myJoinedTodo = myJoinedResult[0]
+		? {
+				id: myJoinedResult[0].id,
+				shortId: myJoinedResult[0].shortId,
+				status: myJoinedResult[0].status as TodoStatus
+			}
+		: null;
 
 	return {
 		...sanitizeNote(todo),
 		author: { id: author.id, nickname: author.nickname, handle: author.handle, avatar: author.avatar },
 		reactions: reactionCounts[todo.id] ?? { '❤️': 0, '👍': 0, '🔥': 0, '💪': 0, '👏': 0, '🚀': 0, '🎉': 0, '👀': 0 },
 		activities,
-		topicParticipantCount: participantCount
+		topicParticipantCount: participantCount,
+		myJoinedTodo
 	};
 }
 

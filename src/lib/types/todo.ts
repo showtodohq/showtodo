@@ -44,6 +44,11 @@ export interface Todo {
 	myReactions?: ReactionEmoji[];
 	activities?: TodoActivity[];
 	topicParticipantCount?: number;
+	myJoinedTodo?: {
+		id: string;
+		shortId?: string | null;
+		status: TodoStatus;
+	} | null;
 }
 
 export interface ReactionDetail {

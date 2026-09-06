@@ -14,9 +14,10 @@ import {
 	validateActivityContent
 } from '$lib/server/validation';
 
-export const GET: RequestHandler = async ({ params }) => {
+export const GET: RequestHandler = async ({ params, url }) => {
 	try {
-		const todo = await todoService.findByIdOrShortId(db, params.id);
+		const currentUserId = url.searchParams.get('currentUserId') || undefined;
+		const todo = await todoService.findByIdOrShortId(db, params.id, currentUserId);
 		if (!todo) throw new AppError('NOT_FOUND', 'Todo not found');
 
 		return json({ todo });
