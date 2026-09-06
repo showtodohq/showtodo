@@ -1,5 +1,6 @@
 import { api } from '$lib/services/api';
 import { userStore } from '$lib/stores/user.svelte';
+import { todayStore } from '$lib/stores/today.svelte';
 import { toast } from '$lib/stores/toast.svelte';
 import { todoRegistry } from '$lib/stores/entities/todo-registry.svelte';
 import { todoMutations } from '$lib/stores/mutations.svelte';
@@ -13,6 +14,7 @@ export function createTodoDetailResource(initialIdentifier?: string) {
 	let todo = $state<Todo | null>(initialCached);
 	let topicParticipantCount = $state<number>(initialCached?.topicParticipantCount || 0);
 	let isSubmittingCheckIn = $state(false);
+	let isJoining = $state(false);
 
 	const isMine = $derived(
 		Boolean(
@@ -20,6 +22,32 @@ export function createTodoDetailResource(initialIdentifier?: string) {
 				((userStore.id && todo.authorId === userStore.id) ||
 					(userStore.handle && todo.author?.handle === userStore.handle) ||
 					(userStore.email && todo.author?.email === userStore.email))
+		)
+	);
+
+	const myJoinedTodo = $derived.by(() => {
+		if (isMine || !todo) return undefined;
+		const currentUserId = userStore.id;
+		const currentUserEmail = userStore.email;
+		const currentUserHandle = userStore.handle;
+		if (!currentUserId && !currentUserEmail && !currentUserHandle) return undefined;
+
+		const targetHash = todo.topicHash;
+		const targetContentNorm = todo.content.trim().toLowerCase();
+
+		return todayStore.todos.find((t) => {
+			const isMyTodo = userStore.isAuthor(t.authorId, t.author?.email, t.author?.handle);
+			if (!isMyTodo) return false;
+			if (targetHash && t.topicHash === targetHash) return true;
+			return t.content.trim().toLowerCase() === targetContentNorm;
+		});
+	});
+
+	const hasJoined = $derived(
+		Boolean(
+			!isMine &&
+				todo &&
+				(Boolean(myJoinedTodo) || (Boolean(userStore.email) && todayStore.isTopicJoined(todo.content)))
 		)
 	);
 
@@ -172,6 +200,38 @@ export function createTodoDetailResource(initialIdentifier?: string) {
 		}
 	}
 
+	async function handleJoinTopic() {
+		if (!userStore.email) {
+			toast.info('请先点击右上角头像绑定邮箱后再加入');
+			return;
+		}
+		if (!todo || isJoining) return;
+
+		isJoining = true;
+		topicParticipantCount += 1;
+
+		try {
+			const joined = await todoMutations.joinTopic({
+				content: todo.content,
+				category: todo.category
+			});
+			if (joined) {
+				toast.success('🎉 成功加入该目标！');
+			}
+		} catch (err) {
+			topicParticipantCount = Math.max(0, topicParticipantCount - 1);
+			console.error('Failed to join topic:', err);
+			toast.error(`加入失败: ${(err as Error).message}`);
+		} finally {
+			isJoining = false;
+		}
+	}
+
+	async function handleToggleMyStatus(nextStatus?: TodoStatus, e?: MouseEvent) {
+		if (!myJoinedTodo || !userStore.email) return;
+		await todoMutations.toggleStatus(myJoinedTodo.id, nextStatus, e, myJoinedTodo);
+	}
+
 	return {
 		get loading() {
 			return loading;
@@ -194,9 +254,20 @@ export function createTodoDetailResource(initialIdentifier?: string) {
 		get isSubmittingCheckIn() {
 			return isSubmittingCheckIn;
 		},
+		get isJoining() {
+			return isJoining;
+		},
+		get hasJoined() {
+			return hasJoined;
+		},
+		get myJoinedTodo() {
+			return myJoinedTodo;
+		},
 		load,
 		handleStatusChange,
 		handleCheckIn,
-		handleSaveEdit
+		handleSaveEdit,
+		handleJoinTopic,
+		handleToggleMyStatus
 	};
 }

@@ -92,9 +92,14 @@
 					todo={detailRes.todo}
 					isMine={detailRes.isMine}
 					topicParticipantCount={detailRes.topicParticipantCount}
+					hasJoined={detailRes.hasJoined}
+					myJoinedStatus={detailRes.myJoinedTodo?.status}
+					isJoining={detailRes.isJoining}
 					onstatuschange={detailRes.handleStatusChange}
 					onreaction={handleReaction}
 					onsaveedit={detailRes.handleSaveEdit}
+					onjoin={detailRes.handleJoinTopic}
+					onmystatuschange={detailRes.handleToggleMyStatus}
 				/>
 
 				<!-- 若是作者本人，显示进展打卡模块 -->

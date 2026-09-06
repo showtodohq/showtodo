@@ -14,18 +14,28 @@
 		todo: Todo;
 		isMine: boolean;
 		topicParticipantCount?: number;
+		hasJoined?: boolean;
+		myJoinedStatus?: TodoStatus;
+		isJoining?: boolean;
 		onstatuschange?: (nextStatus: TodoStatus, e?: MouseEvent) => void;
 		onreaction?: (emoji?: ReactionEmoji) => void;
 		onsaveedit?: (content: string, note?: string | null) => Promise<void>;
+		onjoin?: () => Promise<void> | void;
+		onmystatuschange?: (nextStatus: TodoStatus, e?: MouseEvent) => void;
 	}
 
 	let {
 		todo,
 		isMine,
 		topicParticipantCount = 0,
+		hasJoined = false,
+		myJoinedStatus,
+		isJoining = false,
 		onstatuschange,
 		onreaction,
-		onsaveedit
+		onsaveedit,
+		onjoin,
+		onmystatuschange
 	}: Props = $props();
 
 	let isEditing = $state(false);
@@ -236,23 +246,91 @@
 		{/if}
 	</div>
 
-	<!-- 多人同行提示条 -->
-	{#if todo.topicHash && topicParticipantCount > 1}
+	<!-- 多人同行互动区域 -->
+	{#if todo.topicHash}
 		<div
-			class="flex items-center justify-between p-3 rounded-2xl bg-amber-50/80 dark:bg-amber-950/30 border border-amber-200/80 dark:border-amber-800/50 text-xs text-amber-900 dark:text-amber-200"
+			class="p-4 rounded-2xl border transition-all space-y-3 {hasJoined
+				? 'bg-emerald-50/70 dark:bg-emerald-950/20 border-emerald-200/80 dark:border-emerald-800/50'
+				: topicParticipantCount > 1
+					? 'bg-amber-50/80 dark:bg-amber-950/30 border-amber-200/80 dark:border-amber-800/50'
+					: 'bg-zinc-50/80 dark:bg-zinc-800/40 border-zinc-200/80 dark:border-zinc-800'}"
 		>
-			<div class="flex items-center gap-2">
-				<span class="text-base">🔥</span>
-				<span>
-					该待办属于多人同行目标，全网共 <strong>{topicParticipantCount}</strong> 人并肩挑战！
-				</span>
+			<div class="flex items-center justify-between flex-wrap gap-3">
+				<!-- 左侧：同行信息与榜单入口 -->
+				<div class="flex items-center gap-2.5 text-xs flex-wrap">
+					{#if hasJoined}
+						<span class="flex items-center gap-1.5 font-semibold text-emerald-800 dark:text-emerald-200">
+							<span class="text-base">✓</span>
+							<span>你正在并肩同行该目标</span>
+						</span>
+						{#if topicParticipantCount > 1}
+							<span class="text-emerald-600/80 dark:text-emerald-400/80">
+								(全网共 <strong>{topicParticipantCount}</strong> 人同行)
+							</span>
+						{/if}
+					{:else if isMine}
+						<div class="flex items-center gap-2 text-zinc-700 dark:text-zinc-300">
+							<span class="text-base">{topicParticipantCount > 1 ? '🔥' : '🌱'}</span>
+							<span>
+								{#if topicParticipantCount > 1}
+									全网共 <strong>{topicParticipantCount}</strong> 人正在与你并肩同行该目标！
+								{:else}
+									尚未有其他伙伴同行该目标，期待有人与你并肩！
+								{/if}
+							</span>
+						</div>
+					{:else}
+						<!-- 访客未加入 -->
+						<div class="flex items-center gap-2 text-zinc-700 dark:text-zinc-300">
+							<span class="text-base">{topicParticipantCount > 1 ? '🔥' : '🌱'}</span>
+							<span>
+								{#if topicParticipantCount > 1}
+									该待办属于多人同行目标，全网共 <strong>{topicParticipantCount}</strong> 人并肩挑战！
+								{:else}
+									暂无其他同路人，想和 TA 一起坚持这个目标吗？
+								{/if}
+							</span>
+						</div>
+					{/if}
+
+					<!-- 查看同行榜链接 (当有超过1人或已加入时显示) -->
+					{#if topicParticipantCount > 1 || hasJoined}
+						<a
+							href="/topics/{todo.topicHash}"
+							class="font-semibold text-xs transition-colors hover:underline shrink-0 {hasJoined
+								? 'text-emerald-700 dark:text-emerald-300'
+								: 'text-amber-700 dark:text-amber-300'}"
+						>
+							查看同行榜 →
+						</a>
+					{/if}
+				</div>
+
+				<!-- 右侧：行动按钮 / 打卡控制器 -->
+				<div class="flex items-center gap-3">
+					{#if hasJoined && myJoinedStatus}
+						<div class="flex items-center gap-2 bg-white/80 dark:bg-zinc-900/80 py-1 px-2.5 rounded-xl border border-emerald-200/60 dark:border-emerald-800/40 shadow-2xs">
+							<span class="text-xs text-zinc-500 dark:text-zinc-400">我的打卡：</span>
+							<TodoCheckbox
+								status={myJoinedStatus}
+								isMine={true}
+								size="sm"
+								ontoggle={(next, e) => onmystatuschange?.(next, e)}
+							/>
+						</div>
+					{:else if !isMine}
+						<Button
+							variant="primary"
+							size="xs"
+							loading={isJoining}
+							onclick={onjoin}
+							class="font-medium px-3 py-1.5 shadow-xs"
+						>
+							+ 一起做
+						</Button>
+					{/if}
+				</div>
 			</div>
-			<a
-				href="/topics/{todo.topicHash}"
-				class="font-semibold text-amber-700 dark:text-amber-300 hover:underline shrink-0 ml-2"
-			>
-				查看同行榜 →
-			</a>
 		</div>
 	{/if}
 </div>
