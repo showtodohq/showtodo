@@ -7,7 +7,7 @@ import * as reactionService from './reaction.service';
 import * as activityService from './activity.service';
 import { AppError } from '../errors';
 import { computeTopicHash } from '../topic-hash';
-import type { DailyCardResponse, DailyCard, CardParticipant, TopicDetail, ReactionEmoji } from '$lib/types/todo';
+import type { DailyCardResponse, DailyCard, CardParticipant, TopicDetail, ReactionEmoji, TopicItem, TopicListResponse, ListTopicsOptions } from '$lib/types/todo';
 
 export interface CreateTodoData {
 	content: string;
@@ -742,6 +742,208 @@ export async function listForCalendar(
 		author: { id: author.id, nickname: author.nickname, handle: author.handle, avatar: author.avatar },
 		reactions: allReactionCounts[todo.id] ?? { '❤️': 0, '👍': 0, '🔥': 0, '💪': 0, '👏': 0, '🚀': 0, '🎉': 0, '👀': 0 }
 	}));
+}
+
+export async function listTopics(
+	db: Database,
+	options: ListTopicsOptions = {}
+): Promise<TopicListResponse> {
+	const limit = Math.min(Math.max(options.limit ?? 20, 1), 100);
+	const offset = Math.max(options.offset ?? 0, 0);
+	const currentUserId = options.currentUserId && isUUID(options.currentUserId) ? options.currentUserId : null;
+	const isMineOnly = options.scope === 'mine';
+	const minParticipants = options.minParticipants && options.minParticipants > 1 ? options.minParticipants : 1;
+
+	// 1. 分类过滤
+	const categoryFilter =
+		options.category && options.category !== 'all'
+			? sql`AND t.category = ${options.category}`
+			: sql``;
+
+	// 2. 搜索关键词过滤 (不区分大小写)
+	const searchFilter =
+		options.search && options.search.trim().length > 0
+			? sql`AND t.content ILIKE ${'%' + options.search.trim() + '%'}`
+			: sql``;
+
+	// 3. 时间范围过滤
+	let dateConditionSql = sql``;
+	if (options.timeRange === 'today' || options.targetDate) {
+		if (options.startDateFrom && options.startDateTo) {
+			dateConditionSql = sql`AND t.start_date >= ${new Date(options.startDateFrom)} AND t.start_date <= (${new Date(options.startDateTo)}::timestamptz + INTERVAL '1 second')`;
+		} else if (options.targetDate) {
+			dateConditionSql = sql`AND t.start_date >= ${options.targetDate}::date AND t.start_date < (${options.targetDate}::date + INTERVAL '1 day')`;
+		} else {
+			const todayStr = new Date().toISOString().slice(0, 10);
+			dateConditionSql = sql`AND t.start_date >= ${todayStr}::date AND t.start_date < (${todayStr}::date + INTERVAL '1 day')`;
+		}
+	}
+
+	// 4. HAVING 约束 (本人参与 + 最少参与人数)
+	const havingConditions: any[] = [];
+	if (isMineOnly) {
+		if (currentUserId) {
+			havingConditions.push(sql`bool_or(u.id = ${currentUserId}::uuid)`);
+		} else {
+			havingConditions.push(sql`FALSE`);
+		}
+	}
+	if (minParticipants > 1) {
+		havingConditions.push(sql`COUNT(DISTINCT t.author_id)::int >= ${minParticipants}`);
+	}
+
+	let havingSql = sql``;
+	if (havingConditions.length === 1) {
+		havingSql = sql`HAVING ${havingConditions[0]}`;
+	} else if (havingConditions.length === 2) {
+		havingSql = sql`HAVING ${havingConditions[0]} AND ${havingConditions[1]}`;
+	}
+
+	const isMeSql = currentUserId ? sql`(u.id = ${currentUserId}::uuid)` : sql`FALSE`;
+	const isMeOrderSql = currentUserId ? sql`(u.id = ${currentUserId}::uuid)` : sql`FALSE`;
+
+	// 5. 排序规则
+	let orderBySql = sql`COUNT(DISTINCT t.author_id)::int DESC, MAX(t.created_at) DESC`;
+	if (options.sortBy === 'recent') {
+		orderBySql = sql`MAX(t.created_at) DESC, COUNT(DISTINCT t.author_id)::int DESC`;
+	} else if (options.sortBy === 'completion') {
+		orderBySql = sql`COALESCE(
+			COUNT(DISTINCT CASE WHEN t.status = 'done' THEN t.author_id ELSE NULL END)::float / NULLIF(COUNT(DISTINCT t.author_id), 0),
+			0
+		) DESC, COUNT(DISTINCT t.author_id)::int DESC, MAX(t.created_at) DESC`;
+	}
+
+	// 6. 统计符合条件的总 Topic 数
+	const countQuery = sql`
+		SELECT COUNT(*)::int AS total
+		FROM (
+			SELECT t.topic_hash
+			FROM todos t
+			JOIN users u ON t.author_id = u.id
+			WHERE 1 = 1
+				${dateConditionSql}
+				${categoryFilter}
+				${searchFilter}
+			GROUP BY t.topic_hash
+			${havingSql}
+		) sub
+	`;
+
+	const countRaw = await db.execute(countQuery);
+	const countRows = Array.isArray(countRaw) ? countRaw : (countRaw as any).rows || [];
+	const totalTopics = Number(countRows[0]?.total || 0);
+
+	if (totalTopics === 0) {
+		return {
+			total: 0,
+			topics: [],
+			hasMore: false
+		};
+	}
+
+	// 7. 查询明细列表
+	const topicsQuery = sql`
+		SELECT
+			t.topic_hash,
+			MAX(t.content) AS content,
+			MAX(t.category) AS category,
+			MIN(t.created_at) AS first_created_at,
+			MAX(t.updated_at) AS last_updated_at,
+			COUNT(DISTINCT t.author_id)::int AS total_participants,
+			COUNT(DISTINCT CASE WHEN t.status = 'done' THEN t.author_id ELSE NULL END)::int AS done_count,
+			json_agg(
+				json_build_object(
+					'todoId', t.id,
+					'shortId', t.short_id,
+					'status', t.status,
+					'note', CASE WHEN t.is_note_public OR ${isMeSql} THEN t.note ELSE NULL END,
+					'createdAt', t.created_at,
+					'isMe', ${isMeSql},
+					'user', json_build_object(
+						'id', u.id,
+						'nickname', u.nickname,
+						'handle', u.handle,
+						'avatar', u.avatar
+					)
+				) ORDER BY ${isMeOrderSql} DESC, t.created_at ASC
+			) AS participants
+		FROM todos t
+		JOIN users u ON t.author_id = u.id
+		WHERE 1 = 1
+			${dateConditionSql}
+			${categoryFilter}
+			${searchFilter}
+		GROUP BY t.topic_hash
+		${havingSql}
+		ORDER BY ${orderBySql}
+		LIMIT ${limit} OFFSET ${offset}
+	`;
+
+	const topicsRaw = await db.execute(topicsQuery);
+	const topicRows = Array.isArray(topicsRaw) ? topicsRaw : (topicsRaw as any).rows || [];
+
+	const topics: TopicItem[] = topicRows.map((row: any) => {
+		const rawParticipants = Array.isArray(row.participants)
+			? row.participants
+			: typeof row.participants === 'string'
+				? JSON.parse(row.participants)
+				: [];
+
+		const userMap = new Map<string, any>();
+		for (const p of rawParticipants) {
+			const existing = userMap.get(p.user?.id);
+			if (!existing) {
+				userMap.set(p.user?.id, p);
+			} else if (p.status === 'done' && existing.status !== 'done') {
+				userMap.set(p.user?.id, p);
+			}
+		}
+		const uniqueParticipants = Array.from(userMap.values());
+
+		const totalParticipants = Number(row.total_participants || uniqueParticipants.length);
+		const doneCount = Number(row.done_count || 0);
+		const completionRate = totalParticipants > 0 ? Math.round((doneCount / totalParticipants) * 100) : 0;
+		const isAllDone = totalParticipants > 0 && doneCount >= totalParticipants;
+
+		const participants: CardParticipant[] = uniqueParticipants.map((p: any) => ({
+			todoId: p.todoId,
+			shortId: p.shortId,
+			status: p.status,
+			note: p.note ?? null,
+			createdAt: typeof p.createdAt === 'string' ? p.createdAt : new Date(p.createdAt).toISOString(),
+			isMe: Boolean(p.isMe),
+			user: {
+				id: p.user.id,
+				nickname: p.user.nickname,
+				handle: p.user.handle,
+				avatar: p.user.avatar ?? null
+			}
+		}));
+
+		return {
+			topicHash: row.topic_hash,
+			content: row.content,
+			category: row.category ?? null,
+			isMultiplayer: totalParticipants > 1,
+			totalParticipants,
+			doneCount,
+			completionRate,
+			isAllDone,
+			firstCreatedAt: typeof row.first_created_at === 'string'
+				? row.first_created_at
+				: new Date(row.first_created_at).toISOString(),
+			lastUpdatedAt: typeof row.last_updated_at === 'string'
+				? row.last_updated_at
+				: new Date(row.last_updated_at).toISOString(),
+			participants
+		};
+	});
+
+	return {
+		total: totalTopics,
+		topics,
+		hasMore: offset + topics.length < totalTopics
+	};
 }
 
 

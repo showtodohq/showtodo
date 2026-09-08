@@ -42,10 +42,26 @@
 >
 	<!-- 标题栏 -->
 	<div class="flex items-center justify-between">
-		<div class="flex items-center gap-1.5 font-semibold text-xs text-zinc-900 dark:text-zinc-100">
+		<a
+			href="/topics"
+			class="flex items-center gap-1.5 font-semibold text-xs text-zinc-900 dark:text-zinc-100 hover:text-amber-600 dark:hover:text-amber-400 transition-colors group/title"
+			title="前往多人 Todo 广场"
+		>
 			<span>🔥 热门多人 Todo</span>
+		</a>
+
+		<div class="flex items-center gap-1.5">
+			<span class="text-[10px] text-zinc-400 font-mono">今日 TOP 5</span>
+			<span class="text-[10px] text-zinc-300 dark:text-zinc-700">·</span>
+			<a
+				href="/topics"
+				class="inline-flex items-center gap-0.5 text-[11px] font-medium text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100 transition-colors group/link cursor-pointer"
+				title="前往多人 Todo 广场查看全部"
+			>
+				<span>查看全部</span>
+				<span class="transition-transform group-hover/link:translate-x-0.5">→</span>
+			</a>
 		</div>
-		<span class="text-[10px] text-zinc-400 font-mono">今日 TOP 5</span>
 	</div>
 
 	<!-- 列表内容 -->

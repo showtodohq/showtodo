@@ -8,6 +8,8 @@ import type {
 	TodoListResponse,
 	TopicInfoResponse,
 	TopicDetailResponse,
+	TopicListResponse,
+	ListTopicsOptions,
 	UpdateTodoInput
 } from '$lib/types/todo';
 import type { UpdateUserInput, UserProfile } from '$lib/types/user';
@@ -280,4 +282,26 @@ export const api = {
 			customFetch
 		);
 	},
+
+	async getTopics(
+		options?: ListTopicsOptions,
+		customFetch?: typeof fetch
+	): Promise<TopicListResponse> {
+		const searchParams = new URLSearchParams();
+		if (options?.category && options.category !== 'all') searchParams.set('category', options.category);
+		if (options?.scope) searchParams.set('scope', options.scope);
+		if (options?.sortBy) searchParams.set('sortBy', options.sortBy);
+		if (options?.timeRange) searchParams.set('timeRange', options.timeRange);
+		if (options?.targetDate) searchParams.set('date', options.targetDate);
+		if (options?.startDateFrom) searchParams.set('startDateFrom', options.startDateFrom);
+		if (options?.startDateTo) searchParams.set('startDateTo', options.startDateTo);
+		if (options?.search) searchParams.set('search', options.search);
+		if (options?.minParticipants) searchParams.set('minParticipants', String(options.minParticipants));
+		if (options?.currentUserId) searchParams.set('currentUserId', options.currentUserId);
+		if (options?.limit) searchParams.set('limit', String(options.limit));
+		if (options?.offset) searchParams.set('offset', String(options.offset));
+
+		const qs = searchParams.toString();
+		return request<TopicListResponse>(`/api/topics${qs ? `?${qs}` : ''}`, undefined, customFetch);
+	}
 };

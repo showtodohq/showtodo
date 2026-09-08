@@ -180,3 +180,38 @@ export interface TopicDetailResponse {
 	topic: TopicDetail;
 }
 
+export interface TopicItem {
+	topicHash: string;
+	content: string;
+	category: string | null;
+	isMultiplayer: boolean;
+	totalParticipants: number;
+	doneCount: number;
+	completionRate: number;
+	isAllDone: boolean;
+	firstCreatedAt: string;
+	lastUpdatedAt: string;
+	participants: CardParticipant[];
+}
+
+export interface TopicListResponse {
+	total: number;
+	topics: TopicItem[];
+	hasMore: boolean;
+}
+
+export interface ListTopicsOptions {
+	category?: string;
+	scope?: 'all' | 'mine';
+	sortBy?: 'participants' | 'recent' | 'completion';
+	timeRange?: 'today' | 'all';
+	targetDate?: string;
+	startDateFrom?: string;
+	startDateTo?: string;
+	search?: string;
+	minParticipants?: number;
+	currentUserId?: string;
+	limit?: number;
+	offset?: number;
+}
+
