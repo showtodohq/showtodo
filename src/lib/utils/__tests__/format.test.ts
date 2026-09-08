@@ -1,5 +1,12 @@
 import { describe, it, expect } from 'vitest';
-import { formatDate, formatRelativeTime, formatShortDate, formatScheduleRange, truncate } from '../format';
+import {
+	formatDate,
+	formatRelativeTime,
+	formatShortDate,
+	formatScheduleRange,
+	truncate,
+	getLocalDayAsUtcRange
+} from '../format';
 
 describe('format utilities', () => {
 	it('formats short date correctly', () => {
@@ -25,5 +32,51 @@ describe('format utilities', () => {
 	it('truncates strings', () => {
 		expect(truncate('Hello world', 5)).toBe('Hello...');
 		expect(truncate('Hi', 5)).toBe('Hi');
+	});
+
+	it('converts local calendar day to UTC range correctly', () => {
+		const testDate = new Date(2026, 8, 7, 15, 30, 45); // 2026-09-07 15:30:45 本地时间
+		const { startDateFrom, startDateTo } = getLocalDayAsUtcRange(testDate);
+
+		const fromDate = new Date(startDateFrom);
+		const toDate = new Date(startDateTo);
+
+		// 1. 验证是标准的 UTC ISO 字符串
+		expect(startDateFrom.endsWith('Z')).toBe(true);
+		expect(startDateTo.endsWith('Z')).toBe(true);
+
+		// 2. 验证两端在本地时间下分别是对齐到 00:00:00.000 和 23:59:59.999
+		expect(fromDate.getFullYear()).toBe(2026);
+		expect(fromDate.getMonth()).toBe(8);
+		expect(fromDate.getDate()).toBe(7);
+		expect(fromDate.getHours()).toBe(0);
+		expect(fromDate.getMinutes()).toBe(0);
+		expect(fromDate.getSeconds()).toBe(0);
+		expect(fromDate.getMilliseconds()).toBe(0);
+
+		expect(toDate.getFullYear()).toBe(2026);
+		expect(toDate.getMonth()).toBe(8);
+		expect(toDate.getDate()).toBe(7);
+		expect(toDate.getHours()).toBe(23);
+		expect(toDate.getMinutes()).toBe(59);
+		expect(toDate.getSeconds()).toBe(59);
+		expect(toDate.getMilliseconds()).toBe(999);
+
+		// 3. 验证区间正好是 24 小时（毫秒数）
+		expect(toDate.getTime() - fromDate.getTime()).toBe(86399999);
+	});
+
+	it('supports string date input in getLocalDayAsUtcRange', () => {
+		const { startDateFrom, startDateTo } = getLocalDayAsUtcRange('2026-09-07');
+		const fromDate = new Date(startDateFrom);
+		const toDate = new Date(startDateTo);
+
+		expect(fromDate.getFullYear()).toBe(2026);
+		expect(fromDate.getMonth()).toBe(8);
+		expect(fromDate.getDate()).toBe(7);
+		expect(fromDate.getHours()).toBe(0);
+
+		expect(toDate.getDate()).toBe(7);
+		expect(toDate.getHours()).toBe(23);
 	});
 });

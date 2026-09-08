@@ -45,6 +45,8 @@ export interface ListTodosFilters {
 
 export interface ListDailyCardsOptions {
 	targetDate: string;
+	startDateFrom?: string;
+	startDateTo?: string;
 	category?: string;
 	onlyMine?: boolean;
 	currentUserId?: string;
@@ -369,7 +371,9 @@ export async function getTopicByHash(
 	db: Database,
 	topicHash: string,
 	currentUserId?: string,
-	targetDate?: string
+	targetDate?: string,
+	startDateFrom?: string,
+	startDateTo?: string
 ): Promise<TopicDetail> {
 	if (!topicHash) {
 		throw new AppError('VALIDATION_ERROR', 'topicHash is required');
@@ -476,11 +480,20 @@ export async function getTopicByHash(
 
 	const effectiveDate = targetDate || new Date().toISOString().slice(0, 10);
 
-	// 判定待办是否落在指定的 targetDate 当天
-	function isDateMatch(dateVal?: string | Date | null, targetStr?: string): boolean {
-		if (!dateVal || !targetStr) return false;
+	// 判定待办是否落在指定的自然日时间范围内
+	function isDateMatch(dateVal?: string | Date | null): boolean {
+		if (!dateVal) return false;
+		const dTime = dateVal instanceof Date ? dateVal.getTime() : new Date(dateVal).getTime();
+		if (isNaN(dTime)) return false;
+
+		if (startDateFrom && startDateTo) {
+			const fromTime = new Date(startDateFrom).getTime();
+			const toTime = new Date(startDateTo).getTime() + 1000;
+			return dTime >= fromTime && dTime <= toTime;
+		}
+
 		const dStr = dateVal instanceof Date ? dateVal.toISOString().slice(0, 10) : String(dateVal).slice(0, 10);
-		return dStr === targetStr;
+		return dStr === effectiveDate;
 	}
 
 	// 1. 全周期历史去重伙伴列表
@@ -490,7 +503,7 @@ export async function getTopicByHash(
 
 	// 2. 今日切片去重伙伴列表
 	const todayRawParticipants = allRawParticipants.filter((p) =>
-		isDateMatch(p.startDate, effectiveDate)
+		isDateMatch(p.startDate)
 	);
 	const todayParticipantsList = deduplicateParticipants(todayRawParticipants);
 	const todayParticipants = todayParticipantsList.length;
@@ -553,6 +566,11 @@ export async function listDailyCards(
 	const isMeSql = currentUserId ? sql`(u.id = ${currentUserId}::uuid)` : sql`FALSE`;
 	const isMeOrderSql = currentUserId ? sql`(u.id = ${currentUserId}::uuid)` : sql`FALSE`;
 
+	const dateConditionSql =
+		options.startDateFrom && options.startDateTo
+			? sql`t.start_date >= ${new Date(options.startDateFrom)} AND t.start_date <= (${new Date(options.startDateTo)}::timestamptz + INTERVAL '1 second')`
+			: sql`t.start_date >= ${options.targetDate}::date AND t.start_date < (${options.targetDate}::date + INTERVAL '1 day')`;
+
 	// 1. 查询符合条件的总卡片数 (使用 TIMESTAMPTZ 开闭范围比较)
 	const countQuery = sql`
 		SELECT COUNT(*)::int AS total
@@ -560,8 +578,7 @@ export async function listDailyCards(
 			SELECT t.topic_hash
 			FROM todos t
 			JOIN users u ON t.author_id = u.id
-			WHERE t.start_date >= ${options.targetDate}::date 
-				AND t.start_date < (${options.targetDate}::date + INTERVAL '1 day')
+			WHERE ${dateConditionSql}
 				${categoryFilter}
 			GROUP BY t.topic_hash
 			${havingClause}
@@ -615,8 +632,7 @@ export async function listDailyCards(
 			) AS participants
 		FROM todos t
 		JOIN users u ON t.author_id = u.id
-		WHERE t.start_date >= ${options.targetDate}::date 
-			AND t.start_date < (${options.targetDate}::date + INTERVAL '1 day')
+		WHERE ${dateConditionSql}
 			${categoryFilter}
 		GROUP BY t.topic_hash
 		${havingClause}
@@ -693,10 +709,17 @@ export async function listForCalendar(
 		return [];
 	}
 
+	const fromDate = options.startDateFrom.length === 10
+		? new Date(`${options.startDateFrom}T00:00:00.000Z`)
+		: new Date(options.startDateFrom);
+	const toDate = options.startDateTo.length === 10
+		? new Date(`${options.startDateTo}T23:59:59.999Z`)
+		: new Date(options.startDateTo);
+
 	const conditions = [
 		inArray(todos.authorId, options.authorIds),
-		gte(todos.startDate, sql`${options.startDateFrom}::date`),
-		lt(todos.startDate, sql`(${options.startDateTo}::date + INTERVAL '1 day')`)
+		gte(todos.startDate, fromDate),
+		lte(todos.startDate, toDate)
 	];
 
 	if (options.category && options.category !== 'all') {

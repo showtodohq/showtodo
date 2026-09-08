@@ -1,6 +1,6 @@
 import { api } from '$lib/services/api';
 import { userStore } from '$lib/stores/user.svelte';
-import { getTodayString } from '$lib/utils/format';
+import { getTodayString, getLocalDayAsUtcRange } from '$lib/utils/format';
 import type { DailyCard, TodoStatus, Todo } from '$lib/types/todo';
 
 function normalizeText(text: string) {
@@ -11,23 +11,29 @@ class TrendingStore {
 	cards = $state<DailyCard[]>([]);
 	loading = $state(false);
 	loaded = $state(false);
+	isRevalidating = $state(false);
 
 	async load(force = false) {
-		// 在途请求合并防抖：加载中避免重复发请求
-		if (this.loading) {
-			return;
-		}
-		// 内存缓存拦截：非强制刷新下，只要已加载过（即使卡片为 0 条），均不再重新发请求
-		if (!force && this.loaded) {
+		// 在途请求合并防抖：加载或注水中避免重复发请求
+		if (this.loading || this.isRevalidating) {
 			return;
 		}
 
-		this.loading = true;
+		// SWR 策略：初次冷启动或强制重载展示骨架加载态；缓存命中时静默后台 revalidate 注水
+		if (!this.loaded || force) {
+			this.loading = true;
+		} else {
+			this.isRevalidating = true;
+		}
+
 		try {
+			const { startDateFrom, startDateTo } = getLocalDayAsUtcRange();
 			const res = await api.getDailyCards({
 				date: getTodayString(),
+				startDateFrom,
+				startDateTo,
 				currentUserId: userStore.id,
-				limit: 5,
+				limit: 10,
 				sortBy: 'participants'
 			});
 
@@ -39,6 +45,7 @@ class TrendingStore {
 			console.error('Failed to load trending topics:', error);
 		} finally {
 			this.loading = false;
+			this.isRevalidating = false;
 		}
 	}
 

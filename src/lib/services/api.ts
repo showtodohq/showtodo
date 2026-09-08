@@ -226,6 +226,8 @@ export const api = {
 	async getDailyCards(
 		params: {
 			date: string;
+			startDateFrom?: string;
+			startDateTo?: string;
 			category?: string;
 			onlyMine?: boolean;
 			currentUserId?: string;
@@ -237,6 +239,8 @@ export const api = {
 	): Promise<DailyCardResponse> {
 		const searchParams = new URLSearchParams();
 		searchParams.set('date', params.date);
+		if (params.startDateFrom) searchParams.set('startDateFrom', params.startDateFrom);
+		if (params.startDateTo) searchParams.set('startDateTo', params.startDateTo);
 		if (params.category && params.category !== 'all') searchParams.set('category', params.category);
 		if (params.onlyMine !== undefined) searchParams.set('onlyMine', String(params.onlyMine));
 		if (params.currentUserId) searchParams.set('currentUserId', params.currentUserId);
@@ -257,17 +261,23 @@ export const api = {
 	async getTopicByHash(
 		hash: string,
 		currentUserId?: string,
-		date?: string,
+		dateOrOptions?: string | { date?: string; startDateFrom?: string; startDateTo?: string },
 		customFetch?: typeof fetch
 	): Promise<TopicDetailResponse> {
 		const searchParams = new URLSearchParams();
 		if (currentUserId) searchParams.set('currentUserId', currentUserId);
-		if (date) searchParams.set('date', date);
+		if (typeof dateOrOptions === 'string') {
+			if (dateOrOptions) searchParams.set('date', dateOrOptions);
+		} else if (dateOrOptions) {
+			if (dateOrOptions.date) searchParams.set('date', dateOrOptions.date);
+			if (dateOrOptions.startDateFrom) searchParams.set('startDateFrom', dateOrOptions.startDateFrom);
+			if (dateOrOptions.startDateTo) searchParams.set('startDateTo', dateOrOptions.startDateTo);
+		}
 		const qs = searchParams.toString();
 		return request<TopicDetailResponse>(
 			`/api/topics/${hash}${qs ? `?${qs}` : ''}`,
 			undefined,
 			customFetch
 		);
-	}
+	},
 };

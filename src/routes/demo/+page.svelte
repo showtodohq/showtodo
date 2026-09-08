@@ -5,6 +5,7 @@
 	import { api } from '$lib/services/api';
 	import { userStore } from '$lib/stores/user.svelte';
 	import Avatar from '$lib/components/ui/Avatar.svelte';
+	import { getLocalDayAsUtcRange } from '$lib/utils/format';
 	import { TODO_STATUSES, getStatusConfig, ALLOWED_STATUS_TRANSITIONS } from '$lib/constants/status';
 
 	// ---------------------------------------------------------------------------
@@ -142,8 +143,11 @@
 
 		try {
 			// 确保有当前用户 UUID 传入
+			const { startDateFrom, startDateTo } = getLocalDayAsUtcRange(selectedDate);
 			const res = await api.getDailyCards({
 				date: selectedDate,
+				startDateFrom,
+				startDateTo,
 				category: selectedCategory === 'all' ? undefined : selectedCategory,
 				onlyMine,
 				currentUserId: userStore.id

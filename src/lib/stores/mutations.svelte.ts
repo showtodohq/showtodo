@@ -81,7 +81,8 @@ class TodoMutations {
 						content: data.content,
 						note: data.note,
 						isNotePublic,
-						category: data.category ?? undefined
+						category: data.category ?? undefined,
+						startDate: nowIso
 					});
 
 					createdTodo = res.todo;
@@ -91,6 +92,7 @@ class TodoMutations {
 					feedStore.replaceId(tempId, res.todo.id);
 					todayStore.replaceId(tempId, res.todo.id);
 					trendingStore.syncReplaceId(tempId, res.todo);
+					trendingStore.load(true);
 
 					if (res.author) userStore.updateUserFromProfile(res.author);
 					return res;

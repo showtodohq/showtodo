@@ -76,3 +76,31 @@ export function getTodayString(date: Date = new Date()): string {
 	return `${y}-${m}-${d}`;
 }
 
+/**
+ * 将用户本地自然日（00:00:00.000 ~ 23:59:59.999），精确转换为后端数据库所需要的 UTC 绝对时间戳范围
+ */
+export function getLocalDayAsUtcRange(dateInput: Date | string | number = new Date()): {
+	startDateFrom: string;
+	startDateTo: string;
+} {
+	let d: Date;
+	if (typeof dateInput === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(dateInput)) {
+		const [year, month, day] = dateInput.split('-').map(Number);
+		d = new Date(year, month - 1, day);
+	} else {
+		d = new Date(dateInput);
+	}
+
+	const y = d.getFullYear();
+	const m = d.getMonth();
+	const day = d.getDate();
+
+	const localStart = new Date(y, m, day, 0, 0, 0, 0);
+	const localEnd = new Date(y, m, day, 23, 59, 59, 999);
+
+	return {
+		startDateFrom: localStart.toISOString(),
+		startDateTo: localEnd.toISOString()
+	};
+}
+

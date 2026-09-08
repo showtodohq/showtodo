@@ -655,6 +655,20 @@ describe('getTopicByHash', () => {
 		expect(card!.doneCount).toBe(1);
 		expect(card!.totalParticipants).toBe(topicDetail.todayParticipants);
 		expect(card!.doneCount).toBe(topicDetail.todayDoneCount);
+
+		// 3. 验证通过 startDateFrom / startDateTo 范围查询（Trending 列表参数）
+		const trendingDailyRes = await todoService.listDailyCards(testDb, {
+			targetDate: todayStr,
+			startDateFrom: '2026-09-04T16:00:00.000Z',
+			startDateTo: '2026-09-05T15:59:59.999Z',
+			sortBy: 'participants',
+			limit: 5,
+			currentUserId: userA.id
+		});
+		const trendingCard = trendingDailyRes.cards.find((c) => c.topicHash === hash);
+		expect(trendingCard).toBeDefined();
+		expect(trendingCard!.totalParticipants).toBe(2);
+		expect(trendingCard!.totalParticipants).toBe(topicDetail.todayParticipants);
 	});
 });
 

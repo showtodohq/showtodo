@@ -28,9 +28,13 @@ export const GET: RequestHandler = async ({ url }) => {
 		const offset = offsetParam ? Math.max(parseInt(offsetParam, 10) || 0, 0) : 0;
 		const sortByParam = url.searchParams.get('sortBy');
 		const sortBy = sortByParam === 'participants' ? 'participants' : 'time';
+		const startDateFrom = url.searchParams.get('startDateFrom') || undefined;
+		const startDateTo = url.searchParams.get('startDateTo') || undefined;
 
 		const result = await todoService.listDailyCards(db, {
 			targetDate: date,
+			startDateFrom,
+			startDateTo,
 			category,
 			onlyMine,
 			currentUserId,

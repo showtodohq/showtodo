@@ -13,7 +13,16 @@ export const GET: RequestHandler = async ({ params, url }) => {
 
 		const currentUserId = url.searchParams.get('currentUserId') ?? undefined;
 		const date = url.searchParams.get('date') ?? undefined;
-		const topic = await todoService.getTopicByHash(db, topicHash, currentUserId, date);
+		const startDateFrom = url.searchParams.get('startDateFrom') ?? undefined;
+		const startDateTo = url.searchParams.get('startDateTo') ?? undefined;
+		const topic = await todoService.getTopicByHash(
+			db,
+			topicHash,
+			currentUserId,
+			date,
+			startDateFrom,
+			startDateTo
+		);
 
 		return json({ topic });
 	} catch (e) {

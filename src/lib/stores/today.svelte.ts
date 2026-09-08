@@ -1,6 +1,6 @@
 import { api } from '$lib/services/api';
 import { userStore } from '$lib/stores/user.svelte';
-import { getTodayString } from '$lib/utils/format';
+import { getLocalDayAsUtcRange } from '$lib/utils/format';
 import { todoRegistry } from '$lib/stores/entities/todo-registry.svelte';
 import type { Todo } from '$lib/types/todo';
 
@@ -65,11 +65,11 @@ class TodayStore {
 
 		this.loading = true;
 		try {
-			const today = getTodayString();
+			const { startDateFrom, startDateTo } = getLocalDayAsUtcRange();
 			const res = await api.getTodos({
 				authorId: userStore.id,
-				startDateFrom: `${today}T00:00:00.000Z`,
-				startDateTo: `${today}T23:59:59.999Z`,
+				startDateFrom,
+				startDateTo,
 				limit: 30
 			});
 

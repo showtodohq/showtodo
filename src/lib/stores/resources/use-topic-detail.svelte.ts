@@ -2,6 +2,7 @@ import { api } from '$lib/services/api';
 import { userStore } from '$lib/stores/user.svelte';
 import { toast } from '$lib/stores/toast.svelte';
 import { trendingStore } from '$lib/stores/trending.svelte';
+import { getLocalDayAsUtcRange } from '$lib/utils/format';
 import { todoRegistry } from '$lib/stores/entities/todo-registry.svelte';
 import { todoMutations } from '$lib/stores/mutations.svelte';
 import type { TopicDetail, TodoStatus, DailyCard } from '$lib/types/todo';
@@ -109,7 +110,12 @@ export function createTopicDetailResource(initialHash?: string) {
 
 		try {
 			// 2. 后台获取全量同行清单数据注水
-			const res = await api.getTopicByHash(hash, userStore.id, date);
+			const { startDateFrom, startDateTo } = getLocalDayAsUtcRange(date);
+			const res = await api.getTopicByHash(hash, userStore.id, {
+				date,
+				startDateFrom,
+				startDateTo
+			});
 			topic = res.topic;
 			if (topic) {
 				topicDetailCache.set(cacheKey, topic);
