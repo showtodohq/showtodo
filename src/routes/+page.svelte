@@ -13,6 +13,7 @@
 	import TodoComposer from '$lib/components/todo/TodoComposer.svelte';
 	import MyTodayWidget from '$lib/components/widgets/MyTodayWidget.svelte';
 	import TrendingTopicsWidget from '$lib/components/widgets/TrendingTopicsWidget.svelte';
+	import SiteStatsWidget from '$lib/components/widgets/SiteStatsWidget.svelte';
 
 	// 分类筛选与顶部发布框联动
 	let activeCategoryFilter = $state<CategoryId | null>(null);
@@ -178,6 +179,9 @@
 			<TrendingTopicsWidget
 				onJoinTopic={(content, category) => todoMutations.joinTopic({ content, category })}
 			/>
+
+			<!-- 3. 全站数据统计脉搏卡片 -->
+			<SiteStatsWidget />
 		</aside>
 	</div>
 </div>

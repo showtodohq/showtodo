@@ -13,6 +13,7 @@ import type {
 	UpdateTodoInput
 } from '$lib/types/todo';
 import type { UpdateUserInput, UserProfile } from '$lib/types/user';
+import type { GlobalStatsData } from '$lib/types/stats';
 
 import { progressStore } from '$lib/stores/progress.svelte';
 
@@ -303,5 +304,10 @@ export const api = {
 
 		const qs = searchParams.toString();
 		return request<TopicListResponse>(`/api/topics${qs ? `?${qs}` : ''}`, undefined, customFetch);
+	},
+
+	async getGlobalStats(heatmapDays?: number, customFetch?: typeof fetch): Promise<GlobalStatsData> {
+		const qs = heatmapDays ? `?heatmapDays=${heatmapDays}` : '';
+		return request<GlobalStatsData>(`/api/stats${qs}`, undefined, customFetch);
 	}
 };

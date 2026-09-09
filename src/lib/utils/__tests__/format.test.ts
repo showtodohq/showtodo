@@ -5,10 +5,24 @@ import {
 	formatShortDate,
 	formatScheduleRange,
 	truncate,
-	getLocalDayAsUtcRange
+	getLocalDayAsUtcRange,
+	parseLocalDate
 } from '../format';
 
 describe('format utilities', () => {
+	it('parses YYYY-MM-DD string to local Date correctly without UTC offset', () => {
+		const parsed = parseLocalDate('2026-09-08');
+		expect(parsed.getFullYear()).toBe(2026);
+		expect(parsed.getMonth()).toBe(8); // 0-indexed, 8 is September
+		expect(parsed.getDate()).toBe(8);
+		expect(parsed.getHours()).toBe(0);
+
+		// 支持 Date 实例透传克隆
+		const original = new Date(2026, 4, 15);
+		const cloned = parseLocalDate(original);
+		expect(cloned.getTime()).toBe(original.getTime());
+		expect(cloned).not.toBe(original);
+	});
 	it('formats short date correctly', () => {
 		expect(formatShortDate('2026-09-01T12:00:00Z')).toBe('09-01');
 		expect(formatShortDate('invalid')).toBe('');

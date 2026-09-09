@@ -77,19 +77,27 @@ export function getTodayString(date: Date = new Date()): string {
 }
 
 /**
+ * 跨浏览器安全解析日期为本地 Date 对象 (避免 YYYY-MM-DD 字符串被直接 new Date 解析为 UTC 导致的跨日偏差)
+ */
+export function parseLocalDate(dateInput: Date | string | number = new Date()): Date {
+	if (dateInput instanceof Date) {
+		return new Date(dateInput.getTime());
+	}
+	if (typeof dateInput === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(dateInput.trim())) {
+		const [year, month, day] = dateInput.trim().split('-').map(Number);
+		return new Date(year, month - 1, day);
+	}
+	return new Date(dateInput);
+}
+
+/**
  * 将用户本地自然日（00:00:00.000 ~ 23:59:59.999），精确转换为后端数据库所需要的 UTC 绝对时间戳范围
  */
 export function getLocalDayAsUtcRange(dateInput: Date | string | number = new Date()): {
 	startDateFrom: string;
 	startDateTo: string;
 } {
-	let d: Date;
-	if (typeof dateInput === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(dateInput)) {
-		const [year, month, day] = dateInput.split('-').map(Number);
-		d = new Date(year, month - 1, day);
-	} else {
-		d = new Date(dateInput);
-	}
+	const d = parseLocalDate(dateInput);
 
 	const y = d.getFullYear();
 	const m = d.getMonth();
