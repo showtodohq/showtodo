@@ -7,6 +7,7 @@
 	import CategoryBadge from '$lib/components/todo/CategoryBadge.svelte';
 	import StatsSkeleton from '$lib/components/skeleton/StatsSkeleton.svelte';
 	import ActivityHeatmap from '$lib/components/stats/ActivityHeatmap.svelte';
+	import CategoryDonutChart from '$lib/components/stats/CategoryDonutChart.svelte';
 
 	let hoveredTrendIndex = $state<number | null>(null);
 
@@ -237,53 +238,27 @@
 			</div>
 		</div>
 
-		<!-- 4. 底部双栏：分类全景分布 + 社区风云榜 -->
-		<div class="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8 items-start">
-			<!-- 左栏：各领域分类全景对比 (占 6 栏) -->
-			<div
-				class="lg:col-span-6 rounded-3xl border border-zinc-200/80 dark:border-zinc-800 bg-white/70 dark:bg-zinc-900/60 p-5 sm:p-7 backdrop-blur-md shadow-xs space-y-4"
-			>
-				<div class="space-y-0.5">
-					<h2 class="text-sm sm:text-base font-bold text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
-						<span>🎯</span>
-						<span>领域分类全景 (Category Insights)</span>
-					</h2>
-					<p class="text-xs text-zinc-400">各类别待办总数、占比及目标完成率</p>
-				</div>
-
-				<div class="space-y-3 pt-2">
-					{#each categories as cat (cat.category)}
-						{@const catConfig = getCategoryConfig(cat.category)}
-						<div class="p-3 rounded-2xl border border-zinc-200/50 dark:border-zinc-800/60 bg-zinc-50/50 dark:bg-zinc-900/40 space-y-2">
-							<div class="flex items-center justify-between text-xs">
-								<div class="flex items-center gap-2">
-									<CategoryBadge category={cat.category} mode="pill" />
-									<span class="text-zinc-400 font-mono text-[11px]">{cat.total} 条 ({cat.percentage}%)</span>
-								</div>
-								<div class="flex items-center gap-1 font-mono">
-									<span class="text-zinc-400">完成率:</span>
-									<span class="font-bold text-emerald-600 dark:text-emerald-400">{cat.completionRate}%</span>
-								</div>
-							</div>
-
-							<!-- 双重对比进度条 -->
-							<div class="h-2 w-full bg-zinc-200/70 dark:bg-zinc-800 rounded-full overflow-hidden flex">
-								<div
-									class="h-full rounded-full transition-all"
-									style="width: {cat.completionRate}%; background-color: {catConfig?.color || '#10b981'};"
-								></div>
-							</div>
-						</div>
-					{/each}
-				</div>
+		<!-- 4. 领域分类全景 (独立全幅大卡片) -->
+		<div
+			class="rounded-3xl border border-zinc-200/80 dark:border-zinc-800 bg-white/70 dark:bg-zinc-900/60 p-5 sm:p-7 backdrop-blur-md shadow-xs space-y-4"
+		>
+			<div class="space-y-0.5">
+				<h2 class="text-sm sm:text-base font-bold text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
+					<span>🎯</span>
+					<span>领域分类全景 (Category Insights)</span>
+				</h2>
+				<p class="text-xs text-zinc-400">各类别待办总数、占比及目标完成率</p>
 			</div>
 
-			<!-- 右栏：社区风云榜 (热门多人 Todo + 达成达人榜) (占 6 栏) -->
-			<div class="lg:col-span-6 space-y-6">
-				<!-- 热门多人协同 Top 5 -->
-				<div
-					class="rounded-3xl border border-zinc-200/80 dark:border-zinc-800 bg-white/70 dark:bg-zinc-900/60 p-5 sm:p-7 backdrop-blur-md shadow-xs space-y-4"
-				>
+			<CategoryDonutChart {categories} totalTodos={overview.totalTodos} />
+		</div>
+
+		<!-- 5. 社区风云双榜 (热门多人协同 Top 5 与 达成先锋榜 Top 5 左右对称并排) -->
+		<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 items-start">
+			<!-- 热门多人协同 Top 5 -->
+			<div
+				class="rounded-3xl border border-zinc-200/80 dark:border-zinc-800 bg-white/70 dark:bg-zinc-900/60 p-5 sm:p-7 backdrop-blur-md shadow-xs space-y-4"
+			>
 					<div class="flex items-center justify-between">
 						<div class="space-y-0.5">
 							<h2 class="text-sm sm:text-base font-bold text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
@@ -380,7 +355,6 @@
 							</a>
 						{/each}
 					</div>
-				</div>
 			</div>
 		</div>
 	{/if}
