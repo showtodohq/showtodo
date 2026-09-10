@@ -1,6 +1,5 @@
 <script lang="ts">
 	import type { TopicItem } from '$lib/types/todo';
-	import CategoryBadge from '$lib/components/todo/CategoryBadge.svelte';
 	import UserAvatarTooltip from '$lib/components/user/UserAvatarTooltip.svelte';
 	import { userStore } from '$lib/stores/user.svelte';
 
@@ -26,12 +25,9 @@
 		? 'border border-amber-300/80 dark:border-amber-500/60 bg-gradient-to-br from-amber-50/70 via-yellow-50/30 to-amber-50/70 dark:from-amber-950/25 dark:via-yellow-950/10 dark:to-amber-950/25 shadow-xs shadow-amber-500/5'
 		: 'bg-zinc-50 dark:bg-zinc-900/60 hover:bg-zinc-100/80 dark:hover:bg-zinc-800/70'}"
 >
-	<!-- 顶部元信息：分类、全员达成勋章、立项时间、行动按钮 -->
+	<!-- 顶部元信息：全员达成勋章、立项时间、行动按钮 -->
 	<div class="flex items-center justify-between gap-3">
 		<div class="flex items-center gap-2 flex-wrap min-w-0">
-			{#if topic.category}
-				<CategoryBadge category={topic.category} />
-			{/if}
 
 			{#if isAllDone}
 				<span

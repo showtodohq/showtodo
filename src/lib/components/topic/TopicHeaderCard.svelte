@@ -1,7 +1,6 @@
 <script lang="ts">
 	import type { TopicDetail, TodoStatus } from '$lib/types/todo';
 	import { getStatusConfig } from '$lib/constants/status';
-	import CategoryBadge from '$lib/components/todo/CategoryBadge.svelte';
 	import TodoCheckbox from '$lib/components/todo/TodoCheckbox.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
 
@@ -38,10 +37,6 @@
 	<!-- 顶部标题与分类标签 -->
 	<div class="space-y-3">
 		<div class="flex items-center gap-2.5 flex-wrap">
-			{#if topic.category}
-				<CategoryBadge category={topic.category} />
-			{/if}
-
 			{#if topic.isTodayAllDone || topic.isAllDone}
 				<span
 					class="inline-flex items-center gap-1 text-xs font-bold text-amber-900 dark:text-amber-100 bg-gradient-to-r from-amber-300 via-yellow-300 to-amber-400 dark:from-amber-600 dark:via-yellow-600 dark:to-amber-500 px-2.5 py-0.5 rounded-full shadow-xs select-none animate-in zoom-in-95 duration-150"

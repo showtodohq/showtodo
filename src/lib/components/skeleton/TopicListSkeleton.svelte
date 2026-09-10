@@ -11,12 +11,9 @@
 		<div
 			class="rounded-2xl bg-zinc-50 dark:bg-zinc-900/60 p-4 sm:p-5 space-y-3 animate-pulse"
 		>
-			<!-- 头部信息骨架：分类徽章、立项时间、操作按钮 -->
+			<!-- 头部信息骨架：立项时间、操作按钮 -->
 			<div class="flex items-center justify-between">
-				<div class="flex items-center gap-2">
-					<div class="h-5 w-14 rounded-full bg-zinc-200/70 dark:bg-zinc-800/70"></div>
-					<div class="h-3.5 w-20 rounded-md bg-zinc-200/50 dark:bg-zinc-800/50"></div>
-				</div>
+				<div class="h-3.5 w-24 rounded-md bg-zinc-200/50 dark:bg-zinc-800/50"></div>
 				<div class="h-7 w-16 rounded-lg bg-zinc-200/70 dark:bg-zinc-800/70"></div>
 			</div>
 

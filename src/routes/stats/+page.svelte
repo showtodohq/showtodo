@@ -281,9 +281,8 @@
 								href="/topics/{topic.topicHash}"
 								class="flex items-center justify-between py-2.5 px-3 rounded-xl hover:bg-zinc-100/70 dark:hover:bg-zinc-800/60 transition-all duration-150 group"
 							>
-								<div class="flex items-center gap-2.5 min-w-0 flex-1">
-									<CategoryBadge category={topic.category} mode="dot" />
-									<span class="text-xs font-semibold text-zinc-900 dark:text-zinc-100 group-hover:underline truncate">
+								<div class="min-w-0 flex-1">
+									<span class="text-xs font-semibold text-zinc-900 dark:text-zinc-100 group-hover:underline truncate block">
 										{topic.content}
 									</span>
 								</div>

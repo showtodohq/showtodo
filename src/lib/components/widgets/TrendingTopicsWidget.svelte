@@ -6,7 +6,6 @@
 	import { getTodayString } from '$lib/utils/format';
 	import type { DailyCard } from '$lib/types/todo';
 	import UserAvatarTooltip from '$lib/components/user/UserAvatarTooltip.svelte';
-	import CategoryBadge from '$lib/components/todo/CategoryBadge.svelte';
 	import DataView from '$lib/components/ui/DataView.svelte';
 	import WidgetSkeleton from '$lib/components/skeleton/WidgetSkeleton.svelte';
 
@@ -97,14 +96,11 @@
 					<div class="flex items-center justify-between gap-2">
 						<a
 							href="/topics/{card.topicHash}?date={getTodayString()}"
-							class="flex items-center gap-1.5 min-w-0 flex-1 group/title focus:outline-hidden"
+							class="min-w-0 flex-1 group/title focus:outline-hidden"
 							title="查看多人 Todo 详情"
 						>
-							<!-- 统一 CategoryBadge (dot 模式) -->
-							<CategoryBadge category={card.category} mode="dot" />
-
 							<span
-								class="text-xs font-semibold text-zinc-900 dark:text-zinc-100 group-hover/title:underline truncate leading-snug {isAllDone ? 'text-amber-950 dark:text-amber-100' : ''}"
+								class="text-xs font-semibold text-zinc-900 dark:text-zinc-100 group-hover/title:underline truncate block leading-snug {isAllDone ? 'text-amber-950 dark:text-amber-100' : ''}"
 							>
 								{card.content}
 							</span>
