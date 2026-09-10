@@ -29,26 +29,23 @@
 		</div>
 	</div>
 
-	<!-- 下方同行者列表卡片骨架 -->
-	<div
-		class="rounded-2xl border border-zinc-200/80 dark:border-zinc-800/90 bg-white/60 dark:bg-zinc-950/60 p-5 backdrop-blur-xs space-y-4"
-	>
-		<div class="flex items-center justify-between">
-			<div class="h-4 w-24 bg-zinc-200/80 dark:bg-zinc-800/80 rounded-md"></div>
-			<div class="h-4 w-16 bg-zinc-200/60 dark:bg-zinc-800/60 rounded-md"></div>
+	<!-- 下方同行伙伴列表骨架 (与 TopicParticipantList 1:1 对齐) -->
+	<div class="space-y-4">
+		<div class="flex items-center justify-between px-1">
+			<div class="h-3.5 w-24 bg-zinc-200/80 dark:bg-zinc-800/80 rounded-md"></div>
 		</div>
 
-		<div class="space-y-3 divide-y divide-zinc-100 dark:divide-zinc-800/60">
+		<div class="space-y-1 sm:space-y-1.5">
 			{#each Array(3) as _, i (i)}
-				<div class="flex items-center justify-between pt-3 first:pt-0">
-					<div class="flex items-center gap-2.5">
-						<div class="w-8 h-8 rounded-full bg-zinc-200/80 dark:bg-zinc-800/80"></div>
+				<div class="py-3 px-3 sm:px-3.5 rounded-2xl flex items-center justify-between">
+					<div class="flex items-center gap-3">
+						<div class="w-10 h-10 rounded-full bg-zinc-200/80 dark:bg-zinc-800/80 shrink-0"></div>
 						<div class="space-y-1.5">
-							<div class="h-3.5 w-20 bg-zinc-200/80 dark:bg-zinc-800/80 rounded-md"></div>
-							<div class="h-2.5 w-28 bg-zinc-200/60 dark:bg-zinc-800/60 rounded-md"></div>
+							<div class="h-3.5 w-24 bg-zinc-200/80 dark:bg-zinc-800/80 rounded-md"></div>
+							<div class="h-2.5 w-32 bg-zinc-200/60 dark:bg-zinc-800/60 rounded-md"></div>
 						</div>
 					</div>
-					<div class="w-5 h-5 rounded-md bg-zinc-200/70 dark:bg-zinc-800/70"></div>
+					<div class="w-6 h-6 rounded-full bg-zinc-200/70 dark:bg-zinc-800/70"></div>
 				</div>
 			{/each}
 		</div>

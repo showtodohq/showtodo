@@ -1,8 +1,5 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { page } from '$app/state';
-	import { goto } from '$app/navigation';
-	import { CATEGORIES } from '$lib/constants/categories';
 	import { userStore } from '$lib/stores/user.svelte';
 	import { toast } from '$lib/stores/toast.svelte';
 	import { createTopicsResource } from '$lib/stores/resources/use-topics.svelte';
@@ -18,6 +15,32 @@
 	let searchInput = $state('');
 	let searchDebounceTimer: ReturnType<typeof setTimeout> | null = null;
 
+	type ViewTab = 'all' | 'today' | 'mine';
+	const activeTab = $derived<ViewTab>(
+		topicsRes.scope === 'mine'
+			? 'mine'
+			: topicsRes.timeRange === 'today'
+				? 'today'
+				: 'all'
+	);
+
+	function handleTabSwitch(tab: ViewTab) {
+		if (tab === 'mine') {
+			if (!userStore.email) {
+				toast.info('请先点击右上角头像绑定邮箱后再查看');
+				return;
+			}
+			topicsRes.setTimeRange('all');
+			topicsRes.setScope('mine');
+		} else if (tab === 'today') {
+			topicsRes.setScope('all');
+			topicsRes.setTimeRange('today');
+		} else {
+			topicsRes.setScope('all');
+			topicsRes.setTimeRange('all');
+		}
+	}
+
 	function handleSearchChange(e: Event) {
 		const val = (e.target as HTMLInputElement).value;
 		searchInput = val;
@@ -28,12 +51,7 @@
 	}
 
 	onMount(() => {
-		const cat = page.url.searchParams.get('category');
-		if (cat) {
-			topicsRes.setCategory(cat);
-		} else {
-			topicsRes.load(true);
-		}
+		topicsRes.load(true);
 	});
 </script>
 
@@ -74,147 +92,82 @@
 		</div>
 	</div>
 
-	<!-- 筛选与控制栏 -->
-	<div class="space-y-3">
-		<!-- 第一行：视角切换、时间维度、排序模式、最小人数开关 -->
-		<div
-			class="flex flex-col lg:flex-row lg:items-center justify-between gap-3 p-3 sm:p-3.5 rounded-2xl border border-zinc-200/80 dark:border-zinc-800/80 bg-white/60 dark:bg-zinc-900/40 backdrop-blur-xs text-xs"
-		>
-			<!-- 左侧：视角 (全网 / 我的) & 时间维度 (累计 / 今日) -->
-			<div class="flex items-center gap-2 flex-wrap">
-				<!-- 视角切片 -->
-				<div class="flex items-center rounded-xl bg-zinc-100 dark:bg-zinc-800/80 p-0.5 border border-zinc-200/60 dark:border-zinc-700/60">
-					<button
-						type="button"
-						onclick={() => topicsRes.setScope('all')}
-						class="px-2.5 py-1 rounded-lg font-medium transition-colors cursor-pointer {topicsRes.scope === 'all'
-							? 'bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 shadow-2xs font-semibold'
-							: 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200'}"
-					>
-						全网同行
-					</button>
-					<button
-						type="button"
-						onclick={() => {
-							if (!userStore.email) {
-								toast.info('请先点击右上角头像绑定邮箱后再查看');
-								return;
-							}
-							topicsRes.setScope('mine');
-						}}
-						class="px-2.5 py-1 rounded-lg font-medium transition-colors cursor-pointer {topicsRes.scope === 'mine'
-							? 'bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 shadow-2xs font-semibold'
-							: 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200'}"
-					>
-						我参与的
-					</button>
-				</div>
-
-				<!-- 时间切片 -->
-				<div class="flex items-center rounded-xl bg-zinc-100 dark:bg-zinc-800/80 p-0.5 border border-zinc-200/60 dark:border-zinc-700/60">
-					<button
-						type="button"
-						onclick={() => topicsRes.setTimeRange('all')}
-						class="px-2.5 py-1 rounded-lg font-medium transition-colors cursor-pointer {topicsRes.timeRange === 'all'
-							? 'bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 shadow-2xs font-semibold'
-							: 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200'}"
-					>
-						全网累计
-					</button>
-					<button
-						type="button"
-						onclick={() => topicsRes.setTimeRange('today')}
-						class="px-2.5 py-1 rounded-lg font-medium transition-colors cursor-pointer {topicsRes.timeRange === 'today'
-							? 'bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 shadow-2xs font-semibold'
-							: 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200'}"
-					>
-						今日活跃
-					</button>
-				</div>
-
-				<!-- 多人门槛切换 -->
+	<!-- 筛选与控制栏：通透单行流式架构 (无大盒嵌套，零冗余分类) -->
+	<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+		<!-- 左侧：主视图分段切片 (全网同行 / 今日活跃 / 我参与的) + 多人组微过滤 -->
+		<div class="flex items-center gap-2 flex-wrap">
+			<div class="inline-flex items-center rounded-xl bg-zinc-100/90 dark:bg-zinc-800/80 p-0.5">
 				<button
 					type="button"
-					onclick={() => topicsRes.setMinParticipants(topicsRes.minParticipants > 1 ? 1 : 2)}
-					class="px-2.5 py-1 rounded-xl border transition-colors cursor-pointer flex items-center gap-1.5 {topicsRes.minParticipants > 1
-						? 'border-amber-300 dark:border-amber-700 bg-amber-50/80 dark:bg-amber-950/40 text-amber-900 dark:text-amber-200 font-semibold'
-						: 'border-zinc-200/60 dark:border-zinc-700/60 bg-zinc-100/80 dark:bg-zinc-800/60 text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200'}"
-					title="切换是否只看已有2人及以上同行的多人目标"
+					onclick={() => handleTabSwitch('all')}
+					class="px-3 py-1.5 rounded-lg font-medium transition-all cursor-pointer {activeTab === 'all'
+						? 'bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 shadow-2xs font-semibold'
+						: 'text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100'}"
 				>
-					<span>👥</span>
-					<span>仅看多人组 (≥2人)</span>
+					全网同行
+				</button>
+				<button
+					type="button"
+					onclick={() => handleTabSwitch('today')}
+					class="px-3 py-1.5 rounded-lg font-medium transition-all cursor-pointer {activeTab === 'today'
+						? 'bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 shadow-2xs font-semibold'
+						: 'text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100'}"
+				>
+					今日活跃
+				</button>
+				<button
+					type="button"
+					onclick={() => handleTabSwitch('mine')}
+					class="px-3 py-1.5 rounded-lg font-medium transition-all cursor-pointer {activeTab === 'mine'
+						? 'bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 shadow-2xs font-semibold'
+						: 'text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100'}"
+				>
+					我参与的
 				</button>
 			</div>
 
-			<!-- 右侧：排序方式与搜索框 -->
-			<div class="flex items-center gap-2 flex-wrap">
-				<!-- 排序选择 -->
-				<div class="flex items-center rounded-xl bg-zinc-100 dark:bg-zinc-800/80 p-0.5 border border-zinc-200/60 dark:border-zinc-700/60">
-					<button
-						type="button"
-						onclick={() => topicsRes.setSortBy('participants')}
-						class="px-2 py-1 rounded-lg font-medium transition-colors cursor-pointer {topicsRes.sortBy === 'participants'
-							? 'bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 shadow-2xs font-semibold'
-							: 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200'}"
-					>
-						🔥 最多同行
-					</button>
-					<button
-						type="button"
-						onclick={() => topicsRes.setSortBy('recent')}
-						class="px-2 py-1 rounded-lg font-medium transition-colors cursor-pointer {topicsRes.sortBy === 'recent'
-							? 'bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 shadow-2xs font-semibold'
-							: 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200'}"
-					>
-						⚡ 最新活跃
-					</button>
-					<button
-						type="button"
-						onclick={() => topicsRes.setSortBy('completion')}
-						class="px-2 py-1 rounded-lg font-medium transition-colors cursor-pointer {topicsRes.sortBy === 'completion'
-							? 'bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 shadow-2xs font-semibold'
-							: 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200'}"
-					>
-						🏆 完成率
-					</button>
-				</div>
-
-				<!-- 搜索框 -->
-				<div class="relative flex-1 sm:w-44">
-					<input
-						type="text"
-						value={searchInput}
-						oninput={handleSearchChange}
-						placeholder="搜索目标内容..."
-						class="w-full h-7 pl-7 pr-2.5 text-xs rounded-xl border border-zinc-200/80 dark:border-zinc-700/80 bg-zinc-50 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 focus:outline-hidden focus:border-zinc-900 dark:focus:border-white transition-colors"
-					/>
-					<span class="absolute left-2.5 top-1.5 text-zinc-400 text-xs pointer-events-none">🔍</span>
-				</div>
-			</div>
-		</div>
-
-		<!-- 第二行：分类胶囊过滤栏 -->
-		<div class="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs">
+			<!-- 多人组快捷过滤芯片 (≥2人) -->
 			<button
 				type="button"
-				onclick={() => topicsRes.setCategory('all')}
-				class="px-3 py-1 rounded-full font-medium transition-all whitespace-nowrap cursor-pointer {topicsRes.category === 'all'
-					? 'bg-zinc-900 text-white dark:bg-white dark:text-zinc-900 shadow-2xs font-semibold'
-					: 'border border-zinc-200 dark:border-zinc-800 bg-white/70 dark:bg-zinc-900/60 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800'}"
+				onclick={() => topicsRes.setMinParticipants(topicsRes.minParticipants > 1 ? 1 : 2)}
+				class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl font-medium transition-all cursor-pointer {topicsRes.minParticipants > 1
+					? 'bg-amber-100/80 text-amber-900 dark:bg-amber-950/60 dark:text-amber-200 font-semibold'
+					: 'bg-zinc-100/80 hover:bg-zinc-200/70 text-zinc-600 dark:bg-zinc-800/60 dark:hover:bg-zinc-800 dark:text-zinc-400'}"
+				title="切换是否只看已有2人及以上同行的多人目标"
 			>
-				全部分类
+				<span>👥</span>
+				<span>仅看多人组</span>
 			</button>
-			{#each CATEGORIES as cat (cat.id)}
-				<button
-					type="button"
-					onclick={() => topicsRes.setCategory(cat.id)}
-					class="px-3 py-1 rounded-full font-medium transition-all whitespace-nowrap cursor-pointer {topicsRes.category === cat.id
-						? 'bg-zinc-900 text-white dark:bg-white dark:text-zinc-900 shadow-2xs font-semibold'
-						: 'border border-zinc-200 dark:border-zinc-800 bg-white/70 dark:bg-zinc-900/60 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800'}"
+		</div>
+
+		<!-- 右侧：排序下拉选择器 + 紧凑搜索框 -->
+		<div class="flex items-center gap-2">
+			<!-- 极简排序下拉 -->
+			<div class="relative inline-flex items-center">
+				<select
+					value={topicsRes.sortBy}
+					onchange={(e) => topicsRes.setSortBy((e.target as HTMLSelectElement).value as any)}
+					class="appearance-none h-8 pl-3 pr-7 rounded-xl text-xs font-medium bg-zinc-100/80 hover:bg-zinc-200/70 dark:bg-zinc-800/80 dark:hover:bg-zinc-700/80 text-zinc-700 dark:text-zinc-200 focus:outline-hidden cursor-pointer transition-colors"
+					title="选择排序方式"
 				>
-					{cat.name}
-				</button>
-			{/each}
+					<option value="participants">🔥 最多同行</option>
+					<option value="recent">⚡ 最新活跃</option>
+					<option value="completion">🏆 完成率</option>
+				</select>
+				<span class="absolute right-2.5 pointer-events-none text-zinc-400 text-[10px]">▼</span>
+			</div>
+
+			<!-- 搜索框 -->
+			<div class="relative flex-1 sm:w-44">
+				<input
+					type="text"
+					value={searchInput}
+					oninput={handleSearchChange}
+					placeholder="搜索目标内容..."
+					class="w-full h-8 pl-8 pr-3 text-xs rounded-xl bg-zinc-100/80 dark:bg-zinc-800/80 text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 focus:outline-hidden focus:ring-1 focus:ring-zinc-400 dark:focus:ring-zinc-500 transition-all"
+				/>
+				<span class="absolute left-2.5 top-2 text-zinc-400 text-xs pointer-events-none">🔍</span>
+			</div>
 		</div>
 	</div>
 
@@ -237,15 +190,15 @@
 					暂无符合条件的多人同行目标
 				</div>
 				<p class="text-xs text-zinc-400 max-w-sm mx-auto">
-					尝试调整筛选分类、清除搜索词，或者前往主页发布一条待办，邀请伙伴一起加入吧！
+					尝试切换视角、清除搜索词，或者前往主页发布一条待办，邀请伙伴一起加入吧！
 				</p>
 				<div class="pt-2">
 					<Button
 						variant="outline"
 						size="sm"
 						onclick={() => {
-							topicsRes.setCategory('all');
 							topicsRes.setScope('all');
+							topicsRes.setTimeRange('all');
 							topicsRes.setSearch('');
 							topicsRes.setMinParticipants(1);
 							searchInput = '';
@@ -271,7 +224,7 @@
 			</div>
 		{/snippet}
 
-		<div class="space-y-3 sm:space-y-4">
+		<div class="space-y-2.5 sm:space-y-3">
 			{#each topicsRes.topics as topic (topic.topicHash)}
 				<TopicCard
 					{topic}

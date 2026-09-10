@@ -6,40 +6,38 @@
 	let { count = 3 }: Props = $props();
 </script>
 
-<div class="space-y-3 sm:space-y-4" aria-busy="true" aria-label="正在加载待办列表">
+<div class="space-y-1 sm:space-y-1.5" aria-busy="true" aria-label="正在加载待办列表">
 	{#each Array(count) as _, i (i)}
 		<div
-			class="rounded-2xl border border-zinc-200/80 dark:border-zinc-800/80 bg-white/60 dark:bg-zinc-900/40 p-4 sm:p-5 backdrop-blur-xs space-y-3.5 animate-pulse"
+			class="flex items-start gap-3 sm:gap-3.5 py-3 px-3 sm:px-3.5 rounded-2xl animate-pulse"
 		>
-			<!-- 头部信息骨架：作者、时间、分类胶囊 -->
-			<div class="flex items-center justify-between">
-				<div class="flex items-center gap-2.5">
-					<div class="w-8 h-8 rounded-full bg-zinc-200/80 dark:bg-zinc-800/80 shrink-0"></div>
-					<div class="space-y-1.5">
-						<div class="h-3.5 w-24 bg-zinc-200/80 dark:bg-zinc-800/80 rounded-md"></div>
-						<div class="h-2.5 w-16 bg-zinc-200/60 dark:bg-zinc-800/60 rounded-md"></div>
-					</div>
-				</div>
-
-				<div class="h-5 w-14 rounded-full bg-zinc-200/70 dark:bg-zinc-800/70"></div>
+			<!-- 左侧：作者头像骨架 -->
+			<div class="shrink-0 pt-0.5">
+				<div class="w-8 h-8 rounded-full bg-zinc-200/80 dark:bg-zinc-800/80"></div>
 			</div>
 
-			<!-- 中部主体骨架：复选框 + 标题行 -->
-			<div class="flex items-start gap-3 pt-0.5">
-				<div class="w-4.5 h-4.5 rounded-md bg-zinc-200/80 dark:bg-zinc-800/80 shrink-0 mt-0.5"></div>
-				<div class="flex-1 space-y-2">
-					<div class="h-4 w-4/5 bg-zinc-200/80 dark:bg-zinc-800/80 rounded-md"></div>
-					<div class="h-3.5 w-2/5 bg-zinc-200/60 dark:bg-zinc-800/60 rounded-md"></div>
+			<!-- 中间主体：层次流骨架 -->
+			<div class="flex-1 min-w-0 space-y-1.5 pt-0.5">
+				<!-- 第一行：作者名与时间骨架 -->
+				<div class="flex items-center gap-2">
+					<div class="h-3.5 w-20 bg-zinc-200/80 dark:bg-zinc-800/80 rounded"></div>
+					<div class="h-3 w-16 bg-zinc-200/50 dark:bg-zinc-800/50 rounded"></div>
+				</div>
+
+				<!-- 第二行：待办正文骨架 (15px 黄金字高) -->
+				<div class="h-4.5 w-3/4 bg-zinc-200/70 dark:bg-zinc-800/70 rounded"></div>
+
+				<!-- 第三行：分类徽标与时间小占位 -->
+				<div class="flex items-center gap-2 pt-0.5">
+					<div class="h-4 w-12 rounded-full bg-zinc-200/60 dark:bg-zinc-800/60"></div>
+					<div class="h-3 w-10 bg-zinc-200/40 dark:bg-zinc-800/40 rounded"></div>
+					<div class="h-4 w-8 rounded-md bg-zinc-200/50 dark:bg-zinc-800/50"></div>
 				</div>
 			</div>
 
-			<!-- 底部快捷表态与互动条骨架 -->
-			<div class="flex items-center justify-between pt-1 border-t border-zinc-100 dark:border-zinc-800/60">
-				<div class="flex items-center gap-1.5">
-					<div class="h-6 w-10 rounded-full bg-zinc-200/60 dark:bg-zinc-800/60"></div>
-					<div class="h-6 w-10 rounded-full bg-zinc-200/60 dark:bg-zinc-800/60"></div>
-				</div>
-				<div class="h-3 w-12 rounded-md bg-zinc-200/50 dark:bg-zinc-800/50"></div>
+			<!-- 右侧：复选框骨架 -->
+			<div class="shrink-0 self-center pl-1 sm:pl-2">
+				<div class="w-6 h-6 rounded-full bg-zinc-200/80 dark:bg-zinc-800/80"></div>
 			</div>
 		</div>
 	{/each}

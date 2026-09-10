@@ -171,7 +171,7 @@
 		</div>
 
 		<!-- 右侧副栏：辅助与概览组件库 (完全解耦，0 胶水 ref 绑定) -->
-		<aside class="lg:col-span-5 xl:col-span-4 space-y-6">
+		<aside class="lg:col-span-5 xl:col-span-4 space-y-4 sm:space-y-5">
 			<!-- 1. 我的今日待办 -->
 			<MyTodayWidget />
 

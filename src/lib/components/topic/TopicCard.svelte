@@ -22,12 +22,12 @@
 </script>
 
 <div
-	class="group rounded-2xl border p-4 sm:p-5 transition-all duration-200 space-y-3.5 {isAllDone
-		? 'border-amber-300/80 dark:border-amber-500/60 bg-gradient-to-br from-amber-50/70 via-yellow-50/30 to-amber-50/70 dark:from-amber-950/25 dark:via-yellow-950/10 dark:to-amber-950/25 shadow-xs shadow-amber-500/5'
-		: 'border-zinc-200/70 dark:border-zinc-800/80 bg-white/70 dark:bg-zinc-900/60 hover:border-zinc-300 dark:hover:border-zinc-700 shadow-xs'}"
+	class="group rounded-2xl transition-all duration-150 p-4 sm:p-5 space-y-3 {isAllDone
+		? 'border border-amber-300/80 dark:border-amber-500/60 bg-gradient-to-br from-amber-50/70 via-yellow-50/30 to-amber-50/70 dark:from-amber-950/25 dark:via-yellow-950/10 dark:to-amber-950/25 shadow-xs shadow-amber-500/5'
+		: 'bg-zinc-50 dark:bg-zinc-900/60 hover:bg-zinc-100/80 dark:hover:bg-zinc-800/70'}"
 >
 	<!-- 顶部元信息：分类、全员达成勋章、立项时间、行动按钮 -->
-	<div class="flex items-start justify-between gap-3">
+	<div class="flex items-center justify-between gap-3">
 		<div class="flex items-center gap-2 flex-wrap min-w-0">
 			{#if topic.category}
 				<CategoryBadge category={topic.category} />
@@ -63,7 +63,7 @@
 				<button
 					type="button"
 					onclick={() => onjoin?.(topic)}
-					class="inline-flex items-center gap-1 text-xs font-semibold text-zinc-700 dark:text-zinc-200 bg-zinc-100 hover:bg-zinc-200/80 dark:bg-zinc-800 dark:hover:bg-zinc-700 hover:text-zinc-900 dark:hover:text-white px-2.5 py-1 rounded-lg transition-colors cursor-pointer"
+					class="inline-flex items-center gap-1 text-xs font-semibold text-zinc-700 dark:text-zinc-200 bg-white hover:bg-zinc-100 dark:bg-zinc-800 dark:hover:bg-zinc-700 hover:text-zinc-900 dark:hover:text-white px-2.5 py-1 rounded-lg transition-colors cursor-pointer shadow-2xs"
 				>
 					<span>+</span>
 					<span>一起做</span>
@@ -111,7 +111,7 @@
 			</span>
 		</div>
 
-		<div class="h-1.5 w-full bg-zinc-100 dark:bg-zinc-800 rounded-full overflow-hidden">
+		<div class="h-1.5 w-full bg-zinc-200/70 dark:bg-zinc-800 rounded-full overflow-hidden">
 			<div
 				class="h-full rounded-full transition-all duration-300 {isAllDone
 					? 'bg-gradient-to-r from-amber-400 to-amber-500'

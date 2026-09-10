@@ -48,7 +48,7 @@
 			<div class="space-y-1.5">
 				{#each todayStore.todos as todo (todo.id)}
 					<div
-						class="flex items-center justify-between gap-2 py-1.5 px-2 rounded-lg hover:bg-zinc-100/70 dark:hover:bg-zinc-900/60 transition-colors group/item"
+						class="flex items-center justify-between gap-2 py-2 px-2.5 rounded-xl hover:bg-zinc-100/70 dark:hover:bg-zinc-900/60 transition-all duration-150 group/item"
 					>
 						<!-- 统一 TodoContent 组件 (紧凑截断模式，点击进入详情) -->
 						<a

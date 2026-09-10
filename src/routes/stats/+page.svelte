@@ -275,11 +275,11 @@
 						</a>
 					</div>
 
-					<div class="space-y-2.5">
+					<div class="space-y-1.5">
 						{#each topTopics as topic (topic.topicHash)}
 							<a
 								href="/topics/{topic.topicHash}"
-								class="flex items-center justify-between p-3 rounded-2xl border border-zinc-200/50 dark:border-zinc-800/60 bg-zinc-50/50 dark:bg-zinc-900/40 hover:bg-zinc-100/70 dark:hover:bg-zinc-800/60 transition-all group"
+								class="flex items-center justify-between py-2.5 px-3 rounded-xl hover:bg-zinc-100/70 dark:hover:bg-zinc-800/60 transition-all duration-150 group"
 							>
 								<div class="flex items-center gap-2.5 min-w-0 flex-1">
 									<CategoryBadge category={topic.category} mode="dot" />
@@ -313,11 +313,11 @@
 						<p class="text-xs text-zinc-400">全平台累计达成完成待办最多的活跃伙伴</p>
 					</div>
 
-					<div class="space-y-2.5">
+					<div class="space-y-1.5">
 						{#each topUsers as user, idx (user.id)}
 							<a
 								href="/users/{user.id}"
-								class="flex items-center justify-between p-3 rounded-2xl border border-zinc-200/50 dark:border-zinc-800/60 bg-zinc-50/50 dark:bg-zinc-900/40 hover:bg-zinc-100/70 dark:hover:bg-zinc-800/60 transition-all group"
+								class="flex items-center justify-between py-2 px-3 rounded-xl hover:bg-zinc-100/70 dark:hover:bg-zinc-800/60 transition-all duration-150 group"
 							>
 								<div class="flex items-center gap-3 min-w-0">
 									<!-- 排名徽章 -->

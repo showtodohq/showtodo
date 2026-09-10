@@ -86,13 +86,13 @@
 		</div>
 	</div>
 
-	<div class="space-y-2.5">
+	<div class="space-y-1 sm:space-y-1.5">
 		{#each displayParticipants as p, index (p.todoId || `${p.user?.id || 'p'}-${index}`)}
 			{@const isSelf = Boolean(p.isMe || (currentUserId && p.user?.id === currentUserId))}
 			<div
-				class="p-4 rounded-2xl border border-zinc-200/80 dark:border-zinc-800 bg-white/70 dark:bg-zinc-900/70 backdrop-blur-xs flex items-start justify-between gap-4 transition-colors {isSelf
-					? 'ring-2 ring-blue-500/20 dark:ring-blue-400/20'
-					: ''}"
+				class="group/item relative py-3 px-3 sm:px-3.5 rounded-2xl transition-all duration-150 flex items-start justify-between gap-3.5 sm:gap-4 {isSelf
+					? 'bg-blue-50/40 dark:bg-blue-950/20 hover:bg-blue-50/60 dark:hover:bg-blue-950/30'
+					: 'hover:bg-zinc-50/80 dark:hover:bg-zinc-900/60'}"
 			>
 				<div class="flex items-start gap-3.5 min-w-0 flex-1">
 					<a

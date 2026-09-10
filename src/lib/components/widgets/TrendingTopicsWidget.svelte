@@ -79,7 +79,7 @@
 			</div>
 		{/snippet}
 
-		<div class="space-y-2.5">
+		<div class="space-y-1.5">
 			{#each trendingStore.cards as card (card.topicHash)}
 				{@const isAllDone =
 					(card.isMultiplayer || card.totalParticipants > 1) &&
@@ -89,12 +89,12 @@
 					card.participants.some((p) => p.isMe || Boolean(userStore.id && p.user.id === userStore.id)) ||
 					todayStore.isTopicJoined(card.content)}
 				<div
-					class="p-2.5 rounded-xl transition-all space-y-2 group/card border {isAllDone
-						? 'border-amber-300/80 dark:border-amber-500/60 bg-gradient-to-br from-amber-50/90 via-yellow-50/40 to-amber-50/90 dark:from-amber-950/30 dark:via-yellow-950/15 dark:to-amber-950/30 shadow-[0_0_12px_rgba(245,158,11,0.15)]'
-						: 'border-zinc-200/50 dark:border-zinc-800/60 bg-zinc-50/90 dark:bg-zinc-900/50 hover:bg-zinc-100/90 dark:hover:bg-zinc-900/80'}"
+					class="py-2 px-2.5 rounded-xl transition-all duration-150 space-y-1.5 group/card {isAllDone
+						? 'border border-amber-300/60 dark:border-amber-500/50 bg-gradient-to-br from-amber-50/80 via-yellow-50/30 to-amber-50/80 dark:from-amber-950/25 dark:via-yellow-950/10 dark:to-amber-950/25 shadow-2xs'
+						: 'hover:bg-zinc-100/70 dark:hover:bg-zinc-900/60'}"
 				>
 					<!-- 目标标题与分类 (点击直达多人 Todo 详情页) -->
-					<div class="flex items-start justify-between gap-2">
+					<div class="flex items-center justify-between gap-2">
 						<a
 							href="/topics/{card.topicHash}?date={getTodayString()}"
 							class="flex items-center gap-1.5 min-w-0 flex-1 group/title focus:outline-hidden"

@@ -278,19 +278,15 @@
 							</div>
 						{/snippet}
 
-						<div class="space-y-2">
+						<div class="space-y-1 sm:space-y-1.5">
 							{#each profileRes.filteredTodos as todo (todo.id)}
-								<div
-									class="p-3.5 rounded-2xl border border-zinc-200/80 dark:border-zinc-800 bg-white/70 dark:bg-zinc-900/70 backdrop-blur-xs hover:border-zinc-300 dark:hover:border-zinc-700 transition-colors"
-								>
-									<TodoItem
-										{todo}
-										isMine={Boolean(profileRes.isMe)}
-										ontoggle={profileRes.handleToggle}
-										onreaction={profileRes.handleReaction}
-										oncategoryclick={handleCategoryClick}
-									/>
-								</div>
+								<TodoItem
+									{todo}
+									isMine={Boolean(profileRes.isMe)}
+									ontoggle={profileRes.handleToggle}
+									onreaction={profileRes.handleReaction}
+									oncategoryclick={handleCategoryClick}
+								/>
 							{/each}
 						</div>
 					</DataView>
