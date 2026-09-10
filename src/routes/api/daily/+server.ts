@@ -2,6 +2,7 @@ import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { db } from '$lib/server/db';
 import * as todoService from '$lib/server/services/todo.service';
+import { resolveTimezone } from '$lib/server/utils/timezone';
 import { handleError, AppError } from '$lib/server/errors';
 import {
 	validateDate,
@@ -10,7 +11,7 @@ import {
 	validateLimit
 } from '$lib/server/validation';
 
-export const GET: RequestHandler = async ({ url }) => {
+export const GET: RequestHandler = async ({ url, request }) => {
 	try {
 		const dateParam = url.searchParams.get('date');
 		if (!dateParam) {
@@ -30,6 +31,9 @@ export const GET: RequestHandler = async ({ url }) => {
 		const sortBy = sortByParam === 'participants' ? 'participants' : 'time';
 		const startDateFrom = url.searchParams.get('startDateFrom') || undefined;
 		const startDateTo = url.searchParams.get('startDateTo') || undefined;
+		const tzParam = url.searchParams.get('tz');
+		const headerTz = request.headers.get('x-timezone');
+		const tz = resolveTimezone(tzParam, headerTz);
 
 		const result = await todoService.listDailyCards(db, {
 			targetDate: date,
@@ -40,7 +44,8 @@ export const GET: RequestHandler = async ({ url }) => {
 			currentUserId,
 			limit,
 			offset,
-			sortBy
+			sortBy,
+			tz
 		});
 
 		return json(result);

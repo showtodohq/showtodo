@@ -3,9 +3,10 @@ import type { RequestHandler } from './$types';
 import { db } from '$lib/server/db';
 import * as userService from '$lib/server/services/user.service';
 import * as statsService from '$lib/server/services/stats.service';
+import { resolveTimezone } from '$lib/server/utils/timezone';
 import { handleError, AppError } from '$lib/server/errors';
 
-export const GET: RequestHandler = async ({ params, url }) => {
+export const GET: RequestHandler = async ({ params, url, request }) => {
 	try {
 		const user = await userService.findByIdOrHandle(db, params.id);
 		if (!user) throw new AppError('NOT_FOUND', 'User not found');
@@ -13,7 +14,11 @@ export const GET: RequestHandler = async ({ params, url }) => {
 		const daysParam = url.searchParams.get('days');
 		const days = daysParam ? Math.min(365, Math.max(7, parseInt(daysParam, 10) || 365)) : 365;
 
-		const heatmap = await statsService.getUserHeatmapStats(db, user.id, days);
+		const tzParam = url.searchParams.get('tz');
+		const headerTz = request.headers.get('x-timezone');
+		const tz = resolveTimezone(tzParam, headerTz);
+
+		const heatmap = await statsService.getUserHeatmapStats(db, user.id, days, tz);
 
 		return json(
 			{ heatmap },

@@ -3,6 +3,7 @@ import { todos, users } from '../db/schema';
 import type { Database } from '../db';
 import type { Category, TodoStatus } from '../validation';
 import { validateStatusTransition, generateShortId, isUUID } from '../validation';
+import { DEFAULT_TIMEZONE, isValidTimezone, getTodayInTimezone, formatDateInTimezone } from '../utils/timezone';
 import * as reactionService from './reaction.service';
 import * as activityService from './activity.service';
 import { AppError } from '../errors';
@@ -53,6 +54,7 @@ export interface ListDailyCardsOptions {
 	limit?: number;
 	offset?: number;
 	sortBy?: 'time' | 'participants';
+	tz?: string;
 }
 
 function sanitizeNote(todo: typeof todos.$inferSelect) {
@@ -478,7 +480,8 @@ export async function getTopicByHash(
 		return Array.from(map.values());
 	}
 
-	const effectiveDate = targetDate || new Date().toISOString().slice(0, 10);
+	const safeTz = DEFAULT_TIMEZONE;
+	const effectiveDate = targetDate || getTodayInTimezone(safeTz);
 
 	// 判定待办是否落在指定的自然日时间范围内
 	function isDateMatch(dateVal?: string | Date | null): boolean {
@@ -492,7 +495,8 @@ export async function getTopicByHash(
 			return dTime >= fromTime && dTime <= toTime;
 		}
 
-		const dStr = dateVal instanceof Date ? dateVal.toISOString().slice(0, 10) : String(dateVal).slice(0, 10);
+		const d = dateVal instanceof Date ? dateVal : new Date(dateVal);
+		const dStr = formatDateInTimezone(d, safeTz);
 		return dStr === effectiveDate;
 	}
 
@@ -551,6 +555,9 @@ export async function listDailyCards(
 	const offset = Math.max(options.offset ?? 0, 0);
 	const currentUserId = options.currentUserId && isUUID(options.currentUserId) ? options.currentUserId : null;
 	const onlyMine = Boolean(options.onlyMine);
+	const tz = options.tz || DEFAULT_TIMEZONE;
+	const safeTz = isValidTimezone(tz) ? tz : DEFAULT_TIMEZONE;
+	const targetDate = options.targetDate || getTodayInTimezone(safeTz);
 
 	const categoryFilter =
 		options.category && options.category !== 'all'
@@ -569,7 +576,7 @@ export async function listDailyCards(
 	const dateConditionSql =
 		options.startDateFrom && options.startDateTo
 			? sql`t.start_date >= ${new Date(options.startDateFrom)} AND t.start_date <= (${new Date(options.startDateTo)}::timestamptz + INTERVAL '1 second')`
-			: sql`t.start_date >= ${options.targetDate}::date AND t.start_date < (${options.targetDate}::date + INTERVAL '1 day')`;
+			: sql`(t.start_date AT TIME ZONE ${safeTz})::date = ${targetDate}::date`;
 
 	// 1. 查询符合条件的总卡片数 (使用 TIMESTAMPTZ 开闭范围比较)
 	const countQuery = sql`

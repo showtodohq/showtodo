@@ -102,10 +102,27 @@ describe('stats.service pure functions (TDD)', () => {
 			// Strictly no days after 2026-09-09
 			expect(result.days.every((d) => d.date <= '2026-09-09')).toBe(true);
 		});
+		it('supports timezone-aware days generation ending strictly on local endDate', () => {
+			// At 2026-09-10T16:05:00Z:
+			// In Asia/Shanghai it is already 2026-09-11
+			// In UTC it is 2026-09-10
+			const fixedInstant = new Date('2026-09-10T16:05:00.000Z');
+			const rawMap = new Map<string, { created: number; completed: number; notes: number }>();
+			rawMap.set('2026-09-11', { created: 1, completed: 1, notes: 0 });
+
+			const resultShanghai = fillHeatmapDays(rawMap, 3, fixedInstant, 'Asia/Shanghai');
+			expect(resultShanghai.endDate).toBe('2026-09-11');
+			expect(resultShanghai.days.map((d) => d.date)).toEqual(['2026-09-09', '2026-09-10', '2026-09-11']);
+			expect(resultShanghai.days[2].count).toBe(2);
+
+			const resultUtc = fillHeatmapDays(rawMap, 3, fixedInstant, 'UTC');
+			expect(resultUtc.endDate).toBe('2026-09-10');
+			expect(resultUtc.days.map((d) => d.date)).toEqual(['2026-09-08', '2026-09-09', '2026-09-10']);
+		});
 	});
 
 	describe('getUserHeatmapStats (TDD)', () => {
-		it('aggregates user specific activities correctly', async () => {
+		it('aggregates user specific activities correctly with timezone parameter', async () => {
 			const mockExecute = vi.fn().mockResolvedValue([
 				{ day: '2026-09-08', created: 2, completed: 1, notes: 0 },
 				{ day: '2026-09-07', created: 0, completed: 3, notes: 1 }
@@ -114,7 +131,7 @@ describe('stats.service pure functions (TDD)', () => {
 				execute: mockExecute
 			} as unknown as Database;
 
-			const result = await getUserHeatmapStats(mockDb, 'user-123', 7);
+			const result = await getUserHeatmapStats(mockDb, 'user-123', 7, 'Asia/Shanghai');
 
 			expect(mockExecute).toHaveBeenCalled();
 			expect(result.days).toHaveLength(7);

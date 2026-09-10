@@ -92,7 +92,7 @@
 							<span>社区近 1 年行动心跳</span>
 							<span class="text-[9px] text-zinc-400/80 font-normal">（左右滑动查看）</span>
 						</span>
-						<span class="font-mono">{statsStore.stats.heatmap.totalActivities ?? 0} 次互动</span>
+						<span class="font-mono">{statsStore.stats.heatmap.totalActivities ?? 0} 次足迹</span>
 					</div>
 					<ActivityHeatmap days={statsStore.stats.heatmap.days} compact={true} />
 				</div>

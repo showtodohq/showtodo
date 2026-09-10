@@ -100,13 +100,13 @@
 		// 计算目标格子顶部相对于 rootEl 的 Y 轴距离
 		const targetTopY = targetRect.top - rootRect.top;
 
-		// 水平防溢出 Clamping：限制中心在 [80, rootWidth - 80] 避免两侧切边
-		const minX = 80;
-		const maxX = Math.max(minX, rootRect.width - 80);
+		// 水平防溢出 Clamping：限制中心在 [70, rootWidth - 70] 避免两侧切边
+		const minX = 70;
+		const maxX = Math.max(minX, rootRect.width - 70);
 		const clampedX = Math.max(minX, Math.min(maxX, targetCenterX));
 
-		// 垂直方向判断：若上方空间不足 46px 则翻转至格子下方
-		const showBelow = targetTopY < 46;
+		// 垂直方向判断：若上方空间不足 88px 则翻转至格子下方
+		const showBelow = targetTopY < 88;
 		const y = showBelow ? targetTopY + targetRect.height + 6 : targetTopY - 6;
 
 		tooltipPos = {
@@ -214,21 +214,38 @@
 	<!-- 悬浮 Tooltip (基于 rootEl 绝对定位，彻底避开 backdrop-blur 包含块陷阱与边缘截断) -->
 	{#if hoveredDay}
 		<div
-			class="absolute z-50 pointer-events-none -translate-x-1/2 px-2.5 py-1.5 rounded-lg bg-zinc-900/95 dark:bg-zinc-100/95 text-white dark:text-zinc-900 text-xs shadow-lg backdrop-blur-xs transition-all duration-75 space-y-0.5 whitespace-nowrap select-none {tooltipPos.showBelow ? 'translate-y-0' : '-translate-y-full'}"
+			class="absolute z-50 pointer-events-none -translate-x-1/2 px-2.5 py-2 rounded-xl bg-zinc-900/95 dark:bg-zinc-100/95 text-white dark:text-zinc-900 text-xs shadow-xl backdrop-blur-md border border-zinc-800/80 dark:border-zinc-200/80 transition-all duration-75 select-none min-w-[124px] {tooltipPos.showBelow ? 'translate-y-0' : '-translate-y-full'}"
 			style="left: {tooltipPos.x}px; top: {tooltipPos.y}px;"
 		>
-			<div class="font-semibold font-mono text-[11px] text-zinc-200 dark:text-zinc-700">
+			<div class="font-medium font-mono text-[11px] text-zinc-400 dark:text-zinc-500 pb-1.5 mb-1.5 border-b border-zinc-800/90 dark:border-zinc-200">
 				{hoveredDay.date}
 			</div>
-			<div class="text-[11px] flex items-center gap-2">
-				<span>活跃度: <strong class="text-emerald-400 dark:text-emerald-600 font-bold">{hoveredDay.count}</strong></span>
-				{#if hoveredDay.completed > 0}
-					<span class="text-zinc-300 dark:text-zinc-600">· 达成 {hoveredDay.completed}</span>
-				{/if}
-				{#if hoveredDay.created > 0}
-					<span class="text-zinc-300 dark:text-zinc-600">· 新建 {hoveredDay.created}</span>
-				{/if}
-			</div>
+			{#if hoveredDay.count === 0}
+				<div class="text-[11px] text-zinc-400 dark:text-zinc-500 py-0.5">
+					暂无足迹
+				</div>
+			{:else}
+				<div class="space-y-1 text-[11px]">
+					<div class="flex items-center justify-between gap-3">
+						<span class="text-zinc-300 dark:text-zinc-600">足迹</span>
+						<span class="font-mono font-semibold text-emerald-400 dark:text-emerald-600">{hoveredDay.count} 次</span>
+					</div>
+					<div class="flex items-center justify-between gap-3">
+						<span class="text-zinc-400 dark:text-zinc-500">新建</span>
+						<span class="font-mono text-zinc-200 dark:text-zinc-700">{hoveredDay.created} 次</span>
+					</div>
+					<div class="flex items-center justify-between gap-3">
+						<span class="text-zinc-400 dark:text-zinc-500">达成</span>
+						<span class="font-mono text-zinc-200 dark:text-zinc-700">{hoveredDay.completed} 次</span>
+					</div>
+					{#if hoveredDay.notes > 0}
+						<div class="flex items-center justify-between gap-3">
+							<span class="text-zinc-400 dark:text-zinc-500">进展</span>
+							<span class="font-mono text-zinc-200 dark:text-zinc-700">{hoveredDay.notes} 次</span>
+						</div>
+					{/if}
+				</div>
+			{/if}
 		</div>
 	{/if}
 </div>

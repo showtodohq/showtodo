@@ -1,6 +1,12 @@
 import { sql, desc } from 'drizzle-orm';
 import { todos, users, reactions, todoActivities } from '../db/schema';
 import type { Database } from '../db';
+import {
+	DEFAULT_TIMEZONE,
+	isValidTimezone,
+	getPastDaysList,
+	formatDateInTimezone
+} from '../utils/timezone';
 import type {
 	SiteStatsOverview,
 	CategoryStatItem,
@@ -21,11 +27,8 @@ function extractRows<T>(result: any): T[] {
 /**
  * 格式化日期为 YYYY-MM-DD
  */
-export function formatDateKey(date: Date): string {
-	const y = date.getFullYear();
-	const m = String(date.getMonth() + 1).padStart(2, '0');
-	const d = String(date.getDate()).padStart(2, '0');
-	return `${y}-${m}-${d}`;
+export function formatDateKey(date: Date, tz: string = DEFAULT_TIMEZONE): string {
+	return formatDateInTimezone(date, tz);
 }
 
 /**
@@ -52,48 +55,42 @@ export function calculateHeatmapLevel(count: number, maxCount: number): 0 | 1 | 
 }
 
 /**
- * 纯函数：补齐连续日期的趋势数据（缺失天填充 0）
+ * 纯函数：补齐连续日期的趋势数据（缺失天填充 0，时区感知）
  */
 export function fillTrendDays(
 	rawMap: Map<string, { created: number; completed: number }>,
 	daysCount: number,
-	endDate: Date = new Date()
+	endDate: Date = new Date(),
+	tz: string = DEFAULT_TIMEZONE
 ): TrendStatItem[] {
-	const result: TrendStatItem[] = [];
-	for (let i = daysCount - 1; i >= 0; i--) {
-		const d = new Date(endDate);
-		d.setDate(d.getDate() - i);
-		const key = formatDateKey(d);
+	const dayKeys = getPastDaysList(daysCount, endDate, tz);
+	return dayKeys.map((key) => {
 		const data = rawMap.get(key) || { created: 0, completed: 0 };
-		result.push({
+		return {
 			date: key,
 			created: data.created,
 			completed: data.completed
-		});
-	}
-	return result;
+		};
+	});
 }
 
 /**
- * 纯函数：补齐连续日期的 GitHub 热力图网格
+ * 纯函数：补齐连续日期的 GitHub 热力图网格（时区感知）
  */
 export function fillHeatmapDays(
 	rawMap: Map<string, { created: number; completed: number; notes: number }>,
 	daysCount: number,
-	endDate: Date = new Date()
+	endDate: Date = new Date(),
+	tz: string = DEFAULT_TIMEZONE
 ): HeatmapData {
-	const days: HeatmapDayItem[] = [];
+	const dayKeys = getPastDaysList(daysCount, endDate, tz);
 	let totalActivities = 0;
 	let maxDayCount = 0;
 
 	// 先确定实际每一天的数字与全局最大值
-	for (let i = daysCount - 1; i >= 0; i--) {
-		const d = new Date(endDate);
-		d.setDate(d.getDate() - i);
-		const key = formatDateKey(d);
+	for (const key of dayKeys) {
 		const raw = rawMap.get(key) || { created: 0, completed: 0, notes: 0 };
 		const count = raw.created + raw.completed + raw.notes;
-
 		if (count > maxDayCount) {
 			maxDayCount = count;
 		}
@@ -101,29 +98,22 @@ export function fillHeatmapDays(
 	}
 
 	// 再分配 level
-	for (let i = daysCount - 1; i >= 0; i--) {
-		const d = new Date(endDate);
-		d.setDate(d.getDate() - i);
-		const key = formatDateKey(d);
+	const days: HeatmapDayItem[] = dayKeys.map((key) => {
 		const raw = rawMap.get(key) || { created: 0, completed: 0, notes: 0 };
 		const count = raw.created + raw.completed + raw.notes;
-
-		days.push({
+		return {
 			date: key,
 			count,
 			level: calculateHeatmapLevel(count, maxDayCount),
 			created: raw.created,
 			completed: raw.completed,
 			notes: raw.notes
-		});
-	}
-
-	const startD = new Date(endDate);
-	startD.setDate(startD.getDate() - (daysCount - 1));
+		};
+	});
 
 	return {
-		startDate: formatDateKey(startD),
-		endDate: formatDateKey(endDate),
+		startDate: dayKeys[0] || '',
+		endDate: dayKeys[dayKeys.length - 1] || '',
 		days,
 		totalActivities,
 		maxDayCount
@@ -133,13 +123,19 @@ export function fillHeatmapDays(
 /**
  * 聚合全站宏观核心概览
  */
-export async function getSiteOverview(db: Database): Promise<SiteStatsOverview> {
+export async function getSiteOverview(
+	db: Database,
+	tz: string = DEFAULT_TIMEZONE
+): Promise<SiteStatsOverview> {
+	const safeTz = isValidTimezone(tz) ? tz : DEFAULT_TIMEZONE;
+	const localTodaySql = sql`(CURRENT_TIMESTAMP AT TIME ZONE ${safeTz})::date`;
+
 	const [todoStats] = await db
 		.select({
 			totalTodos: sql<number>`count(*)::int`,
 			completedTodos: sql<number>`count(*) filter (where ${todos.status} = 'done')::int`,
 			inProgressTodos: sql<number>`count(*) filter (where ${todos.status} = 'in_progress')::int`,
-			todayCreated: sql<number>`count(*) filter (where ${todos.createdAt} >= CURRENT_DATE)::int`
+			todayCreated: sql<number>`count(*) filter (where (${todos.createdAt} AT TIME ZONE ${safeTz}) >= ${localTodaySql})::int`
 		})
 		.from(todos);
 
@@ -157,18 +153,18 @@ export async function getSiteOverview(db: Database): Promise<SiteStatsOverview> 
 
 	const [activityStats] = await db
 		.select({
-			todayCompleted: sql<number>`count(*) filter (where ${todoActivities.toStatus} = 'done' and ${todoActivities.createdAt} >= CURRENT_DATE)::int`
+			todayCompleted: sql<number>`count(*) filter (where ${todoActivities.toStatus} = 'done' and (${todoActivities.createdAt} AT TIME ZONE ${safeTz}) >= ${localTodaySql})::int`
 		})
 		.from(todoActivities);
 
-	// 今日活跃用户数 (今日有发待办、状态流转或互动的不同用户)
+	// 今日活跃用户数 (今日有发待办、状态流转或互动的不同用户，基于客户端指定时区自然日)
 	const activeUsersRaw = await db.execute<{ todayActiveUsers: number }>(sql`
 		select count(distinct uid)::int as "todayActiveUsers" from (
-			select author_id as uid from todos where created_at >= CURRENT_DATE or updated_at >= CURRENT_DATE
+			select author_id as uid from todos where (${todos.createdAt} AT TIME ZONE ${safeTz}) >= ${localTodaySql} or (${todos.updatedAt} AT TIME ZONE ${safeTz}) >= ${localTodaySql}
 			union
-			select author_id as uid from todo_activities where created_at >= CURRENT_DATE
+			select author_id as uid from todo_activities where (${todoActivities.createdAt} AT TIME ZONE ${safeTz}) >= ${localTodaySql}
 			union
-			select user_id as uid from reactions where created_at >= CURRENT_DATE
+			select user_id as uid from reactions where (${reactions.createdAt} AT TIME ZONE ${safeTz}) >= ${localTodaySql}
 		) sub
 	`);
 	const activeUsersRows = extractRows<{ todayActiveUsers: number }>(activeUsersRaw);
@@ -222,25 +218,29 @@ export async function getCategoryStats(db: Database): Promise<CategoryStatItem[]
 }
 
 /**
- * 聚合近 N 天趋势数据 (新建 vs 达成)
+ * 聚合近 N 天趋势数据 (新建 vs 达成，时区感知)
  */
-export async function getTrendStats(db: Database, days: number = 14): Promise<TrendStatItem[]> {
-	const startDate = new Date();
-	startDate.setDate(startDate.getDate() - (days - 1));
-	startDate.setHours(0, 0, 0, 0);
+export async function getTrendStats(
+	db: Database,
+	days: number = 14,
+	tz: string = DEFAULT_TIMEZONE
+): Promise<TrendStatItem[]> {
+	const safeTz = isValidTimezone(tz) ? tz : DEFAULT_TIMEZONE;
+	const pastDays = getPastDaysList(days, new Date(), safeTz);
+	const startDayKey = pastDays[0];
 
 	const createdRaw = await db.execute<{ day: string; count: number }>(sql`
-		select to_char(created_at, 'YYYY-MM-DD') as day, count(*)::int as count
+		select to_char(created_at AT TIME ZONE ${safeTz}, 'YYYY-MM-DD') as day, count(*)::int as count
 		from todos
-		where created_at >= ${startDate.toISOString()}::timestamptz
+		where (created_at AT TIME ZONE ${safeTz})::date >= ${startDayKey}::date
 		group by 1
 	`);
 	const createdRows = extractRows<{ day: string; count: number }>(createdRaw);
 
 	const completedRaw = await db.execute<{ day: string; count: number }>(sql`
-		select to_char(created_at, 'YYYY-MM-DD') as day, count(*)::int as count
+		select to_char(created_at AT TIME ZONE ${safeTz}, 'YYYY-MM-DD') as day, count(*)::int as count
 		from todo_activities
-		where to_status = 'done' and created_at >= ${startDate.toISOString()}::timestamptz
+		where to_status = 'done' and (created_at AT TIME ZONE ${safeTz})::date >= ${startDayKey}::date
 		group by 1
 	`);
 	const completedRows = extractRows<{ day: string; count: number }>(completedRaw);
@@ -259,25 +259,29 @@ export async function getTrendStats(db: Database, days: number = 14): Promise<Tr
 		rawMap.set(row.day, existing);
 	}
 
-	return fillTrendDays(rawMap, days);
+	return fillTrendDays(rawMap, days, new Date(), safeTz);
 }
 
 /**
- * 聚合全站 GitHub 式热力图数据
+ * 聚合全站 GitHub 式热力图数据 (时区感知)
  */
-export async function getHeatmapStats(db: Database, days: number = 365): Promise<HeatmapData> {
-	const startDate = new Date();
-	startDate.setDate(startDate.getDate() - (days - 1));
-	startDate.setHours(0, 0, 0, 0);
+export async function getHeatmapStats(
+	db: Database,
+	days: number = 365,
+	tz: string = DEFAULT_TIMEZONE
+): Promise<HeatmapData> {
+	const safeTz = isValidTimezone(tz) ? tz : DEFAULT_TIMEZONE;
+	const pastDays = getPastDaysList(days, new Date(), safeTz);
+	const startDayKey = pastDays[0];
 
 	const activitiesRaw = await db.execute<{ day: string; created: number; completed: number; notes: number }>(sql`
 		select 
-			to_char(created_at, 'YYYY-MM-DD') as day,
+			to_char(created_at AT TIME ZONE ${safeTz}, 'YYYY-MM-DD') as day,
 			count(*) filter (where type = 'created')::int as created,
 			count(*) filter (where to_status = 'done')::int as completed,
 			count(*) filter (where type = 'progress_note')::int as notes
 		from todo_activities
-		where created_at >= ${startDate.toISOString()}::timestamptz
+		where (created_at AT TIME ZONE ${safeTz})::date >= ${startDayKey}::date
 		group by 1
 	`);
 	const activitiesRows = extractRows<{ day: string; created: number; completed: number; notes: number }>(activitiesRaw);
@@ -291,29 +295,30 @@ export async function getHeatmapStats(db: Database, days: number = 365): Promise
 		});
 	}
 
-	return fillHeatmapDays(rawMap, days);
+	return fillHeatmapDays(rawMap, days, new Date(), safeTz);
 }
 
 /**
- * 聚合指定用户的 GitHub 式行动热力图数据
+ * 聚合指定用户的 GitHub 式行动热力图数据 (时区感知)
  */
 export async function getUserHeatmapStats(
 	db: Database,
 	userId: string,
-	days: number = 365
+	days: number = 365,
+	tz: string = DEFAULT_TIMEZONE
 ): Promise<HeatmapData> {
-	const startDate = new Date();
-	startDate.setDate(startDate.getDate() - (days - 1));
-	startDate.setHours(0, 0, 0, 0);
+	const safeTz = isValidTimezone(tz) ? tz : DEFAULT_TIMEZONE;
+	const pastDays = getPastDaysList(days, new Date(), safeTz);
+	const startDayKey = pastDays[0];
 
 	const activitiesRaw = await db.execute<{ day: string; created: number; completed: number; notes: number }>(sql`
 		select 
-			to_char(created_at, 'YYYY-MM-DD') as day,
+			to_char(created_at AT TIME ZONE ${safeTz}, 'YYYY-MM-DD') as day,
 			count(*) filter (where type = 'created')::int as created,
 			count(*) filter (where to_status = 'done')::int as completed,
 			count(*) filter (where type = 'progress_note')::int as notes
 		from todo_activities
-		where author_id = ${userId} and created_at >= ${startDate.toISOString()}::timestamptz
+		where author_id = ${userId} and (created_at AT TIME ZONE ${safeTz})::date >= ${startDayKey}::date
 		group by 1
 	`);
 	const activitiesRows = extractRows<{ day: string; created: number; completed: number; notes: number }>(activitiesRaw);
@@ -327,7 +332,7 @@ export async function getUserHeatmapStats(
 		});
 	}
 
-	return fillHeatmapDays(rawMap, days);
+	return fillHeatmapDays(rawMap, days, new Date(), safeTz);
 }
 
 /**
@@ -392,14 +397,19 @@ export async function getTopUsers(db: Database, limit: number = 5): Promise<TopU
 }
 
 /**
- * 聚合全站完整统计大盘 (高并发并行查询)
+ * 聚合全站完整统计大盘 (高并发并行查询，时区感知)
  */
-export async function getGlobalStats(db: Database, heatmapDays: number = 365): Promise<GlobalStatsData> {
+export async function getGlobalStats(
+	db: Database,
+	heatmapDays: number = 365,
+	tz: string = DEFAULT_TIMEZONE
+): Promise<GlobalStatsData> {
+	const safeTz = isValidTimezone(tz) ? tz : DEFAULT_TIMEZONE;
 	const [overview, categories, trend, heatmap, topTopics, topUsers] = await Promise.all([
-		getSiteOverview(db),
+		getSiteOverview(db, safeTz),
 		getCategoryStats(db),
-		getTrendStats(db, 14),
-		getHeatmapStats(db, heatmapDays),
+		getTrendStats(db, 14, safeTz),
+		getHeatmapStats(db, heatmapDays, safeTz),
 		getTopTopics(db, 5),
 		getTopUsers(db, 5)
 	]);

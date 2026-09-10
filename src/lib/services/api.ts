@@ -38,6 +38,14 @@ const ERROR_MESSAGE_MAP: Record<string, string> = {
 	INTERNAL_ERROR: '服务器繁忙，请稍后再试'
 };
 
+export function getClientTimezone(): string {
+	try {
+		return Intl.DateTimeFormat().resolvedOptions().timeZone || 'Asia/Shanghai';
+	} catch {
+		return 'Asia/Shanghai';
+	}
+}
+
 async function request<T>(
 	url: string,
 	options?: RequestInit,
@@ -46,10 +54,12 @@ async function request<T>(
 	progressStore.start();
 	try {
 		const fetcher = customFetch || fetch;
+		const tz = getClientTimezone();
 		const res = await fetcher(url, {
 			...options,
 			headers: {
 				'Content-Type': 'application/json',
+				'x-timezone': tz,
 				...(options?.headers || {})
 			}
 		});
@@ -229,10 +239,13 @@ export const api = {
 	async getUserHeatmap(
 		id: string,
 		days: number = 365,
+		tz?: string,
 		customFetch?: typeof fetch
 	): Promise<{ heatmap: HeatmapData }> {
+		const targetTz = tz || getClientTimezone();
+		const qs = new URLSearchParams({ days: String(days), tz: targetTz }).toString();
 		return request<{ heatmap: HeatmapData }>(
-			`/api/users/${id}/heatmap?days=${days}`,
+			`/api/users/${id}/heatmap?${qs}`,
 			undefined,
 			customFetch
 		);
@@ -318,8 +331,14 @@ export const api = {
 		return request<TopicListResponse>(`/api/topics${qs ? `?${qs}` : ''}`, undefined, customFetch);
 	},
 
-	async getGlobalStats(heatmapDays?: number, customFetch?: typeof fetch): Promise<GlobalStatsData> {
-		const qs = heatmapDays ? `?heatmapDays=${heatmapDays}` : '';
-		return request<GlobalStatsData>(`/api/stats${qs}`, undefined, customFetch);
+	async getGlobalStats(
+		heatmapDays?: number,
+		tz?: string,
+		customFetch?: typeof fetch
+	): Promise<GlobalStatsData> {
+		const targetTz = tz || getClientTimezone();
+		const params = new URLSearchParams({ tz: targetTz });
+		if (heatmapDays) params.set('heatmapDays', String(heatmapDays));
+		return request<GlobalStatsData>(`/api/stats?${params.toString()}`, undefined, customFetch);
 	}
 };

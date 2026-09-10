@@ -1,4 +1,4 @@
-import { eq, desc, and, gte, lt, sql } from 'drizzle-orm';
+import { eq, desc, and, gte, lte, lt, sql } from 'drizzle-orm';
 import { users, todos } from '../db/schema';
 import type { Database } from '../db';
 import { AppError } from '../errors';
@@ -128,10 +128,18 @@ export async function listUsersWithTodosInWeek(
 ) {
 	const limit = options.limit ?? 20;
 	const offset = options.offset ?? 0;
+	const fromDate =
+		options.startDateFrom.length === 10
+			? new Date(`${options.startDateFrom}T00:00:00.000Z`)
+			: new Date(options.startDateFrom);
+	const toDate =
+		options.startDateTo.length === 10
+			? new Date(`${options.startDateTo}T23:59:59.999Z`)
+			: new Date(options.startDateTo);
 
 	const todoConditions = [
-		gte(todos.startDate, sql`${options.startDateFrom}::date`),
-		lt(todos.startDate, sql`(${options.startDateTo}::date + INTERVAL '1 day')`)
+		gte(todos.startDate, fromDate),
+		lte(todos.startDate, toDate)
 	];
 
 	if (options.category && options.category !== 'all') {
