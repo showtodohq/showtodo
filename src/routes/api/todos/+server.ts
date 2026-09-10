@@ -33,7 +33,7 @@ export const POST: RequestHandler = async ({ request }) => {
 		const dueDate = validateOptionalDateTime(body.dueDate);
 
 		const user = await userService.findOrCreate(db, email);
-		const todo = await todoService.create(db, {
+		const rawTodo = await todoService.create(db, {
 			content,
 			note,
 			isNotePublic,
@@ -42,6 +42,21 @@ export const POST: RequestHandler = async ({ request }) => {
 			startDate,
 			dueDate
 		});
+
+		const author = {
+			id: user.id,
+			nickname: user.nickname,
+			handle: user.handle,
+			avatar: user.avatar,
+			email: user.email
+		};
+
+		const todo = {
+			...rawTodo,
+			author,
+			reactions: { '❤️': 0, '👍': 0, '🔥': 0, '💪': 0, '👏': 0, '🚀': 0, '🎉': 0, '👀': 0 },
+			myReactions: []
+		};
 
 		return json({ todo, author: user }, { status: 201 });
 	} catch (e) {

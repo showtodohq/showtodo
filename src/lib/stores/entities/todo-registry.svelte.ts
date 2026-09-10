@@ -90,6 +90,18 @@ class TodoRegistry {
 	 * 原子替换临时待办（先接入正式实体，再移除临时 key，杜绝列表渲染空窗闪烁）
 	 */
 	replace(tempId: string, realTodo: Todo): Todo {
+		const tempTodo = this.entities[tempId];
+		if (tempTodo) {
+			if (!realTodo.author && tempTodo.author) {
+				realTodo.author = tempTodo.author;
+			}
+			if (!realTodo.reactions && tempTodo.reactions) {
+				realTodo.reactions = tempTodo.reactions;
+			}
+			if (!realTodo.myReactions && tempTodo.myReactions) {
+				realTodo.myReactions = tempTodo.myReactions;
+			}
+		}
 		const authoritative = this.upsert(realTodo);
 		if (tempId !== realTodo.id) {
 			delete this.entities[tempId];

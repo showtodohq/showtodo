@@ -18,11 +18,11 @@ class TodoMutations {
 		note?: string | null;
 		isNotePublic?: boolean;
 		category?: CategoryId | string | null;
-	}) {
+	}): Promise<Todo | undefined> {
 		const email = userStore.email;
 		if (!email) {
 			toast.info('请先点击右上角头像绑定邮箱');
-			return;
+			return undefined;
 		}
 
 		const tempId = `temp-${Date.now()}`;
@@ -85,13 +85,32 @@ class TodoMutations {
 						startDate: nowIso
 					});
 
-					createdTodo = res.todo;
+					const authorData = res.author || {
+						id: userStore.id || '',
+						nickname: userStore.nickname,
+						handle: userStore.handle,
+						avatar: userStore.avatar
+					};
+
+					const completeTodo: Todo = {
+						...res.todo,
+						author: res.todo.author || {
+							id: authorData.id,
+							nickname: authorData.nickname,
+							handle: authorData.handle,
+							avatar: authorData.avatar
+						},
+						reactions: res.todo.reactions || { '❤️': 0, '👍': 0, '🔥': 0, '💪': 0, '👏': 0, '🚀': 0, '🎉': 0, '👀': 0 },
+						myReactions: res.todo.myReactions || []
+					};
+
+					createdTodo = completeTodo;
 
 					// 归一化替换实体
-					todoRegistry.replace(tempId, res.todo);
-					feedStore.replaceId(tempId, res.todo.id);
-					todayStore.replaceId(tempId, res.todo.id);
-					trendingStore.syncReplaceId(tempId, res.todo);
+					todoRegistry.replace(tempId, completeTodo);
+					feedStore.replaceId(tempId, completeTodo.id);
+					todayStore.replaceId(tempId, completeTodo.id);
+					trendingStore.syncReplaceId(tempId, completeTodo);
 					trendingStore.load(true);
 
 					if (res.author) userStore.updateUserFromProfile(res.author);

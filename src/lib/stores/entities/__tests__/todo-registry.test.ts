@@ -91,4 +91,43 @@ describe('TodoRegistry (Normalized Entity Cache)', () => {
 		expect(todoRegistry.get('real-uuid-456')).toBeDefined();
 		expect(todoRegistry.get('real-short-789')).toBeDefined();
 	});
+
+	it('should preserve author and reactions from temp entity if incoming entity lacks them', () => {
+		const temp = mockTodo('temp-author-1', 'temp-author-1', '临时待办');
+		temp.author = {
+			id: 'user-my-id',
+			handle: 'myhandle',
+			nickname: '我的昵称',
+			avatar: 'https://example.com/avatar.png'
+		};
+		todoRegistry.upsert(temp);
+
+		// 模拟后端返回没有 author 字段的 todo 实体
+		const realWithoutAuthor = {
+			id: 'real-uuid-789',
+			shortId: 'short-789',
+			topicHash: 'hash-1',
+			content: '真实待办',
+			note: null,
+			isNotePublic: true,
+			category: 'study' as const,
+			authorId: 'user-my-id',
+			status: 'pending' as const,
+			startDate: '2026-09-04T12:00:00.000Z',
+			dueDate: null,
+			createdAt: '2026-09-04T12:00:00.000Z',
+			updatedAt: '2026-09-04T12:00:00.000Z'
+		} as Todo;
+
+		todoRegistry.replace('temp-author-1', realWithoutAuthor);
+
+		const result = todoRegistry.get('real-uuid-789');
+		expect(result).toBeDefined();
+		expect(result?.author).toBeDefined();
+		expect(result?.author?.nickname).toBe('我的昵称');
+		expect(result?.author?.handle).toBe('myhandle');
+		expect(result?.reactions).toBeDefined();
+		expect(result?.myReactions).toBeDefined();
+	});
 });
+

@@ -6,6 +6,7 @@
 	import CategoryBadge from '$lib/components/todo/CategoryBadge.svelte';
 	import TodoCheckbox from '$lib/components/todo/TodoCheckbox.svelte';
 	import TodoContent from '$lib/components/todo/TodoContent.svelte';
+	import { userStore } from '$lib/stores/user.svelte';
 
 	interface Props {
 		todo: Todo;
@@ -25,13 +26,22 @@
 		class: className = ''
 	}: Props = $props();
 
+	const effectiveAuthor = $derived(
+		todo.author || (isMine && userStore.email ? {
+			id: userStore.id || todo.authorId,
+			nickname: userStore.nickname,
+			handle: userStore.handle,
+			avatar: userStore.avatar
+		} : undefined)
+	);
+
 	const scheduleText = $derived(formatScheduleRange(todo.startDate, todo.dueDate));
 	const relativeTime = $derived(formatRelativeTime(todo.createdAt));
 	const authorProfileUrl = $derived(
-		todo.author?.handle
-			? `/users/${todo.author.handle}`
-			: todo.author?.id
-				? `/users/${todo.author.id}`
+		effectiveAuthor?.handle
+			? `/users/${effectiveAuthor.handle}`
+			: effectiveAuthor?.id
+				? `/users/${effectiveAuthor.id}`
 				: null
 	);
 	const todoDetailUrl = $derived(`/todos/${todo.shortId || todo.id}`);
@@ -42,7 +52,7 @@
 >
 	<!-- 左侧：统一作者头像与悬停 Tooltip -->
 	<div class="shrink-0 pt-0.5">
-		<UserAvatarTooltip user={todo.author} size="sm" align="left" />
+		<UserAvatarTooltip user={effectiveAuthor} size="sm" align="left" isMe={isMine} />
 	</div>
 
 	<!-- 中间主体：3~4 行层次流排版 -->
@@ -55,11 +65,11 @@
 					class="font-semibold text-zinc-900 dark:text-zinc-100 hover:text-zinc-600 dark:hover:text-zinc-300 hover:underline truncate max-w-[140px] sm:max-w-[200px]"
 					onclick={(e) => e.stopPropagation()}
 				>
-					{todo.author?.nickname || '匿名待办者'}
+					{effectiveAuthor?.nickname || '匿名待办者'}
 				</a>
 			{:else}
 				<span class="font-semibold text-zinc-900 dark:text-zinc-100 truncate max-w-[140px] sm:max-w-[200px]">
-					{todo.author?.nickname || '匿名待办者'}
+					{effectiveAuthor?.nickname || '匿名待办者'}
 				</span>
 			{/if}
 

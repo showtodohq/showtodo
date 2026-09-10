@@ -30,8 +30,6 @@
 		class: className = ''
 	}: Props = $props();
 
-	const nickname = $derived(user?.nickname || '匿名待办者');
-	const handle = $derived(user?.handle);
 	const isMe = $derived(
 		explicitIsMe !== undefined
 			? explicitIsMe
@@ -41,8 +39,12 @@
 				)
 	);
 
+	const nickname = $derived(user?.nickname || (isMe && userStore.email ? userStore.nickname : '匿名待办者'));
+	const handle = $derived(user?.handle || (isMe && userStore.email ? userStore.handle : undefined));
+	const avatar = $derived(user?.avatar ?? (isMe && userStore.email ? userStore.avatar : null));
+
 	const profileUrl = $derived(
-		user?.handle ? `/users/${user.handle}` : user?.id ? `/users/${user.id}` : null
+		handle ? `/users/${handle}` : (user?.id || (isMe ? userStore.id : null)) ? `/users/${user?.id || userStore.id}` : null
 	);
 
 	const alignClasses = {
@@ -60,7 +62,7 @@
 			onclick={(e) => e.stopPropagation()}
 		>
 			<Avatar
-				src={user?.avatar}
+				src={avatar}
 				name={nickname}
 				{size}
 				{goldBadge}
@@ -73,7 +75,7 @@
 		</a>
 	{:else}
 		<Avatar
-			src={user?.avatar}
+			src={avatar}
 			name={nickname}
 			{size}
 			{goldBadge}

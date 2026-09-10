@@ -12,7 +12,7 @@
 			note: string | null;
 			isNotePublic?: boolean;
 			category: CategoryId | null;
-		}) => Promise<void> | void;
+		}) => Promise<unknown> | unknown;
 		selectedCategory?: CategoryId | null;
 		placeholder?: string;
 		class?: string;
