@@ -8,6 +8,7 @@ import { todoMutations } from '$lib/stores/mutations.svelte';
 import { userProfileRegistry } from '$lib/stores/entities/user-registry.svelte';
 import type { Todo, TodoStatus, ReactionEmoji, CategoryId } from '$lib/types/todo';
 import type { UserProfile } from '$lib/types/user';
+import type { HeatmapData } from '$lib/types/stats';
 
 function getInitialProfileAndTodos(identifier?: string): { user: UserProfile | null; todoIds: string[] } {
 	if (!identifier) return { user: null, todoIds: [] };
@@ -70,6 +71,8 @@ export function createUserProfileResource(initialIdentifier?: string) {
 	let error = $state<string | null>(null);
 	let user = $state<UserProfile | null>(initial.user);
 	let userTodoIds = $state<string[]>(initial.todoIds);
+	let heatmap = $state<HeatmapData | null>(null);
+	let isHeatmapLoading = $state(false);
 	let activeTab = $state<TodoStatus | 'all'>('all');
 	let activeCategory = $state<CategoryId | null>(null);
 
@@ -133,6 +136,18 @@ export function createUserProfileResource(initialIdentifier?: string) {
 
 	let inFlightIdentifier: string | null = null;
 
+	async function loadHeatmap(targetUserId: string) {
+		isHeatmapLoading = true;
+		try {
+			const res = await api.getUserHeatmap(targetUserId, 365);
+			heatmap = res.heatmap;
+		} catch (err) {
+			console.error('Failed to load user heatmap:', err);
+		} finally {
+			isHeatmapLoading = false;
+		}
+	}
+
 	async function load(identifier: string) {
 		if (inFlightIdentifier === identifier) {
 			return;
@@ -153,6 +168,8 @@ export function createUserProfileResource(initialIdentifier?: string) {
 			}
 			loading = false;
 			isRevalidating = true;
+			// 立即触发热力图拉取
+			loadHeatmap(initialPrefill.user.id);
 		} else if (!user) {
 			loading = true;
 			isTodosLoading = true;
@@ -178,6 +195,9 @@ export function createUserProfileResource(initialIdentifier?: string) {
 				// 存入全局缓存中心，确保下次再进 100% 具备完整缓存
 				userProfileRegistry.upsertProfile(user);
 				userProfileRegistry.setUserTodoIds(user.id, userTodoIds);
+
+				// 异步拉取热力图（若此前未拉取或拉取不同 ID）
+				loadHeatmap(user.id);
 			} else {
 				const res = await api.getUserById(identifier);
 				user = res.user;
@@ -195,6 +215,9 @@ export function createUserProfileResource(initialIdentifier?: string) {
 				// 存入全局缓存中心，确保下次再进 100% 具备完整缓存
 				userProfileRegistry.upsertProfile(user);
 				userProfileRegistry.setUserTodoIds(user.id, userTodoIds);
+
+				// 异步拉取热力图
+				loadHeatmap(user.id);
 			}
 		} catch (err) {
 			console.error('Failed to load user profile:', err);
@@ -255,6 +278,12 @@ export function createUserProfileResource(initialIdentifier?: string) {
 		},
 		get isMe() {
 			return isMe;
+		},
+		get heatmap() {
+			return heatmap;
+		},
+		get isHeatmapLoading() {
+			return isHeatmapLoading;
 		},
 		get activeTab() {
 			return activeTab;

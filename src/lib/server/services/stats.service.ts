@@ -295,6 +295,42 @@ export async function getHeatmapStats(db: Database, days: number = 365): Promise
 }
 
 /**
+ * 聚合指定用户的 GitHub 式行动热力图数据
+ */
+export async function getUserHeatmapStats(
+	db: Database,
+	userId: string,
+	days: number = 365
+): Promise<HeatmapData> {
+	const startDate = new Date();
+	startDate.setDate(startDate.getDate() - (days - 1));
+	startDate.setHours(0, 0, 0, 0);
+
+	const activitiesRaw = await db.execute<{ day: string; created: number; completed: number; notes: number }>(sql`
+		select 
+			to_char(created_at, 'YYYY-MM-DD') as day,
+			count(*) filter (where type = 'created')::int as created,
+			count(*) filter (where to_status = 'done')::int as completed,
+			count(*) filter (where type = 'progress_note')::int as notes
+		from todo_activities
+		where author_id = ${userId} and created_at >= ${startDate.toISOString()}::timestamptz
+		group by 1
+	`);
+	const activitiesRows = extractRows<{ day: string; created: number; completed: number; notes: number }>(activitiesRaw);
+
+	const rawMap = new Map<string, { created: number; completed: number; notes: number }>();
+	for (const row of activitiesRows) {
+		rawMap.set(row.day, {
+			created: row.created,
+			completed: row.completed,
+			notes: row.notes
+		});
+	}
+
+	return fillHeatmapDays(rawMap, days);
+}
+
+/**
  * 热门多人协同 Todo TOP 5
  */
 export async function getTopTopics(db: Database, limit: number = 5): Promise<TopTopicItem[]> {

@@ -13,6 +13,7 @@
 	import TodoItem from '$lib/components/todo/TodoItem.svelte';
 	import UserProfileCard from '$lib/components/user/UserProfileCard.svelte';
 	import UserStatsGrid from '$lib/components/user/UserStatsGrid.svelte';
+	import ActivityHeatmap from '$lib/components/stats/ActivityHeatmap.svelte';
 
 	const profileRes = createUserProfileResource(page.params.id);
 
@@ -160,6 +161,33 @@
 						completionRate={profileRes.globalCompletionRate}
 					/>
 				</UserProfileCard>
+
+				<!-- 个人行动打卡热力图 (仅热力图，近 365 天打卡足迹) -->
+				<div
+					class="p-5 sm:p-6 rounded-3xl border border-zinc-200/80 dark:border-zinc-800 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-md shadow-xs space-y-4"
+				>
+					<div class="flex items-center justify-between gap-3 flex-wrap">
+						<div class="flex items-center gap-2">
+							<span class="text-base font-bold text-zinc-900 dark:text-zinc-100">
+								行动热力图
+							</span>
+							<span class="text-xs text-zinc-400 font-mono">
+								(近 365 天)
+							</span>
+						</div>
+						<div class="text-xs text-zinc-500 dark:text-zinc-400 font-mono">
+							过去一年累计打卡 <span class="font-bold text-emerald-600 dark:text-emerald-400">{profileRes.heatmap?.totalActivities ?? 0}</span> 次
+						</div>
+					</div>
+
+					{#if profileRes.isHeatmapLoading && !profileRes.heatmap}
+						<div class="h-32 rounded-2xl bg-zinc-100/60 dark:bg-zinc-800/40 animate-pulse flex items-center justify-center text-xs text-zinc-400">
+							正在载入行动热力图...
+						</div>
+					{:else}
+						<ActivityHeatmap days={profileRes.heatmap?.days || []} />
+					{/if}
+				</div>
 
 				<!-- 待办清单与分类筛选 -->
 				<div class="space-y-4">

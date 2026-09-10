@@ -13,7 +13,7 @@ import type {
 	UpdateTodoInput
 } from '$lib/types/todo';
 import type { UpdateUserInput, UserProfile } from '$lib/types/user';
-import type { GlobalStatsData } from '$lib/types/stats';
+import type { GlobalStatsData, HeatmapData } from '$lib/types/stats';
 
 import { progressStore } from '$lib/stores/progress.svelte';
 
@@ -222,6 +222,18 @@ export const api = {
 				method: 'PATCH',
 				body: JSON.stringify(input)
 			},
+			customFetch
+		);
+	},
+
+	async getUserHeatmap(
+		id: string,
+		days: number = 365,
+		customFetch?: typeof fetch
+	): Promise<{ heatmap: HeatmapData }> {
+		return request<{ heatmap: HeatmapData }>(
+			`/api/users/${id}/heatmap?days=${days}`,
+			undefined,
 			customFetch
 		);
 	},

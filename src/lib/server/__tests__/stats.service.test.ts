@@ -1,10 +1,12 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import {
 	formatDateKey,
 	calculateHeatmapLevel,
 	fillTrendDays,
-	fillHeatmapDays
+	fillHeatmapDays,
+	getUserHeatmapStats
 } from '../services/stats.service';
+import type { Database } from '../db';
 
 describe('stats.service pure functions (TDD)', () => {
 	it('formatDateKey formats date correctly to YYYY-MM-DD', () => {
@@ -99,6 +101,34 @@ describe('stats.service pure functions (TDD)', () => {
 			expect(result.days[result.days.length - 1].date).toBe('2026-09-09');
 			// Strictly no days after 2026-09-09
 			expect(result.days.every((d) => d.date <= '2026-09-09')).toBe(true);
+		});
+	});
+
+	describe('getUserHeatmapStats (TDD)', () => {
+		it('aggregates user specific activities correctly', async () => {
+			const mockExecute = vi.fn().mockResolvedValue([
+				{ day: '2026-09-08', created: 2, completed: 1, notes: 0 },
+				{ day: '2026-09-07', created: 0, completed: 3, notes: 1 }
+			]);
+			const mockDb = {
+				execute: mockExecute
+			} as unknown as Database;
+
+			const result = await getUserHeatmapStats(mockDb, 'user-123', 7);
+
+			expect(mockExecute).toHaveBeenCalled();
+			expect(result.days).toHaveLength(7);
+			expect(result.totalActivities).toBe(7);
+			const day08 = result.days.find((d) => d.date === '2026-09-08');
+			expect(day08).toBeDefined();
+			expect(day08?.created).toBe(2);
+			expect(day08?.completed).toBe(1);
+			expect(day08?.notes).toBe(0);
+
+			const day07 = result.days.find((d) => d.date === '2026-09-07');
+			expect(day07).toBeDefined();
+			expect(day07?.completed).toBe(3);
+			expect(day07?.notes).toBe(1);
 		});
 	});
 });
