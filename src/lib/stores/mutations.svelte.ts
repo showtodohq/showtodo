@@ -243,34 +243,38 @@ class TodoMutations {
 		const targetEmoji = emoji || (target.myReactions.length > 0 ? undefined : '❤️');
 		const isLiked = targetEmoji ? target.myReactions.includes(targetEmoji) : true;
 
-		const updateReactions = (item: Todo, liked: boolean) => {
-			const nextReactions = {
-				...(item.reactions || { '❤️': 0, '👍': 0, '🔥': 0, '💪': 0, '👏': 0, '🚀': 0, '🎉': 0, '👀': 0 })
-			};
-			let nextMyReactions = [...(item.myReactions || [])];
+		const nextReactions = {
+			...(prevReactions || { '❤️': 0, '👍': 0, '🔥': 0, '💪': 0, '👏': 0, '🚀': 0, '🎉': 0, '👀': 0 })
+		};
+		let nextMyReactions = [...prevMyReactions];
 
-			if (liked) {
-				if (!targetEmoji) {
-					for (const e of prevMyReactions) nextReactions[e] = Math.max(0, (nextReactions[e] || 1) - 1);
-					nextMyReactions = [];
-				} else {
-					nextReactions[targetEmoji] = Math.max(0, (nextReactions[targetEmoji] || 1) - 1);
-					nextMyReactions = nextMyReactions.filter((e) => e !== targetEmoji);
+		if (isLiked) {
+			if (!targetEmoji) {
+				for (const e of prevMyReactions) {
+					nextReactions[e] = Math.max(0, (nextReactions[e] || 1) - 1);
 				}
+				nextMyReactions = [];
 			} else {
-				nextReactions[targetEmoji!] = (nextReactions[targetEmoji!] || 0) + 1;
-				nextMyReactions = [...nextMyReactions, targetEmoji!];
+				nextReactions[targetEmoji] = Math.max(0, (nextReactions[targetEmoji] || 1) - 1);
+				nextMyReactions = nextMyReactions.filter((e) => e !== targetEmoji);
 			}
+		} else {
+			nextReactions[targetEmoji!] = (nextReactions[targetEmoji!] || 0) + 1;
+			if (!nextMyReactions.includes(targetEmoji!)) {
+				nextMyReactions.push(targetEmoji!);
+			}
+		}
 
-			item.reactions = nextReactions;
-			item.myReactions = nextMyReactions;
+		const applyState = (item: Todo) => {
+			item.reactions = { ...nextReactions };
+			item.myReactions = [...nextMyReactions];
 		};
 
 		try {
 			await optimisticAction({
 				apply: () => {
-					todoRegistry.mutate(todoId, (item) => updateReactions(item, isLiked));
-					if (fallbackTodo) updateReactions(fallbackTodo, isLiked);
+					todoRegistry.mutate(todoId, (item) => applyState(item));
+					if (fallbackTodo) applyState(fallbackTodo);
 				},
 				rollback: () => {
 					todoRegistry.mutate(todoId, (item) => {

@@ -5,11 +5,20 @@
 	interface Props {
 		reactions?: Record<string, number>;
 		myReactions?: (ReactionEmoji | string)[];
+		size?: 'sm' | 'md';
 		onreact?: (emoji?: ReactionEmoji) => void;
 		class?: string;
 	}
 
-	let { reactions = {}, myReactions = [], onreact, class: className = '' }: Props = $props();
+	let {
+		reactions = {},
+		myReactions = [],
+		size = 'sm',
+		onreact,
+		class: className = ''
+	}: Props = $props();
+
+	const isMd = $derived(size === 'md');
 
 	const totalReactionCount = $derived(
 		Object.values(reactions || {}).reduce((sum, c) => sum + c, 0)
@@ -70,7 +79,9 @@
 	<button
 		type="button"
 		onclick={() => handleSelectEmoji()}
-		class="group/heart relative inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-mono transition-all duration-150 cursor-pointer select-none active:scale-90 {hasMyReaction
+		class="group/heart relative inline-flex items-center transition-all duration-150 cursor-pointer select-none active:scale-90 {isMd
+			? 'gap-2 px-3 py-1 min-h-[32px] rounded-full text-xs sm:text-sm'
+			: 'gap-1.5 px-2 py-0.5 rounded-full text-xs'} font-mono {hasMyReaction
 			? 'text-rose-600 dark:text-rose-400 bg-rose-50/80 dark:bg-rose-950/40 border border-rose-200/80 dark:border-rose-800/60 font-semibold shadow-2xs'
 			: 'text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800/80 border border-transparent'}"
 		title={hasMyReaction
@@ -82,14 +93,14 @@
 		<span class="relative flex items-center justify-center shrink-0">
 			{#if isBouncing}
 				<span
-					class="absolute h-4 w-4 rounded-full bg-rose-400/30 dark:bg-rose-500/30 animate-ripple-burst pointer-events-none"
+					class="absolute {isMd ? 'h-5 w-5' : 'h-4 w-4'} rounded-full bg-rose-400/30 dark:bg-rose-500/30 animate-ripple-burst pointer-events-none"
 				></span>
 			{/if}
 
 			{#if hasMyReaction}
 				<!-- 已点赞：实心高亮爱心 Icon (带果冻回弹微动效) -->
 				<svg
-					class="h-3.5 w-3.5 text-rose-500 fill-rose-500 transition-transform {isBouncing
+					class="{isMd ? 'h-4 w-4' : 'h-3.5 w-3.5'} text-rose-500 fill-rose-500 transition-transform {isBouncing
 						? 'animate-heart-bounce'
 						: ''}"
 					viewBox="0 0 24 24"
@@ -101,7 +112,7 @@
 			{:else}
 				<!-- 未点赞：极简描边空心爱心 Icon -->
 				<svg
-					class="h-3.5 w-3.5 stroke-[1.8] text-zinc-400 group-hover/heart:text-rose-500 transition-all duration-150 {isBouncing
+					class="{isMd ? 'h-4 w-4' : 'h-3.5 w-3.5'} stroke-[1.8] text-zinc-400 group-hover/heart:text-rose-500 transition-all duration-150 {isBouncing
 						? 'animate-heart-bounce'
 						: 'group-hover/heart:scale-110'}"
 					fill="none"
@@ -120,7 +131,7 @@
 		{#if totalReactionCount > 0}
 			<!-- 数字跳动微动效 -->
 			<span
-				class="text-[11px] leading-none transition-colors duration-150 {isCountBumping
+				class="{isMd ? 'text-xs' : 'text-[11px]'} leading-none transition-colors duration-150 {isCountBumping
 					? 'animate-count-bump'
 					: ''} {hasMyReaction
 					? 'text-rose-600 dark:text-rose-400 font-bold'

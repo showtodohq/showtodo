@@ -9,6 +9,8 @@ vi.mock('$lib/services/api', () => ({
 	api: {
 		createTodo: vi.fn(),
 		updateTodo: vi.fn(),
+		addReaction: vi.fn().mockResolvedValue({}),
+		removeReaction: vi.fn().mockResolvedValue({}),
 		getDailyCards: vi.fn().mockResolvedValue({ cards: [] })
 	}
 }));
@@ -87,5 +89,55 @@ describe('todoMutations.createTodo', () => {
 		expect(storedInRegistry).toBeDefined();
 		expect(storedInRegistry?.author).toBeDefined();
 		expect(storedInRegistry?.author?.nickname).toBe('云端昵称');
+	});
+
+	it('increments count by exactly 1 when toggleReaction is called with fallbackTodo (detail page scenario)', async () => {
+		const todo = todoRegistry.upsert({
+			id: 'detail-todo-1',
+			shortId: 'dt1',
+			topicHash: '',
+			content: '测试待办',
+			note: null,
+			isNotePublic: true,
+			category: null,
+			authorId: 'user-uuid-1',
+			status: 'pending',
+			startDate: '2026-09-11T00:00:00.000Z',
+			dueDate: null,
+			createdAt: '2026-09-11T00:00:00.000Z',
+			updatedAt: '2026-09-11T00:00:00.000Z',
+			reactions: { '🔥': 0, '❤️': 0 },
+			myReactions: []
+		});
+
+		await todoMutations.toggleReaction('detail-todo-1', '🔥', todo);
+
+		expect(todo.reactions?.['🔥']).toBe(1);
+		expect(todo.myReactions).toEqual(['🔥']);
+	});
+
+	it('decrements count by exactly 1 when toggleReaction is called to cancel reaction', async () => {
+		const todo = todoRegistry.upsert({
+			id: 'detail-todo-2',
+			shortId: 'dt2',
+			topicHash: '',
+			content: '测试待办2',
+			note: null,
+			isNotePublic: true,
+			category: null,
+			authorId: 'user-uuid-1',
+			status: 'pending',
+			startDate: '2026-09-11T00:00:00.000Z',
+			dueDate: null,
+			createdAt: '2026-09-11T00:00:00.000Z',
+			updatedAt: '2026-09-11T00:00:00.000Z',
+			reactions: { '🔥': 2, '❤️': 0 },
+			myReactions: ['🔥']
+		});
+
+		await todoMutations.toggleReaction('detail-todo-2', '🔥', todo);
+
+		expect(todo.reactions?.['🔥']).toBe(1);
+		expect(todo.myReactions).toEqual([]);
 	});
 });

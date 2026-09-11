@@ -8,7 +8,7 @@
 	import Button from '$lib/components/ui/Button.svelte';
 	import CategoryBadge from '$lib/components/todo/CategoryBadge.svelte';
 	import TodoCheckbox from '$lib/components/todo/TodoCheckbox.svelte';
-	import ReactionButton from '$lib/components/todo/ReactionButton.svelte';
+	import TodoReactionsBar from '$lib/components/todo/TodoReactionsBar.svelte';
 
 	interface Props {
 		todo: Todo;
@@ -225,25 +225,16 @@
 		</button>
 	</div>
 
-	<!-- 底部互动区：Reaction 与编辑入口 -->
-	<div
-		class="pt-4 border-t border-zinc-200/60 dark:border-zinc-800/60 flex items-center justify-between gap-3"
-	>
-		<ReactionButton
+	<!-- 底部互动区：平铺表情胶囊与右侧操作栏（表态入口 + 图标化编辑） -->
+	<div class="pt-4 border-t border-zinc-200/60 dark:border-zinc-800/60">
+		<TodoReactionsBar
+			todoId={todo.id}
 			reactions={todo.reactions}
 			myReactions={todo.myReactions}
+			{isMine}
 			onreact={onreaction}
+			onedit={isMine && !isEditing ? () => (isEditing = true) : undefined}
 		/>
-
-		{#if isMine && !isEditing}
-			<button
-				type="button"
-				onclick={() => (isEditing = true)}
-				class="text-xs text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 transition-colors cursor-pointer"
-			>
-				编辑正文
-			</button>
-		{/if}
 	</div>
 
 	<!-- 多人同行互动区域 -->
