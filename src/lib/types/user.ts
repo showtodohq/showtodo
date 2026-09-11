@@ -1,12 +1,15 @@
-export interface UserProfile {
+export interface PublicUserProfile {
 	id: string;
-	email: string;
 	handle: string;
 	nickname: string;
 	avatar: string | null;
 	createdAt: string;
 	updatedAt: string;
 	lastTodoUpdatedAt?: string | null;
+}
+
+export interface UserProfile extends PublicUserProfile {
+	email?: string;
 }
 
 export interface UpdateUserInput {

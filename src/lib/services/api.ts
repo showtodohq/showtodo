@@ -206,8 +206,21 @@ export const api = {
 		);
 	},
 
-	async getUserById(id: string, customFetch?: typeof fetch): Promise<{ user: UserProfile }> {
-		return request<{ user: UserProfile }>(`/api/users/${id}`, undefined, customFetch);
+	async getUserById(
+		id: string,
+		options?: { currentUserId?: string } | (typeof fetch),
+		customFetch?: typeof fetch
+	): Promise<{ user: UserProfile }> {
+		let currentUserId: string | undefined;
+		let fetcher = customFetch;
+		if (typeof options === 'function') {
+			fetcher = options;
+		} else if (options && typeof options === 'object') {
+			currentUserId = options.currentUserId;
+		}
+
+		const query = currentUserId ? `?currentUserId=${encodeURIComponent(currentUserId)}` : '';
+		return request<{ user: UserProfile }>(`/api/users/${id}${query}`, undefined, fetcher);
 	},
 
 	async syncUser(email: string, customFetch?: typeof fetch): Promise<{ user: UserProfile }> {

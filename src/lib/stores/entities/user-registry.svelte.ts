@@ -32,7 +32,7 @@ class UserProfileRegistry {
 				nickname: user.nickname || '用户',
 				handle: user.handle || 'user',
 				avatar: user.avatar || null,
-				email: user.email || '',
+				...(user.email ? { email: user.email } : {}),
 				createdAt: user.createdAt || '',
 				updatedAt: user.updatedAt || ''
 			};

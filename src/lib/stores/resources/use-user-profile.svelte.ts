@@ -48,7 +48,6 @@ function getInitialProfileAndTodos(identifier?: string): { user: UserProfile | n
 			nickname: author.nickname,
 			handle: author.handle,
 			avatar: author.avatar || null,
-			email: '',
 			createdAt: '',
 			updatedAt: ''
 		};
@@ -180,7 +179,7 @@ export function createUserProfileResource(initialIdentifier?: string) {
 			// 2. 后台获取权威数据：若是本人 ID 已知，直接并行拉取节省等待延迟
 			if (isMeIdentity && userStore.id) {
 				const [userRes, todosRes] = await Promise.all([
-					api.getUserById(identifier),
+					api.getUserById(identifier, { currentUserId: userStore.id }),
 					api.getTodos({
 						authorId: userStore.id,
 						currentUserId: userStore.id,
@@ -199,7 +198,7 @@ export function createUserProfileResource(initialIdentifier?: string) {
 				// 异步拉取热力图（若此前未拉取或拉取不同 ID）
 				loadHeatmap(user.id);
 			} else {
-				const res = await api.getUserById(identifier);
+				const res = await api.getUserById(identifier, { currentUserId: userStore.id });
 				user = res.user;
 
 				const todosRes = await api.getTodos({

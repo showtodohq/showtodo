@@ -53,8 +53,10 @@ class UserStore {
 	}
 
 	updateUserFromProfile(user: UserProfile) {
+		const email = user.email || this.current?.email || '';
+		if (!email) return;
 		this.current = {
-			email: user.email,
+			email,
 			id: user.id,
 			handle: user.handle,
 			nickname: user.nickname,

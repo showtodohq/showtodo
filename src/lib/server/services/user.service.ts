@@ -3,6 +3,7 @@ import { users, todos } from '../db/schema';
 import type { Database } from '../db';
 import { AppError } from '../errors';
 import { generateRandomSuffix, sanitizeHandle, isUUID } from '../validation';
+import type { PublicUserProfile, UserProfile } from '$lib/types/user';
 
 export async function findByEmail(db: Database, email: string) {
 	const result = await db.select().from(users).where(eq(users.email, email.toLowerCase())).limit(1);
@@ -171,5 +172,57 @@ export async function listUsersWithTodosInWeek(
 		hasMore
 	};
 }
+
+export type UserRecord = {
+	id: string;
+	email: string;
+	handle: string;
+	nickname: string;
+	avatar: string | null;
+	createdAt: Date | string;
+	updatedAt: Date | string;
+	lastTodoUpdatedAt?: Date | string | null;
+};
+
+function formatIso(val: Date | string | null | undefined): string | null {
+	if (!val) return null;
+	if (val instanceof Date) return val.toISOString();
+	return String(val);
+}
+
+/**
+ * DDD 领域模型投影器：安全转换为面向公众展示的用户数据契约
+ * 彻底剔除 email 等私密身份凭据，防止敏感数据过度暴露 (PII Data Exposure)
+ */
+export function toPublicProfile(user: UserRecord): PublicUserProfile {
+	return {
+		id: user.id,
+		handle: user.handle,
+		nickname: user.nickname,
+		avatar: user.avatar,
+		createdAt: formatIso(user.createdAt) || new Date().toISOString(),
+		updatedAt: formatIso(user.updatedAt) || new Date().toISOString(),
+		lastTodoUpdatedAt: formatIso(user.lastTodoUpdatedAt)
+	};
+}
+
+/**
+ * DDD 领域模型投影器：根据查看者权限受限返回用户画像
+ * 仅当 isSelf 为 true（用户本人访问自身资源）时才携带 email，否则输出脱敏后的公开展现资料
+ */
+export function toUserProfile(
+	user: UserRecord,
+	options?: { isSelf?: boolean }
+): UserProfile {
+	const publicProfile = toPublicProfile(user);
+	if (options?.isSelf) {
+		return {
+			...publicProfile,
+			email: user.email
+		};
+	}
+	return publicProfile;
+}
+
 
 

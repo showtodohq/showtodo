@@ -56,16 +56,11 @@ export const GET: RequestHandler = async ({ url }) => {
 		});
 
 		return json({
-			users: activeUsers.map((u) => ({
-				id: u.id,
-				email: u.email,
-				nickname: u.nickname,
-				handle: u.handle,
-				avatar: u.avatar,
-				createdAt: u.createdAt.toISOString(),
-				updatedAt: u.updatedAt.toISOString(),
-				lastTodoUpdatedAt: u.lastTodoUpdatedAt ? u.lastTodoUpdatedAt.toISOString() : null
-			})),
+			users: activeUsers.map((u) =>
+				userService.toUserProfile(u, {
+					isSelf: Boolean(currentUserId && currentUserId === u.id)
+				})
+			),
 			todos: calendarTodos,
 			hasMoreUsers: userResult.hasMore
 		});
