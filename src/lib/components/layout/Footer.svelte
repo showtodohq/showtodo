@@ -4,7 +4,7 @@
 		<div class="flex items-center gap-3 text-[11px]">
 			<a href="/stats" class="hover:text-zinc-600 dark:hover:text-zinc-300 transition-colors">全站统计</a>
 			<span>·</span>
-			<a href="/topics" class="hover:text-zinc-600 dark:hover:text-zinc-300 transition-colors">多人广场</a>
+			<a href="/topics" class="hover:text-zinc-600 dark:hover:text-zinc-300 transition-colors">同行广场</a>
 			<span>·</span>
 			<span>任何人可发布 · 任何人可围观</span>
 		</div>

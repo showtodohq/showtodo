@@ -6,7 +6,7 @@
 	let { count = 4 }: Props = $props();
 </script>
 
-<div class="space-y-2.5 sm:space-y-3" aria-busy="true" aria-label="正在加载多人同行列表">
+<div class="space-y-2.5 sm:space-y-3" aria-busy="true" aria-label="正在加载同行列表">
 	{#each Array(count) as _, i (i)}
 		<div
 			class="rounded-2xl bg-zinc-50 dark:bg-zinc-900/60 p-4 sm:p-5 space-y-3 animate-pulse"

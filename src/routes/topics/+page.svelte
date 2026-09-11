@@ -55,7 +55,7 @@
 </script>
 
 <svelte:head>
-	<title>多人待办广场 · ptdl-alpha</title>
+	<title>同行广场 · ptdl-alpha</title>
 </svelte:head>
 
 <div class="w-full space-y-5 sm:space-y-6">
@@ -63,7 +63,7 @@
 	<div class="flex items-center justify-between pb-2 border-b border-zinc-100 dark:border-zinc-800/60">
 		<div class="flex items-center gap-2">
 			<span class="text-base sm:text-lg font-bold tracking-tight text-zinc-900 dark:text-zinc-100">
-				多人待办广场
+				同行广场
 			</span>
 			{#if topicsRes.loaded}
 				<span class="px-2 py-0.5 rounded-full text-xs font-mono font-medium bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400">
@@ -108,17 +108,17 @@
 				</button>
 			</div>
 
-			<!-- 多人组快捷过滤芯片 (≥2人) -->
+			<!-- 结伴同行快捷过滤芯片 (≥2人) -->
 			<button
 				type="button"
 				onclick={() => topicsRes.setMinParticipants(topicsRes.minParticipants > 1 ? 1 : 2)}
 				class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl font-medium transition-all cursor-pointer {topicsRes.minParticipants > 1
 					? 'bg-amber-100/80 text-amber-900 dark:bg-amber-950/60 dark:text-amber-200 font-semibold'
 					: 'bg-zinc-100/80 hover:bg-zinc-200/70 text-zinc-600 dark:bg-zinc-800/60 dark:hover:bg-zinc-800 dark:text-zinc-400'}"
-				title="切换是否只看已有2人及以上同行的多人目标"
+				title="切换是否只看已有2人及以上同行的目标"
 			>
 				<span>👥</span>
-				<span>仅看多人组</span>
+				<span>结伴同行</span>
 			</button>
 		</div>
 
@@ -169,7 +169,7 @@
 			>
 				<div class="text-3xl">🌱</div>
 				<div class="text-sm font-semibold text-zinc-800 dark:text-zinc-200">
-					暂无符合条件的多人同行目标
+					暂无符合条件的同行目标
 				</div>
 				<p class="text-xs text-zinc-400 max-w-sm mx-auto">
 					尝试切换视角、清除搜索词，或者前往主页发布一条待办，邀请伙伴一起加入吧！

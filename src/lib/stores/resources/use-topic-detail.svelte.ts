@@ -154,7 +154,7 @@ export function createTopicDetailResource(initialHash?: string) {
 		} catch (err) {
 			console.error('Failed to load topic detail:', err);
 			if (!topic) {
-				error = (err as Error).message || '该多人同行目标不存在或已解散';
+				error = (err as Error).message || '该同行目标不存在或已结束';
 			}
 		} finally {
 			loading = false;

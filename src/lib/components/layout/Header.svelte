@@ -45,7 +45,7 @@
 					? 'bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 shadow-2xs font-semibold'
 					: 'text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100'}"
 			>
-				多人广场
+				同行广场
 			</a>
 			<a
 				href="/stats"

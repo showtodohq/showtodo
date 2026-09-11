@@ -1,4 +1,4 @@
-<div class="space-y-6 sm:space-y-8 animate-pulse" aria-busy="true" aria-label="正在加载多人同行详情">
+<div class="space-y-6 sm:space-y-8 animate-pulse" aria-busy="true" aria-label="正在加载同行目标详情">
 	<!-- 顶部返回导航占位 -->
 	<div class="flex items-center justify-between">
 		<div class="h-4 w-20 bg-zinc-200/70 dark:bg-zinc-800/70 rounded-md"></div>

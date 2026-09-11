@@ -44,9 +44,9 @@
 		<a
 			href="/topics"
 			class="flex items-center gap-1.5 font-semibold text-xs text-zinc-900 dark:text-zinc-100 hover:text-amber-600 dark:hover:text-amber-400 transition-colors group/title"
-			title="前往多人 Todo 广场"
+			title="前往同行广场"
 		>
-			<span>🔥 热门多人 Todo</span>
+			<span>🔥 热门同行目标</span>
 		</a>
 
 		<div class="flex items-center gap-1.5">
@@ -55,7 +55,7 @@
 			<a
 				href="/topics"
 				class="inline-flex items-center gap-0.5 text-[11px] font-medium text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100 transition-colors group/link cursor-pointer"
-				title="前往多人 Todo 广场查看全部"
+				title="前往同行广场查看全部"
 			>
 				<span>查看全部</span>
 				<span class="transition-transform group-hover/link:translate-x-0.5">→</span>
@@ -74,7 +74,7 @@
 
 		{#snippet emptyView()}
 			<div class="py-3 text-center text-xs text-zinc-400">
-				暂无热门多人目标，发布一个让大家一起参与吧！
+				暂无热门同行目标，发布一个待办，等待同频伙伴！
 			</div>
 		{/snippet}
 
@@ -92,12 +92,12 @@
 						? 'border border-amber-300/60 dark:border-amber-500/50 bg-gradient-to-br from-amber-50/80 via-yellow-50/30 to-amber-50/80 dark:from-amber-950/25 dark:via-yellow-950/10 dark:to-amber-950/25 shadow-2xs'
 						: 'hover:bg-zinc-100/70 dark:hover:bg-zinc-900/60'}"
 				>
-					<!-- 目标标题与分类 (点击直达多人 Todo 详情页) -->
+					<!-- 目标标题与分类 (点击直达同行详情页) -->
 					<div class="flex items-center justify-between gap-2">
 						<a
 							href="/topics/{card.topicHash}?date={getTodayString()}"
 							class="min-w-0 flex-1 group/title focus:outline-hidden"
-							title="查看多人 Todo 详情"
+							title="查看同行详情"
 						>
 							<span
 								class="text-xs font-semibold text-zinc-900 dark:text-zinc-100 group-hover/title:underline truncate block leading-snug {isAllDone ? 'text-amber-950 dark:text-amber-100' : ''}"
@@ -145,7 +145,7 @@
 						<a
 							href="/topics/{card.topicHash}?date={getTodayString()}"
 							class="flex items-center gap-1 hover:underline cursor-pointer"
-							title="查看多人 Todo 详情"
+							title="查看同行详情"
 						>
 							{#if isAllDone}
 								<span class="text-amber-500">✨</span>

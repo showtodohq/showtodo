@@ -68,7 +68,7 @@ export function createTopicsResource() {
 			offset = reset ? res.topics.length : offset + res.topics.length;
 			loaded = true;
 		} catch (err) {
-			error = (err as Error).message || '加载多人同行列表失败';
+			error = (err as Error).message || '加载同行列表失败';
 			console.error('Failed to load topics:', err);
 		} finally {
 			loading = false;

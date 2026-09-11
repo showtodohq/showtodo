@@ -36,8 +36,9 @@
 		<button
 			type="button"
 			onclick={handleBack}
-			class="inline-flex items-center gap-1 font-medium hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors cursor-pointer group"
+			class="inline-flex items-center justify-center p-1 -ml-1 rounded-md text-zinc-500 hover:text-zinc-900 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:text-zinc-100 dark:hover:bg-zinc-800/60 transition-all cursor-pointer group"
 			title={backLabel}
+			aria-label={backLabel}
 		>
 			<svg
 				class="w-3.5 h-3.5 transition-transform group-hover:-translate-x-0.5"
@@ -47,12 +48,13 @@
 			>
 				<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
 			</svg>
-			<span>{backLabel}</span>
+			{#if crumbs.length === 0}
+				<span class="ml-1 font-medium">{backLabel}</span>
+			{/if}
 		</button>
 
-		<!-- 可选的面包屑链路 -->
+		<!-- 面包屑链路 -->
 		{#if crumbs.length > 0}
-			<span class="text-zinc-300 dark:text-zinc-700">/</span>
 			{#each crumbs as crumb, idx}
 				{#if crumb.href && idx < crumbs.length - 1}
 					<a
@@ -61,7 +63,7 @@
 					>
 						{crumb.label}
 					</a>
-					<span class="text-zinc-300 dark:text-zinc-700">/</span>
+					<span class="text-zinc-300 dark:text-zinc-700 select-none">/</span>
 				{:else}
 					<span class="text-zinc-800 dark:text-zinc-200 font-medium truncate max-w-[200px] sm:max-w-xs">
 						{crumb.label}

@@ -491,7 +491,7 @@
 					</div>
 					<div>
 						<div class="flex items-center gap-2">
-							<h1 class="text-sm font-semibold tracking-tight text-zinc-900 dark:text-zinc-100">多人待办广场</h1>
+							<h1 class="text-sm font-semibold tracking-tight text-zinc-900 dark:text-zinc-100">同行广场</h1>
 							<span class="rounded-full bg-zinc-200/70 px-2 py-0.5 text-[10px] font-medium text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400">测试 DEMO</span>
 						</div>
 						<p class="text-[11px] text-zinc-500 dark:text-zinc-400">内容寻址聚合 · 状态流转 · 分流编辑 · 独立平权</p>

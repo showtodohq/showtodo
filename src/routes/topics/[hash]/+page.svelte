@@ -27,7 +27,7 @@
 </script>
 
 <svelte:head>
-	<title>{topicRes.topic ? `#${topicRes.topic.content} · 多人同行 · ptdl-alpha` : '多人同行 · ptdl-alpha'}</title>
+	<title>{topicRes.topic ? `#${topicRes.topic.content} · 同行目标 · ptdl-alpha` : '同行目标 · ptdl-alpha'}</title>
 </svelte:head>
 
 <div class="w-full space-y-6 sm:space-y-8">
@@ -42,7 +42,7 @@
 
 		{#snippet emptyView()}
 			<div class="space-y-6 sm:space-y-8">
-				<BreadcrumbNav backHref="/topics" backLabel="返回多人广场" />
+				<BreadcrumbNav backHref="/topics" backLabel="返回同行广场" />
 				<div
 					class="p-8 rounded-3xl border border-dashed border-red-200 dark:border-red-900/50 bg-red-50/50 dark:bg-red-950/20 text-center space-y-3"
 				>
@@ -54,7 +54,7 @@
 						该目标可能尚未有成员参与，请返回广场探索最新热门目标。
 					</p>
 					<Button variant="outline" size="sm" onclick={() => goto('/topics')}>
-						返回多人广场
+						返回同行广场
 					</Button>
 				</div>
 			</div>
@@ -62,7 +62,7 @@
 
 		{#snippet errorView(msg)}
 			<div class="space-y-6 sm:space-y-8">
-				<BreadcrumbNav backHref="/topics" backLabel="返回多人广场" />
+				<BreadcrumbNav backHref="/topics" backLabel="返回同行广场" />
 				<div
 					class="p-8 rounded-3xl border border-dashed border-red-200 dark:border-red-900/50 bg-red-50/50 dark:bg-red-950/20 text-center space-y-3"
 				>
@@ -74,7 +74,7 @@
 						该目标可能尚未有成员参与，请返回广场探索最新热门目标。
 					</p>
 					<Button variant="outline" size="sm" onclick={() => goto('/topics')}>
-						返回多人广场
+						返回同行广场
 					</Button>
 				</div>
 			</div>
@@ -85,14 +85,14 @@
 				<!-- 极简面包屑与溯源导航 -->
 				<BreadcrumbNav
 					backHref="/topics"
-					backLabel="返回多人广场"
+					backLabel="返回同行广场"
 					crumbs={[
-						{ label: '多人广场', href: '/topics' },
+						{ label: '同行广场', href: '/topics' },
 						{ label: `#${topicRes.topic.content}` }
 					]}
 				/>
 
-				<!-- 多人目标头部看板与加入行动栏 -->
+				<!-- 同行目标头部看板与加入行动栏 -->
 				<TopicHeaderCard
 					topic={topicRes.topic}
 					hasJoined={topicRes.hasJoined}

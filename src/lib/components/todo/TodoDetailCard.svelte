@@ -285,7 +285,7 @@
 							<span class="text-base">{topicParticipantCount > 1 ? '🔥' : '🌱'}</span>
 							<span>
 								{#if topicParticipantCount > 1}
-									该待办属于多人同行目标，全网共 <strong>{topicParticipantCount}</strong> 人并肩挑战！
+									已有 <strong>{topicParticipantCount}</strong> 位伙伴正在并肩同行该目标！
 								{:else}
 									暂无其他同路人，想和 TA 一起坚持这个目标吗？
 								{/if}

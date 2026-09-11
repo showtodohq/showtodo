@@ -242,9 +242,9 @@
 			<CategoryDonutChart {categories} totalTodos={overview.totalTodos} />
 		</div>
 
-		<!-- 5. 社区风云双榜 (热门多人协同 Top 5 与 待办完成先锋榜 Top 5 左右对称并排) -->
+		<!-- 5. 社区风云双榜 (热门同行目标 Top 5 与 待办完成先锋榜 Top 5 左右对称并排) -->
 		<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 items-start">
-			<!-- 热门多人协同 Top 5 -->
+			<!-- 热门同行目标 Top 5 -->
 			<div
 				class="rounded-3xl border border-zinc-200/80 dark:border-zinc-800 bg-white/70 dark:bg-zinc-900/60 p-5 sm:p-7 backdrop-blur-md shadow-xs space-y-4"
 			>
@@ -252,7 +252,7 @@
 						<div class="space-y-0.5">
 							<h2 class="text-sm sm:text-base font-bold text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
 								<span>🔥</span>
-								<span>最具号召力多人协同</span>
+								<span>最具号召力同行目标</span>
 							</h2>
 							<p class="text-xs text-zinc-400">同行人数最多的共同挑战目标</p>
 						</div>
