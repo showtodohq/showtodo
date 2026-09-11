@@ -2,7 +2,6 @@
 	import { onMount } from 'svelte';
 	import { statsStore } from '$lib/stores/stats.svelte';
 	import { getCategoryConfig } from '$lib/constants/categories';
-	import BackToSquare from '$lib/components/ui/BackToSquare.svelte';
 	import Avatar from '$lib/components/ui/Avatar.svelte';
 	import CategoryBadge from '$lib/components/todo/CategoryBadge.svelte';
 	import StatsSkeleton from '$lib/components/skeleton/StatsSkeleton.svelte';
@@ -27,42 +26,32 @@
 </script>
 
 <svelte:head>
-	<title>全站数据看板 - Public Todo</title>
+	<title>全站数据看板 · ptdl-alpha</title>
 </svelte:head>
 
 <div class="w-full space-y-6 sm:space-y-8">
-	<!-- 顶部返回 -->
-	<BackToSquare />
+	<!-- 极简页面标题与控制条 (紧凑单行，高约 40px，首屏即核心数据) -->
+	<div class="flex items-center justify-between gap-4 pb-2 border-b border-zinc-100 dark:border-zinc-800/60">
+		<div class="flex items-center gap-2">
+			<span class="text-base sm:text-lg font-bold tracking-tight text-zinc-900 dark:text-zinc-100">
+				全站数据看板
+			</span>
+			<span class="text-xs text-zinc-400 font-mono">
+				实时生态
+			</span>
+		</div>
 
-	<!-- 页面头部看板 Banner -->
-	<div
-		class="relative overflow-hidden rounded-3xl border border-zinc-200/80 dark:border-zinc-800 bg-white/70 dark:bg-zinc-900/60 p-6 sm:p-8 backdrop-blur-md shadow-xs space-y-4"
-	>
-		<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-			<div class="space-y-1.5">
-				<div class="flex items-center gap-2.5">
-					<span class="text-2xl sm:text-3xl">📊</span>
-					<h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-zinc-900 dark:text-zinc-100">
-						全站数据看板
-					</h1>
-				</div>
-				<p class="text-xs sm:text-sm text-zinc-500 dark:text-zinc-400">
-					全网公开待办实时生态 · 见证每一个公开待办的完成与坚持
-				</p>
-			</div>
-
-			<div class="flex items-center gap-2 self-start sm:self-auto font-mono text-xs">
-				<button
-					type="button"
-					onclick={refresh}
-					disabled={statsStore.loading}
-					class="px-3.5 py-1.5 rounded-xl border border-zinc-200/80 dark:border-zinc-800 bg-white/80 dark:bg-zinc-800/80 hover:bg-zinc-100 dark:hover:bg-zinc-700/60 text-zinc-700 dark:text-zinc-300 transition-all cursor-pointer inline-flex items-center gap-1.5 shadow-2xs disabled:opacity-50"
-					title="重新拉取最新数据"
-				>
-					<span class="{statsStore.loading ? 'animate-spin' : ''}">↻</span>
-					<span>刷新数据</span>
-				</button>
-			</div>
+		<div class="flex items-center gap-2 font-mono text-xs">
+			<button
+				type="button"
+				onclick={refresh}
+				disabled={statsStore.loading}
+				class="px-2.5 py-1 rounded-lg border border-zinc-200/80 dark:border-zinc-800 bg-white/80 dark:bg-zinc-900/80 hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-700 dark:text-zinc-300 transition-all cursor-pointer inline-flex items-center gap-1.5 shadow-2xs disabled:opacity-50"
+				title="重新拉取最新数据"
+			>
+				<span class="{statsStore.loading ? 'animate-spin' : ''}">↻</span>
+				<span>刷新</span>
+			</button>
 		</div>
 	</div>
 

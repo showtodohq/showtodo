@@ -6,7 +6,7 @@
 	import type { TodoStatus, CategoryId } from '$lib/types/todo';
 	import { createUserProfileResource } from '$lib/stores/resources/use-user-profile.svelte';
 	import DataView from '$lib/components/ui/DataView.svelte';
-	import BackToSquare from '$lib/components/ui/BackToSquare.svelte';
+	import BreadcrumbNav from '$lib/components/ui/BreadcrumbNav.svelte';
 	import UserProfileSkeleton from '$lib/components/skeleton/UserProfileSkeleton.svelte';
 	import FeedSkeleton from '$lib/components/skeleton/FeedSkeleton.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
@@ -96,7 +96,7 @@
 </script>
 
 <svelte:head>
-	<title>{profileRes.user ? `${profileRes.user.nickname} (@${profileRes.user.handle}) - 个人主页` : '用户主页 - Public Todo'}</title>
+	<title>{profileRes.user ? `${profileRes.user.nickname} (@${profileRes.user.handle}) · 个人主页 · ptdl-alpha` : '用户主页 · ptdl-alpha'}</title>
 </svelte:head>
 
 <div class="w-full space-y-6 sm:space-y-8">
@@ -111,7 +111,7 @@
 
 		{#snippet emptyView()}
 			<div class="space-y-6 sm:space-y-8">
-				<BackToSquare />
+				<BreadcrumbNav backHref="/" backLabel="返回动态流" />
 				<div
 					class="p-8 rounded-3xl border border-dashed border-red-200 dark:border-red-900/50 bg-red-50/50 dark:bg-red-950/20 text-center space-y-3"
 				>
@@ -120,10 +120,10 @@
 						未找到该用户
 					</div>
 					<p class="text-xs text-zinc-500 max-w-sm mx-auto">
-						该用户可能未注册或链接无效，请返回广场查看活跃用户。
+						该用户可能未注册或链接无效，请返回动态流查看活跃用户。
 					</p>
 					<Button variant="outline" size="sm" onclick={() => goto('/')}>
-						返回公共待办广场
+						返回动态流
 					</Button>
 				</div>
 			</div>
@@ -131,7 +131,7 @@
 
 		{#snippet errorView(msg)}
 			<div class="space-y-6 sm:space-y-8">
-				<BackToSquare />
+				<BreadcrumbNav backHref="/" backLabel="返回动态流" />
 				<div
 					class="p-8 rounded-3xl border border-dashed border-red-200 dark:border-red-900/50 bg-red-50/50 dark:bg-red-950/20 text-center space-y-3"
 				>
@@ -140,18 +140,26 @@
 						{msg}
 					</div>
 					<p class="text-xs text-zinc-500 max-w-sm mx-auto">
-						该用户可能未注册或链接无效，请返回广场查看活跃用户。
+						该用户可能未注册或链接无效，请返回动态流查看活跃用户。
 					</p>
 					<Button variant="outline" size="sm" onclick={() => goto('/')}>
-						返回公共待办广场
+						返回动态流
 					</Button>
 				</div>
 			</div>
 		{/snippet}
 
 		{#if profileRes.user}
-			<div class="space-y-6 sm:space-y-8">
-				<BackToSquare />
+			<div class="space-y-5 sm:space-y-6">
+				<!-- 极简面包屑与溯源导航 -->
+				<BreadcrumbNav
+					backHref="/"
+					backLabel="返回动态流"
+					crumbs={[
+						{ label: '动态流', href: '/' },
+						{ label: `@${profileRes.user.handle}` }
+					]}
+				/>
 
 				<!-- 用户名片与统计指标 -->
 				<UserProfileCard user={profileRes.user} isMe={profileRes.isMe} onsaveprofile={onSaveProfile}>

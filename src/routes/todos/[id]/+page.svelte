@@ -5,7 +5,7 @@
 	import { createTodoDetailResource } from '$lib/stores/resources/use-todo-detail.svelte';
 	import type { ReactionEmoji } from '$lib/types/todo';
 	import DataView from '$lib/components/ui/DataView.svelte';
-	import BackToSquare from '$lib/components/ui/BackToSquare.svelte';
+	import BreadcrumbNav from '$lib/components/ui/BreadcrumbNav.svelte';
 	import TodoDetailSkeleton from '$lib/components/skeleton/TodoDetailSkeleton.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
 	import TodoDetailCard from '$lib/components/todo/TodoDetailCard.svelte';
@@ -30,7 +30,7 @@
 </script>
 
 <svelte:head>
-	<title>{detailRes.todo ? `${detailRes.todo.content} - Todo 详情` : '待办详情 - Public Todo'}</title>
+	<title>{detailRes.todo ? `${detailRes.todo.content.slice(0, 24)}${detailRes.todo.content.length > 24 ? '...' : ''} · 待办详情 · ptdl-alpha` : '待办详情 · ptdl-alpha'}</title>
 </svelte:head>
 
 <div class="w-full space-y-6 sm:space-y-8">
@@ -45,7 +45,7 @@
 
 		{#snippet emptyView()}
 			<div class="space-y-6 sm:space-y-8">
-				<BackToSquare />
+				<BreadcrumbNav backHref="/" backLabel="返回动态流" />
 				<div
 					class="p-8 rounded-3xl border border-dashed border-red-200 dark:border-red-900/50 bg-red-50/50 dark:bg-red-950/20 text-center space-y-3"
 				>
@@ -54,10 +54,10 @@
 						待办不存在
 					</div>
 					<p class="text-xs text-zinc-500 max-w-sm mx-auto">
-						该待办可能已被删除或链接无效，请返回公共广场查看其他公开待办。
+						该待办可能已被删除或链接无效，请返回动态流查看其他公开待办。
 					</p>
 					<Button variant="outline" size="sm" onclick={() => goto('/')}>
-						返回公共待办广场
+						返回动态流
 					</Button>
 				</div>
 			</div>
@@ -65,7 +65,7 @@
 
 		{#snippet errorView(msg)}
 			<div class="space-y-6 sm:space-y-8">
-				<BackToSquare />
+				<BreadcrumbNav backHref="/" backLabel="返回动态流" />
 				<div
 					class="p-8 rounded-3xl border border-dashed border-red-200 dark:border-red-900/50 bg-red-50/50 dark:bg-red-950/20 text-center space-y-3"
 				>
@@ -74,18 +74,29 @@
 						{msg}
 					</div>
 					<p class="text-xs text-zinc-500 max-w-sm mx-auto">
-						该待办可能已被删除或链接无效，请返回公共广场查看其他公开待办。
+						该待办可能已被删除或链接无效，请返回动态流查看其他公开待办。
 					</p>
 					<Button variant="outline" size="sm" onclick={() => goto('/')}>
-						返回公共待办广场
+						返回动态流
 					</Button>
 				</div>
 			</div>
 		{/snippet}
 
 		{#if detailRes.todo}
-			<div class="space-y-6 sm:space-y-8">
-				<BackToSquare />
+			<div class="space-y-5 sm:space-y-6">
+				<!-- 极简面包屑与溯源导航 -->
+				<BreadcrumbNav
+					backHref="/"
+					backLabel="返回动态流"
+					crumbs={[
+						{ label: '动态流', href: '/' },
+						...(detailRes.todo.topicHash
+							? [{ label: `#${detailRes.todo.content.slice(0, 16)}`, href: `/topics/${detailRes.todo.topicHash}` }]
+							: []),
+						{ label: '待办详情' }
+					]}
+				/>
 
 				<!-- 待办核心详情卡片 -->
 				<TodoDetailCard

@@ -65,6 +65,10 @@
 	}
 </script>
 
+<svelte:head>
+	<title>全网公开协同 Todo · ptdl-alpha</title>
+</svelte:head>
+
 <div class="w-full space-y-6 sm:space-y-8">
 	<!-- 顶部 Twitter / X 风格极简快速发布框 (直接委托 todoMutations) -->
 	<TodoComposer

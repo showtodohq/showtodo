@@ -4,7 +4,6 @@
 	import { toast } from '$lib/stores/toast.svelte';
 	import { createTopicsResource } from '$lib/stores/resources/use-topics.svelte';
 	import DataView from '$lib/components/ui/DataView.svelte';
-	import BackToSquare from '$lib/components/ui/BackToSquare.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
 	import Spinner from '$lib/components/ui/Spinner.svelte';
 	import TopicCard from '$lib/components/topic/TopicCard.svelte';
@@ -56,40 +55,23 @@
 </script>
 
 <svelte:head>
-	<title>多人待办广场 - Public Todo</title>
+	<title>多人待办广场 · ptdl-alpha</title>
 </svelte:head>
 
-<div class="w-full space-y-6 sm:space-y-8">
-	<!-- 顶部返回 -->
-	<BackToSquare />
-
-	<!-- 页面头部看板 Banner -->
-	<div
-		class="relative overflow-hidden rounded-3xl border border-zinc-200/80 dark:border-zinc-800 bg-white/70 dark:bg-zinc-900/60 p-6 sm:p-8 backdrop-blur-md shadow-xs space-y-4"
-	>
-		<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-			<div class="space-y-1.5">
-				<div class="flex items-center gap-2">
-					<span class="text-2xl">🔥</span>
-					<h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-zinc-900 dark:text-zinc-100">
-						多人待办广场
-					</h1>
-				</div>
-				<p class="text-xs sm:text-sm text-zinc-500 dark:text-zinc-400">
-					内容寻址聚合 · 独立平权 · 相同目标自动并肩冲线
-				</p>
-			</div>
-
-			<!-- 数据微胶囊 -->
+<div class="w-full space-y-5 sm:space-y-6">
+	<!-- 极简页面标题栏 (紧凑单行) -->
+	<div class="flex items-center justify-between pb-2 border-b border-zinc-100 dark:border-zinc-800/60">
+		<div class="flex items-center gap-2">
+			<span class="text-base sm:text-lg font-bold tracking-tight text-zinc-900 dark:text-zinc-100">
+				多人待办广场
+			</span>
 			{#if topicsRes.loaded}
-				<div class="flex items-center gap-2 self-start sm:self-auto font-mono text-xs">
-					<div class="px-3 py-1.5 rounded-xl border border-zinc-200/70 dark:border-zinc-800 bg-zinc-50/80 dark:bg-zinc-800/40 text-zinc-600 dark:text-zinc-400">
-						<span class="font-semibold text-zinc-900 dark:text-zinc-100">{topicsRes.total}</span>
-						<span>个协同目标</span>
-					</div>
-				</div>
+				<span class="px-2 py-0.5 rounded-full text-xs font-mono font-medium bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400">
+					{topicsRes.total} 个目标
+				</span>
 			{/if}
 		</div>
+		<span class="text-xs text-zinc-400 font-mono hidden sm:inline">相同目标 · 并肩冲线</span>
 	</div>
 
 	<!-- 筛选与控制栏：通透单行流式架构 (无大盒嵌套，零冗余分类) -->

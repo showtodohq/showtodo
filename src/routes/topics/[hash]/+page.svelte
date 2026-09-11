@@ -4,7 +4,7 @@
 	import { userStore } from '$lib/stores/user.svelte';
 	import { createTopicDetailResource } from '$lib/stores/resources/use-topic-detail.svelte';
 	import DataView from '$lib/components/ui/DataView.svelte';
-	import BackToSquare from '$lib/components/ui/BackToSquare.svelte';
+	import BreadcrumbNav from '$lib/components/ui/BreadcrumbNav.svelte';
 	import TopicDetailSkeleton from '$lib/components/skeleton/TopicDetailSkeleton.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
 	import TopicHeaderCard from '$lib/components/topic/TopicHeaderCard.svelte';
@@ -27,7 +27,7 @@
 </script>
 
 <svelte:head>
-	<title>{topicRes.topic ? `${topicRes.topic.content} - 多人同行目标` : '多人同行 - Public Todo'}</title>
+	<title>{topicRes.topic ? `#${topicRes.topic.content} · 多人同行 · ptdl-alpha` : '多人同行 · ptdl-alpha'}</title>
 </svelte:head>
 
 <div class="w-full space-y-6 sm:space-y-8">
@@ -42,7 +42,7 @@
 
 		{#snippet emptyView()}
 			<div class="space-y-6 sm:space-y-8">
-				<BackToSquare />
+				<BreadcrumbNav backHref="/topics" backLabel="返回多人广场" />
 				<div
 					class="p-8 rounded-3xl border border-dashed border-red-200 dark:border-red-900/50 bg-red-50/50 dark:bg-red-950/20 text-center space-y-3"
 				>
@@ -53,8 +53,8 @@
 					<p class="text-xs text-zinc-500 max-w-sm mx-auto">
 						该目标可能尚未有成员参与，请返回广场探索最新热门目标。
 					</p>
-					<Button variant="outline" size="sm" onclick={() => goto('/')}>
-						返回公共待办广场
+					<Button variant="outline" size="sm" onclick={() => goto('/topics')}>
+						返回多人广场
 					</Button>
 				</div>
 			</div>
@@ -62,7 +62,7 @@
 
 		{#snippet errorView(msg)}
 			<div class="space-y-6 sm:space-y-8">
-				<BackToSquare />
+				<BreadcrumbNav backHref="/topics" backLabel="返回多人广场" />
 				<div
 					class="p-8 rounded-3xl border border-dashed border-red-200 dark:border-red-900/50 bg-red-50/50 dark:bg-red-950/20 text-center space-y-3"
 				>
@@ -73,16 +73,24 @@
 					<p class="text-xs text-zinc-500 max-w-sm mx-auto">
 						该目标可能尚未有成员参与，请返回广场探索最新热门目标。
 					</p>
-					<Button variant="outline" size="sm" onclick={() => goto('/')}>
-						返回公共待办广场
+					<Button variant="outline" size="sm" onclick={() => goto('/topics')}>
+						返回多人广场
 					</Button>
 				</div>
 			</div>
 		{/snippet}
 
 		{#if topicRes.topic}
-			<div class="space-y-6 sm:space-y-8">
-				<BackToSquare />
+			<div class="space-y-5 sm:space-y-6">
+				<!-- 极简面包屑与溯源导航 -->
+				<BreadcrumbNav
+					backHref="/topics"
+					backLabel="返回多人广场"
+					crumbs={[
+						{ label: '多人广场', href: '/topics' },
+						{ label: `#${topicRes.topic.content}` }
+					]}
+				/>
 
 				<!-- 多人目标头部看板与加入行动栏 -->
 				<TopicHeaderCard
