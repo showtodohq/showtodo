@@ -23,8 +23,15 @@ export function createTopicsResource() {
 	let offset = $state(0);
 	const PAGE_SIZE = 15;
 
+	let requestVersion = 0;
+
 	async function load(reset = true) {
+		if (!reset && (loading || loadingMore || !hasMore)) return;
+		const version = ++requestVersion;
+		const viewerId = userStore.id;
+		const isCurrent = () => version === requestVersion && viewerId === userStore.id;
 		if (reset) {
+			loadingMore = false;
 			loading = true;
 			offset = 0;
 			error = null;

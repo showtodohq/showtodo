@@ -48,39 +48,61 @@ class TodayStore {
 		return this.todos.some((t) => t.content.trim().toLowerCase() === norm);
 	}
 
+	private requestVersion = 0;
+	private requestKey: string | null = null;
+	private loadedKey: string | null = null;
+
 	async load(force = false) {
-		if (!userStore.id && !userStore.email) {
+		const viewerId = userStore.id;
+		const { startDateFrom, startDateTo } = getLocalDayAsUtcRange();
+		const key = JSON.stringify([viewerId, startDateFrom, startDateTo]);
+		// 没有服务端用户 ID 时绝不能发送不带 authorId 的全站查询。
+		if (!viewerId) {
+			++this.requestVersion;
+			this.requestKey = this.loadedKey = null;
 			this.todayTodoIds = [];
 			this.loaded = false;
+			this.loading = false;
 			return;
 		}
-		// 在途请求合并防抖：若正在加载中，避免同一瞬间重复发出多次请求
-		if (this.loading) {
-			return;
-		}
-		// 内存缓存拦截：非强制刷新下，只要已经加载过（即使是 0 条待办），均不再发起重复网络请求
-		if (!force && this.loaded) {
-			return;
-		}
+		if (this.loading && this.requestKey === key && !force) return;
+		if (!force && this.loaded && this.loadedKey === key) return;
 
+		const version = ++this.requestVersion;
+		this.requestKey = key;
+		if (this.loadedKey !== key) {
+			this.todayTodoIds = [];
+			this.loaded = false;
+		}
+		const isCurrent = () => version === this.requestVersion && viewerId === userStore.id;
 		this.loading = true;
 		try {
-			const { startDateFrom, startDateTo } = getLocalDayAsUtcRange();
-			const res = await api.getTodos({
-				authorId: userStore.id,
-				startDateFrom,
-				startDateTo,
-				limit: 30
-			});
-
-			const fetched = res.todos || [];
+			const fetched: Todo[] = [];
+			let cursor: string | undefined;
+			do {
+				const res = await api.getTodos({
+					authorId: viewerId,
+					currentUserId: viewerId,
+					startDateFrom,
+					startDateTo,
+					limit: 100,
+					cursor
+				});
+				if (!isCurrent()) return;
+				fetched.push(...(res.todos || []));
+				cursor = res.nextCursor || undefined;
+			} while (cursor);
 			todoRegistry.upsertMany(fetched);
-			this.todayTodoIds = fetched.map((t) => t.id);
+			this.todayTodoIds = [...new Set(fetched.map((t) => t.id))];
+			this.loadedKey = key;
 			this.loaded = true;
 		} catch (error) {
-			console.error('Failed to load today todos:', error);
+			if (isCurrent()) console.error('Failed to load today todos:', error);
 		} finally {
-			this.loading = false;
+			if (version === this.requestVersion) {
+				this.loading = false;
+				this.requestKey = null;
+			}
 		}
 	}
 }

@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { untrack } from 'svelte';
 	import { userStore } from '$lib/stores/user.svelte';
 	import { todayStore, todoMutations } from '$lib/stores/todo.svelte';
 	import DataView from '$lib/components/ui/DataView.svelte';
@@ -7,9 +8,11 @@
 	import TodoContent from '$lib/components/todo/TodoContent.svelte';
 
 	$effect(() => {
-		if (userStore.id || userStore.email) {
-			todayStore.load();
-		}
+		const viewerId = userStore.id;
+		untrack(() => {
+			void viewerId;
+			void todayStore.load();
+		});
 	});
 </script>
 

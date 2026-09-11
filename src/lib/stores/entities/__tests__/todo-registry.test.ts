@@ -80,6 +80,16 @@ describe('TodoRegistry (Normalized Entity Cache)', () => {
 		expect(todoRegistry.get('uuid-4')?.status).toBe('in_progress');
 	});
 
+	it('keeps detail references connected across multiple mutations and server refreshes', () => {
+		const detail = todoRegistry.upsert(mockTodo('shared'));
+		todoRegistry.mutate('shared', (todo) => { todo.status = 'done'; });
+		expect(todoRegistry.get('shared')).toBe(detail);
+		todoRegistry.mutate('shared', (todo) => { todo.status = 'in_progress'; });
+		expect(detail.status).toBe('in_progress');
+		todoRegistry.upsert({ ...mockTodo('shared'), content: 'refreshed' });
+		expect(detail.content).toBe('refreshed');
+	});
+
 	it('should replace temporary entity with authoritative entity', () => {
 		const temp = mockTodo('temp-123', 'temp-123', '临时待办');
 		todoRegistry.upsert(temp);

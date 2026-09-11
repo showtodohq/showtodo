@@ -38,22 +38,32 @@ class FeedStore {
 		this.todoIds = this.todoIds.filter((item) => item !== id);
 	}
 
+	private requestVersion = 0;
+	private requestKey: string | null = null;
+	private loadedKey: string | null = null;
+
 	async load(
 		isInitial = true,
 		category: CategoryId | null = this.activeCategory,
 		force = false
 	) {
-		// 在途请求合并防抖：加载中避免重复发出相同请求
-		if (isInitial && this.loading) return;
-		if (!isInitial && this.loadingMore) return;
+		const viewerId = userStore.id;
+		const key = JSON.stringify([category, viewerId]);
+		if (isInitial && this.loading && this.requestKey === key && !force) return;
+		if (!isInitial && (this.loading || this.loadingMore || !this.nextCursor || this.loadedKey !== key)) return;
+		if (isInitial && !force && this.loaded && this.loadedKey === key) return;
 
-		if (isInitial && !force && this.loaded && this.activeCategory === category) {
-			return;
+		const version = ++this.requestVersion;
+		this.requestKey = key;
+		const isCurrent = () => version === this.requestVersion && viewerId === userStore.id;
+		if (isInitial && this.loadedKey !== key) {
+			this.todoIds = [];
+			this.nextCursor = null;
+			this.loaded = false;
 		}
-
 		this.activeCategory = category;
-		if (isInitial) this.loading = true;
-		else this.loadingMore = true;
+		this.loading = isInitial;
+		this.loadingMore = !isInitial;
 
 		try {
 			const res = await api.getTodos({
@@ -63,20 +73,26 @@ class FeedStore {
 				limit: 20
 			});
 
+			if (!isCurrent()) return;
 			const fetchedTodos = res.todos || [];
 			// 归一化存入实体中心
 			todoRegistry.upsertMany(fetchedTodos);
 
 			const ids = fetchedTodos.map((t) => t.id);
-			this.todoIds = isInitial ? ids : [...this.todoIds, ...ids];
+			this.todoIds = [...new Set(isInitial ? ids : [...this.todoIds, ...ids])];
 			this.nextCursor = res.nextCursor;
+			this.loadedKey = key;
 			this.loaded = true;
 		} catch (error) {
+			if (!isCurrent()) return;
 			console.error('Failed to load feed todos:', error);
 			toast.error('加载待办流失败，请重试');
 		} finally {
-			this.loading = false;
-			this.loadingMore = false;
+			if (version === this.requestVersion) {
+				this.loading = false;
+				this.loadingMore = false;
+				this.requestKey = null;
+			}
 		}
 	}
 }

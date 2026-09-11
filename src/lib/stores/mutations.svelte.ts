@@ -202,11 +202,12 @@ class TodoMutations {
 					trendingStore.syncStatus(todoId, targetStatus, prevStatus);
 				},
 				action: async () => {
-					await api.updateTodo(todoId, {
+					const res = await api.updateTodo(todoId, {
 						email: userStore.email!,
 						status: targetStatus,
 						activityNote: options?.activityNote
 					});
+					if (res?.todo) todoRegistry.upsert(res.todo);
 				},
 				onError: (err) => {
 					toast.error(`状态更新失败: ${(err as Error).message}`);

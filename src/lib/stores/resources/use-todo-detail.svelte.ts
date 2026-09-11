@@ -228,8 +228,7 @@ export function createTodoDetailResource(initialIdentifier?: string) {
 			});
 
 			if (res.todo) {
-				todoRegistry.upsert(res.todo);
-				todo = res.todo;
+				todo = todoRegistry.upsert(res.todo);
 				toast.success('待办已更新');
 			}
 		} catch (err) {

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
+	import { untrack } from 'svelte';
 	import { page } from '$app/state';
 	import { goto } from '$app/navigation';
 	import type { Todo, CategoryId } from '$lib/types/todo';
@@ -18,7 +18,7 @@
 	// 分类筛选与顶部发布框联动
 	let activeCategoryFilter = $state<CategoryId | null>(null);
 	let composerCategory = $state<CategoryId | null>(null);
-	let prevUserId = $state<string | undefined>(undefined);
+	// URL 与当前身份是加载依赖；store 内部的 loading/loaded 不应成为 effect 依赖。
 
 	function handleCategoryFilter(catId: string) {
 		if (activeCategoryFilter === catId) {
@@ -30,34 +30,23 @@
 			composerCategory = catId as CategoryId;
 			goto(`/?category=${catId}`, { replaceState: true, noScroll: true });
 		}
-		feedStore.load(true, activeCategoryFilter, true);
 	}
 
 	function handleClearCategoryFilter() {
 		activeCategoryFilter = null;
 		composerCategory = null;
 		goto('/', { replaceState: true, noScroll: true });
-		feedStore.load(true, null, true);
 	}
 
 	$effect(() => {
-		const curUserId = userStore.id;
-		if (prevUserId !== undefined && curUserId !== prevUserId) {
-			prevUserId = curUserId;
-			feedStore.load(true, activeCategoryFilter, true);
-		} else if (prevUserId === undefined) {
-			prevUserId = curUserId;
-		}
-	});
-
-	onMount(() => {
-		const urlCat = page.url.searchParams.get('category');
-		if (urlCat) {
-			activeCategoryFilter = urlCat as CategoryId;
-			composerCategory = urlCat as CategoryId;
-		}
-		// 若内存中已有该分类的 Feed 数据，0ms 秒开复用，不重新发起请求也不展示 Spinner
-		feedStore.load(true, activeCategoryFilter, false);
+		const category = page.url.searchParams.get('category') as CategoryId | null;
+		const viewerId = userStore.id;
+		untrack(() => {
+			activeCategoryFilter = category;
+			composerCategory = category;
+			void viewerId;
+			void feedStore.load(true, category, true);
+		});
 	});
 
 	function isMyTodo(todo: Todo): boolean {
