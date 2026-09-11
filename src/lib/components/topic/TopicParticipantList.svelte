@@ -25,9 +25,26 @@
 
 	let activeTab = $state<'today' | 'all'>('today');
 
+	const todayCount = $derived(
+		todayParticipantsCount !== undefined ? todayParticipantsCount : participants.length
+	);
+	const totalCount = $derived(
+		totalParticipantsCount !== undefined
+			? totalParticipantsCount
+			: allParticipants.length > 0
+				? allParticipants.length
+				: participants.length
+	);
+
+	$effect(() => {
+		if (todayCount === 0 && totalCount > 0) {
+			activeTab = 'all';
+		}
+	});
+
 	const hasHistoryDiff = $derived(
-		(allParticipants.length > 0 && allParticipants.length !== participants.length) ||
-		(totalParticipantsCount !== undefined && todayParticipantsCount !== undefined && totalParticipantsCount > todayParticipantsCount)
+		totalCount > todayCount ||
+		(allParticipants.length > 0 && allParticipants.length !== participants.length)
 	);
 
 	const activeList = $derived(
@@ -70,23 +87,36 @@
 						class="px-2 py-0.5 rounded-md transition-colors cursor-pointer {activeTab === 'today' ? 'bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 shadow-2xs font-semibold' : 'hover:text-zinc-700 dark:hover:text-zinc-200'}"
 						onclick={() => (activeTab = 'today')}
 					>
-						今日同行 ({participants.length})
+						今日同行 ({todayCount})
 					</button>
 					<button
 						type="button"
 						class="px-2 py-0.5 rounded-md transition-colors cursor-pointer {activeTab === 'all' ? 'bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 shadow-2xs font-semibold' : 'hover:text-zinc-700 dark:hover:text-zinc-200'}"
 						onclick={() => (activeTab = 'all')}
 					>
-						全部同行 ({allParticipants.length > 0 ? allParticipants.length : (totalParticipantsCount || participants.length)})
+						全部同行 ({totalCount})
 					</button>
 				</div>
 			{:else}
-				<span class="text-xs text-zinc-400 font-mono">({participants.length})</span>
+				<span class="text-xs text-zinc-400 font-mono">({todayCount})</span>
 			{/if}
 		</div>
 	</div>
 
-	<div class="space-y-1 sm:space-y-1.5">
+	{#if displayParticipants.length === 0}
+		<div class="py-8 px-4 text-center rounded-2xl border border-dashed border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/30 space-y-2">
+			<div class="text-2xl">🌱</div>
+			<div class="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
+				{activeTab === 'today' ? '今日暂无伙伴同行打卡' : '暂无伙伴同行'}
+			</div>
+			<p class="text-[11px] text-zinc-400 max-w-xs mx-auto">
+				{activeTab === 'today' && totalCount > 0
+					? `累计已有 ${totalCount} 位伙伴曾加入，点击上方【+ 一起做】成为今日首位同行者！`
+					: '点击上方【+ 一起做】成为第一位同行伙伴！'}
+			</p>
+		</div>
+	{:else}
+		<div class="space-y-1 sm:space-y-1.5">
 		{#each displayParticipants as p, index (p.todoId || `${p.user?.id || 'p'}-${index}`)}
 			{@const isSelf = Boolean(p.isMe || (currentUserId && p.user?.id === currentUserId))}
 			<div
@@ -181,5 +211,6 @@
 				</div>
 			</div>
 		{/each}
-	</div>
+		</div>
+	{/if}
 </div>

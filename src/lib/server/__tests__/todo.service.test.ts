@@ -643,6 +643,13 @@ describe('getTopicByHash', () => {
 		expect(topicDetail.totalParticipants).toBe(3);
 		expect(topicDetail.allParticipants?.length).toBe(3);
 
+		// 当查询无同行记录的日期时：todayParticipants 为 0，participants 为空数组，但累计仍为 3
+		const emptyDateDetail = await todoService.getTopicByHash(testDb, hash, userA.id, '2026-09-06');
+		expect(emptyDateDetail.todayParticipants).toBe(0);
+		expect(emptyDateDetail.participants.length).toBe(0);
+		expect(emptyDateDetail.totalParticipants).toBe(3);
+		expect(emptyDateDetail.allParticipants?.length).toBe(3);
+
 		// 2. 验证首页每日卡片查询结果（100% 对齐）
 		const dailyRes = await todoService.listDailyCards(testDb, {
 			targetDate: todayStr,

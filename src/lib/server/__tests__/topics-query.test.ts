@@ -132,4 +132,65 @@ describe('listTopics unit tests (DDD Service Layer)', () => {
 		expect(topic.participants.length).toBe(1);
 		expect(topic.participants[0].status).toBe('done');
 	});
+
+	it('getTopicByHash strictly separates today participants from all history participants', async () => {
+		const { getTopicByHash } = await import('../services/todo.service');
+
+		const yesterdayStr = '2026-09-10T10:00:00.000Z';
+		const mockResult = [
+			{
+				todos: {
+					id: 't-yesterday',
+					shortId: 'short1',
+					topicHash: 'hash-test',
+					content: '测试目标',
+					category: 'study',
+					status: 'done',
+					note: null,
+					isNotePublic: false,
+					startDate: new Date('2026-09-10T10:00:00.000Z'),
+					dueDate: null,
+					createdAt: new Date('2026-09-10T10:00:00.000Z'),
+					authorId: 'u1'
+				},
+				users: {
+					id: 'u1',
+					nickname: '昨日伙伴',
+					handle: 'yesterday',
+					avatar: null
+				}
+			}
+		];
+
+		const mockDb = {
+			select: vi.fn().mockReturnValue({
+				from: vi.fn().mockReturnValue({
+					innerJoin: vi.fn().mockReturnValue({
+						where: vi.fn().mockReturnValue({
+							orderBy: vi.fn().mockResolvedValue(mockResult)
+						})
+					})
+				})
+			})
+		} as unknown as Database;
+
+		// 针对今天 2026-09-11 进行查询
+		const topicDetail = await getTopicByHash(
+			mockDb,
+			'hash-test',
+			undefined,
+			'2026-09-11',
+			undefined,
+			undefined,
+			'Asia/Shanghai'
+		);
+
+		// 今日同行应该为 0，今日列表应该为空
+		expect(topicDetail.todayParticipants).toBe(0);
+		expect(topicDetail.participants.length).toBe(0);
+		// 历史累计应该为 1
+		expect(topicDetail.totalParticipants).toBe(1);
+		expect(topicDetail.allParticipants?.length).toBe(1);
+		expect(topicDetail.allParticipants?.[0].user.id).toBe('u1');
+	});
 });

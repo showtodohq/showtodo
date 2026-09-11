@@ -289,11 +289,13 @@ export const api = {
 	async getTopicByHash(
 		hash: string,
 		currentUserId?: string,
-		dateOrOptions?: string | { date?: string; startDateFrom?: string; startDateTo?: string },
+		dateOrOptions?: string | { date?: string; startDateFrom?: string; startDateTo?: string; tz?: string },
 		customFetch?: typeof fetch
 	): Promise<TopicDetailResponse> {
 		const searchParams = new URLSearchParams();
 		if (currentUserId) searchParams.set('currentUserId', currentUserId);
+		const targetTz = (typeof dateOrOptions === 'object' && dateOrOptions?.tz) || getClientTimezone();
+		if (targetTz) searchParams.set('tz', targetTz);
 		if (typeof dateOrOptions === 'string') {
 			if (dateOrOptions) searchParams.set('date', dateOrOptions);
 		} else if (dateOrOptions) {

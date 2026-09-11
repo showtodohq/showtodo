@@ -35,16 +35,16 @@ function buildTopicFromCard(cachedCard: DailyCard): TopicDetail {
 		content: cachedCard.content,
 		category: cachedCard.category,
 		firstCreatedAt: new Date().toISOString(),
-		todayParticipants: cachedCard.totalParticipants,
-		todayDoneCount: cachedCard.doneCount,
+		todayParticipants: 0,
+		todayDoneCount: 0,
 		todayInProgressCount: 0,
-		isTodayAllDone: isAllDone,
+		isTodayAllDone: false,
 		totalParticipants: cachedCard.totalParticipants,
 		allDoneCount: cachedCard.doneCount,
 		doneCount: cachedCard.doneCount,
 		inProgressCount: 0,
 		isAllDone,
-		participants,
+		participants: [],
 		allParticipants: participants
 	};
 }

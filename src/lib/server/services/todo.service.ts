@@ -375,7 +375,8 @@ export async function getTopicByHash(
 	currentUserId?: string,
 	targetDate?: string,
 	startDateFrom?: string,
-	startDateTo?: string
+	startDateTo?: string,
+	tz?: string
 ): Promise<TopicDetail> {
 	if (!topicHash) {
 		throw new AppError('VALIDATION_ERROR', 'topicHash is required');
@@ -480,7 +481,7 @@ export async function getTopicByHash(
 		return Array.from(map.values());
 	}
 
-	const safeTz = DEFAULT_TIMEZONE;
+	const safeTz = isValidTimezone(tz) ? tz : DEFAULT_TIMEZONE;
 	const effectiveDate = targetDate || getTodayInTimezone(safeTz);
 
 	// 判定待办是否落在指定的自然日时间范围内
@@ -515,8 +516,6 @@ export async function getTopicByHash(
 	const todayInProgressCount = todayParticipantsList.filter((p) => p.status === 'in_progress').length;
 	const isTodayAllDone = todayParticipants > 0 && todayDoneCount >= todayParticipants;
 
-	// 若今日有同行伙伴，默认展示今日伙伴；若今日暂无伙伴，展示历史全量伙伴保证页面不为空
-	const activeParticipants = todayParticipants > 0 ? todayParticipantsList : allParticipantsList;
 	const doneCount = todayParticipants > 0 ? todayDoneCount : allDoneCount;
 	const inProgressCount =
 		todayParticipants > 0
@@ -542,7 +541,7 @@ export async function getTopicByHash(
 		doneCount,
 		inProgressCount,
 		isAllDone,
-		participants: activeParticipants,
+		participants: todayParticipantsList,
 		allParticipants: allParticipantsList
 	};
 }
