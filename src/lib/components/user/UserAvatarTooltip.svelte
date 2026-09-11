@@ -104,7 +104,7 @@
 				<span class="ml-1 text-[10px] text-amber-300 dark:text-amber-600 font-semibold">(我)</span>
 			{/if}
 			{#if goldBadge}
-				<span class="ml-1 text-[10px] text-amber-400 font-medium">🏆 全员达成</span>
+				<span class="ml-1 text-[10px] text-amber-400 font-medium">🏆 全员完成</span>
 			{/if}
 		</div>
 	</div>

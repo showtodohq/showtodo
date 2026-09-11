@@ -725,7 +725,7 @@
 								{#if isAllDone}
 									<span class="flex items-center gap-1 rounded bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-500 px-2 py-0.5 text-[11px] font-bold text-amber-950 shadow-xs animate-in zoom-in-90">
 										<Icon icon="lucide:trophy" class="h-3 w-3" />
-										<span>全员达成 ({card.totalParticipants}人)</span>
+										<span>全员完成 ({card.totalParticipants}人)</span>
 									</span>
 								{:else if card.isMultiplayer}
 									<span class="flex items-center gap-1 rounded bg-zinc-900 px-2 py-0.5 text-[11px] font-semibold text-white dark:bg-white dark:text-zinc-900">

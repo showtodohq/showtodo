@@ -108,13 +108,13 @@
 
 						<div class="flex items-center gap-1 shrink-0">
 							{#if isAllDone}
-								<!-- 全员达成专属金色勋章 -->
+								<!-- 全员完成专属金色勋章 -->
 								<span
 									class="inline-flex items-center gap-1 text-[10px] font-bold text-amber-900 dark:text-amber-100 bg-gradient-to-r from-amber-300 via-yellow-300 to-amber-400 dark:from-amber-600 dark:via-yellow-600 dark:to-amber-500 px-2 py-0.5 rounded-md shadow-xs animate-in zoom-in-90 duration-150 select-none"
 									title="所有同行伙伴已全部完成"
 								>
 									<span>🏆</span>
-									<span>全员达成</span>
+									<span>全员完成</span>
 								</span>
 							{/if}
 
@@ -149,12 +149,12 @@
 						>
 							{#if isAllDone}
 								<span class="text-amber-500">✨</span>
-								<span class="font-semibold text-amber-600 dark:text-amber-400">{card.totalParticipants} 人同行全部达成</span>
+								<span class="font-semibold text-amber-600 dark:text-amber-400">{card.totalParticipants} 人同行全部完成</span>
 							{:else}
 								<span class="text-amber-500 font-semibold">{card.totalParticipants}</span>
 								<span>人同行</span>
 								<span>·</span>
-								<span>{card.doneCount} 达成</span>
+								<span>{card.doneCount} 已完成</span>
 							{/if}
 						</a>
 

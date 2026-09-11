@@ -466,7 +466,7 @@ export async function getTopicByHash(
 		}
 	}));
 
-	// 辅助去重函数：按 user.id 归集自然人伙伴，优先保留已达成 (done) 状态
+	// 辅助去重函数：按 user.id 归集自然人伙伴，优先保留已完成 (done) 状态
 	function deduplicateParticipants(list: typeof allRawParticipants) {
 		const map = new Map<string, (typeof allRawParticipants)[0]>();
 		for (const item of list) {

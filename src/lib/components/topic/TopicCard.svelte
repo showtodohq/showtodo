@@ -25,7 +25,7 @@
 		? 'border border-amber-300/80 dark:border-amber-500/60 bg-gradient-to-br from-amber-50/70 via-yellow-50/30 to-amber-50/70 dark:from-amber-950/25 dark:via-yellow-950/10 dark:to-amber-950/25 shadow-xs shadow-amber-500/5'
 		: 'bg-zinc-50 dark:bg-zinc-900/60 hover:bg-zinc-100/80 dark:hover:bg-zinc-800/70'}"
 >
-	<!-- 顶部元信息：全员达成勋章、立项时间、行动按钮 -->
+	<!-- 顶部元信息：全员完成勋章、立项时间、行动按钮 -->
 	<div class="flex items-center justify-between gap-3">
 		<div class="flex items-center gap-2 flex-wrap min-w-0">
 
@@ -35,7 +35,7 @@
 					title="所有同行伙伴已全部完成"
 				>
 					<span>🏆</span>
-					<span>全员达成</span>
+					<span>全员完成</span>
 				</span>
 			{/if}
 
@@ -94,7 +94,7 @@
 					<span class="text-amber-500 font-semibold">{topic.totalParticipants}</span>
 					<span>人同行</span>
 					<span>·</span>
-					<span>{topic.doneCount} 达成</span>
+					<span>{topic.doneCount} 已完成</span>
 				{:else}
 					<span class="text-zinc-600 dark:text-zinc-300 font-medium">1 人发起</span>
 					<span>·</span>

@@ -64,7 +64,7 @@ export const TODO_STATUSES: StatusConfig[] = [
 		label: '已完成',
 		actionLabel: '标记完成',
 		shortActionLabel: '已完成',
-		description: '已达成目标',
+		description: '已完成待办目标',
 		bgClass: 'bg-emerald-50 dark:bg-emerald-950/40',
 		textClass: 'text-emerald-700 dark:text-emerald-300',
 		borderClass: 'border-emerald-200 dark:border-emerald-800/60',

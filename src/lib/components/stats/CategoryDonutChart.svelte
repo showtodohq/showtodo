@@ -155,11 +155,12 @@
 							style="color: {activeConfig?.color || '#6B7280'};"
 						>
 							{activeCategoryData.total.toLocaleString()}
+							<span class="text-xs font-normal text-zinc-400">项</span>
 						</div>
 						<div class="text-[10px] font-mono text-zinc-500 dark:text-zinc-400">
-							<span class="font-bold">{activeCategoryData.percentage}%</span>
+							<span class="font-bold">{activeCategoryData.percentage}% 占比</span>
 							<span class="opacity-60">·</span>
-							<span class="text-emerald-600 dark:text-emerald-400 font-semibold">{activeCategoryData.completionRate}% 达成</span>
+							<span class="text-emerald-600 dark:text-emerald-400 font-semibold">完成率 {activeCategoryData.completionRate}%</span>
 						</div>
 					</div>
 				{:else}
@@ -167,9 +168,10 @@
 						<div class="text-[10px] text-zinc-400 font-medium">全站公开待办</div>
 						<div class="text-2xl sm:text-3xl font-black font-mono text-zinc-900 dark:text-zinc-100 tracking-tight">
 							{totalSum.toLocaleString()}
+							<span class="text-xs font-normal text-zinc-400">项</span>
 						</div>
 						<div class="text-[10px] font-mono text-zinc-400">
-							{categories.length} 个领域分布
+							{categories.length} 个领域分类
 						</div>
 					</div>
 				{/if}
@@ -207,13 +209,14 @@
 					<CategoryBadge category={cat.category} mode="pill" />
 					<div class="font-mono text-right">
 						<span class="font-bold text-zinc-800 dark:text-zinc-200 text-xs">
-							{cat.total.toLocaleString()}
+							{cat.completed}
 						</span>
+						<span class="text-zinc-400 text-[11px]"> / {cat.total} 项</span>
 						<span class="text-zinc-400 text-[10px] ml-0.5">({cat.percentage}%)</span>
 					</div>
 				</div>
 
-				<!-- 第二行：达成率进度条 -->
+				<!-- 第二行：完成率进度条 -->
 				<div class="h-1.5 w-full bg-zinc-200/70 dark:bg-zinc-800 rounded-full overflow-hidden flex">
 					<div
 						class="h-full rounded-full transition-all duration-300"
@@ -221,9 +224,9 @@
 					></div>
 				</div>
 
-				<!-- 第三行：微型达成率标签 -->
+				<!-- 第三行：微型完成率标签 -->
 				<div class="flex items-center justify-between text-[10px] text-zinc-400 font-mono">
-					<span>目标达成率</span>
+					<span>完成率</span>
 					<span class="font-semibold text-emerald-600 dark:text-emerald-400">{cat.completionRate}%</span>
 				</div>
 			</div>

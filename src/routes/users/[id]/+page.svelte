@@ -169,20 +169,20 @@
 					<div class="flex items-center justify-between gap-3 flex-wrap">
 						<div class="flex items-center gap-2">
 							<span class="text-base font-bold text-zinc-900 dark:text-zinc-100">
-								行动热力图
+								个人行动足迹
 							</span>
 							<span class="text-xs text-zinc-400 font-mono">
 								(近 365 天)
 							</span>
 						</div>
 						<div class="text-xs text-zinc-500 dark:text-zinc-400 font-mono">
-							过去一年累计打卡 <span class="font-bold text-emerald-600 dark:text-emerald-400">{profileRes.heatmap?.totalActivities ?? 0}</span> 次
+							过去一年累计足迹 <span class="font-bold text-emerald-600 dark:text-emerald-400">{profileRes.heatmap?.totalActivities ?? 0}</span> 次
 						</div>
 					</div>
 
 					{#if profileRes.isHeatmapLoading && !profileRes.heatmap}
 						<div class="h-32 rounded-2xl bg-zinc-100/60 dark:bg-zinc-800/40 animate-pulse flex items-center justify-center text-xs text-zinc-400">
-							正在载入行动热力图...
+							正在载入行动足迹...
 						</div>
 					{:else}
 						<ActivityHeatmap days={profileRes.heatmap?.days || []} />

@@ -47,7 +47,7 @@
 					</h1>
 				</div>
 				<p class="text-xs sm:text-sm text-zinc-500 dark:text-zinc-400">
-					全网公开待办实时生态 · 见证每一个小目标的达成与坚持
+					全网公开待办实时生态 · 见证每一个公开待办的完成与坚持
 				</p>
 			</div>
 
@@ -91,23 +91,23 @@
 					{overview.totalTodos.toLocaleString()}
 				</div>
 				<div class="text-[11px] text-zinc-400">
-					今日新增 <strong class="text-zinc-700 dark:text-zinc-300 font-semibold">{overview.todayCreated}</strong> 条
+					今日新建 <strong class="text-zinc-700 dark:text-zinc-300 font-semibold">{overview.todayCreated}</strong> 项
 				</div>
 			</div>
 
-			<!-- 达成目标 -->
+			<!-- 已完成待办 -->
 			<div
 				class="p-4 sm:p-5 rounded-2xl border border-emerald-200/60 dark:border-emerald-900/40 bg-emerald-50/30 dark:bg-emerald-950/20 backdrop-blur-xs space-y-1"
 			>
 				<div class="flex items-center justify-between text-xs text-emerald-600 dark:text-emerald-400 font-medium">
-					<span>达成目标总数</span>
+					<span>已完成待办总数</span>
 					<span class="text-sm">✅</span>
 				</div>
 				<div class="text-2xl sm:text-3xl font-black font-mono text-emerald-600 dark:text-emerald-400">
 					{overview.completedTodos.toLocaleString()}
 				</div>
 				<div class="text-[11px] text-emerald-600/80 dark:text-emerald-400/80">
-					今日达成 <strong class="font-bold">{overview.todayCompleted}</strong> 项目标
+					今日完成打卡 <strong class="font-bold">{overview.todayCompleted}</strong> 次
 				</div>
 			</div>
 
@@ -116,14 +116,14 @@
 				class="p-4 sm:p-5 rounded-2xl border border-amber-200/60 dark:border-amber-900/40 bg-amber-50/30 dark:bg-amber-950/20 backdrop-blur-xs space-y-1"
 			>
 				<div class="flex items-center justify-between text-xs text-amber-600 dark:text-amber-400 font-medium">
-					<span>全网执行达成率</span>
+					<span>全站待办完成率</span>
 					<span class="text-sm">⚡</span>
 				</div>
 				<div class="text-2xl sm:text-3xl font-black font-mono text-amber-600 dark:text-amber-400">
 					{overview.completionRate}%
 				</div>
 				<div class="text-[11px] text-amber-600/80 dark:text-amber-400/80">
-					正在进行中 {overview.inProgressTodos} 条
+					进行中 {overview.inProgressTodos} 项
 				</div>
 			</div>
 
@@ -144,7 +144,7 @@
 			</div>
 		</div>
 
-		<!-- 2. 全站打卡贡献热力图 (GitHub 风格，最近一年 365 天) -->
+		<!-- 2. 全站行动足迹热力图 (GitHub 风格，最近一年 365 天) -->
 		<div
 			class="rounded-3xl border border-zinc-200/80 dark:border-zinc-800 bg-white/70 dark:bg-zinc-900/60 p-5 sm:p-7 backdrop-blur-md shadow-xs space-y-4"
 		>
@@ -152,14 +152,14 @@
 				<div class="space-y-0.5">
 					<h2 class="text-sm sm:text-base font-bold text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
 						<span>🟩</span>
-						<span>全站行动热力心跳 (Activity Heatmap)</span>
+						<span>全站行动足迹热力图 (Activity Heatmap)</span>
 					</h2>
 					<p class="text-xs text-zinc-400">
-						记录全网每一天的目标发布、进展打卡与冲线达成
+						记录每一天的待办新建、进展打卡与推进完成
 					</p>
 				</div>
 				<div class="flex items-center gap-3 font-mono text-xs text-zinc-500 dark:text-zinc-400">
-					<span>累计行动 <strong class="text-zinc-900 dark:text-zinc-100">{heatmap.totalActivities}</strong> 次</span>
+					<span>累计足迹 <strong class="text-zinc-900 dark:text-zinc-100">{heatmap.totalActivities}</strong> 次</span>
 					<span>·</span>
 					<span>单日峰值 <strong class="text-emerald-600 dark:text-emerald-400">{heatmap.maxDayCount}</strong> 次</span>
 				</div>
@@ -168,7 +168,7 @@
 			<ActivityHeatmap days={heatmap.days} />
 		</div>
 
-		<!-- 3. 近 14 天待办与达成趋势对比 (Activity Trend) -->
+		<!-- 3. 近 14 天新建与完成趋势对比 (Activity Trend) -->
 		<div
 			class="rounded-3xl border border-zinc-200/80 dark:border-zinc-800 bg-white/70 dark:bg-zinc-900/60 p-5 sm:p-7 backdrop-blur-md shadow-xs space-y-4"
 		>
@@ -176,9 +176,9 @@
 				<div class="space-y-0.5">
 					<h2 class="text-sm sm:text-base font-bold text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
 						<span>📈</span>
-						<span>近 14 天行动节奏走势 (14-Day Trend)</span>
+						<span>近 14 天新建与完成走势 (14-Day Trend)</span>
 					</h2>
-					<p class="text-xs text-zinc-400">对比每日公开待办的创建与达成节奏</p>
+					<p class="text-xs text-zinc-400">对比每日公开待办的新建与完成节奏</p>
 				</div>
 				<div class="flex items-center gap-3 text-xs">
 					<div class="flex items-center gap-1.5">
@@ -187,7 +187,7 @@
 					</div>
 					<div class="flex items-center gap-1.5">
 						<span class="h-2 w-2 rounded-full bg-emerald-500"></span>
-						<span class="text-zinc-500 dark:text-zinc-400">达成</span>
+						<span class="text-zinc-500 dark:text-zinc-400">完成</span>
 					</div>
 				</div>
 			</div>
@@ -211,7 +211,7 @@
 									class="w-1.5 sm:w-2 rounded-t-xs bg-zinc-300 dark:bg-zinc-700 group-hover:bg-zinc-400 transition-all"
 									style="height: {createdH}%;"
 								></div>
-								<!-- 达成条 -->
+								<!-- 完成条 -->
 								<div
 									class="w-1.5 sm:w-2 rounded-t-xs bg-emerald-500 dark:bg-emerald-400 group-hover:bg-emerald-400 transition-all shadow-xs"
 									style="height: {completedH}%;"
@@ -231,8 +231,8 @@
 						class="absolute top-0 right-4 px-3 py-1.5 rounded-xl border border-zinc-200/80 dark:border-zinc-800 bg-white/95 dark:bg-zinc-900/95 text-xs shadow-md backdrop-blur-xs flex items-center gap-3 animate-in fade-in duration-100 font-mono"
 					>
 						<span class="font-bold text-zinc-900 dark:text-zinc-100">{hItem.date}</span>
-						<span class="text-zinc-500">新建: <strong class="text-zinc-900 dark:text-zinc-100">{hItem.created}</strong></span>
-						<span class="text-emerald-600 dark:text-emerald-400">达成: <strong class="font-bold">{hItem.completed}</strong></span>
+						<span class="text-zinc-500">新建: <strong class="text-zinc-900 dark:text-zinc-100">{hItem.created} 次</strong></span>
+						<span class="text-emerald-600 dark:text-emerald-400">完成: <strong class="font-bold">{hItem.completed} 次</strong></span>
 					</div>
 				{/if}
 			</div>
@@ -253,7 +253,7 @@
 			<CategoryDonutChart {categories} totalTodos={overview.totalTodos} />
 		</div>
 
-		<!-- 5. 社区风云双榜 (热门多人协同 Top 5 与 达成先锋榜 Top 5 左右对称并排) -->
+		<!-- 5. 社区风云双榜 (热门多人协同 Top 5 与 待办完成先锋榜 Top 5 左右对称并排) -->
 		<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 items-start">
 			<!-- 热门多人协同 Top 5 -->
 			<div
@@ -292,7 +292,7 @@
 										<strong class="text-zinc-900 dark:text-zinc-100">{topic.totalParticipants}</strong> 人同行
 									</span>
 									<span class="text-emerald-600 dark:text-emerald-400">
-										{topic.doneCount} 达成
+										{topic.doneCount} 已完成
 									</span>
 								</div>
 							</a>
@@ -300,16 +300,16 @@
 					</div>
 				</div>
 
-				<!-- 达成先锋达人榜 Top 5 -->
+				<!-- 待办完成先锋达人榜 Top 5 -->
 				<div
 					class="rounded-3xl border border-zinc-200/80 dark:border-zinc-800 bg-white/70 dark:bg-zinc-900/60 p-5 sm:p-7 backdrop-blur-md shadow-xs space-y-4"
 				>
 					<div class="space-y-0.5">
 						<h2 class="text-sm sm:text-base font-bold text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
 							<span>🏆</span>
-							<span>目标达成先锋榜</span>
+							<span>待办完成先锋榜</span>
 						</h2>
-						<p class="text-xs text-zinc-400">全平台累计达成完成待办最多的活跃伙伴</p>
+						<p class="text-xs text-zinc-400">全平台累计完成待办最多的活跃伙伴</p>
 					</div>
 
 					<div class="space-y-1.5">
@@ -349,7 +349,7 @@
 								</div>
 
 								<div class="flex items-center gap-1 font-mono text-xs text-emerald-600 dark:text-emerald-400 font-bold shrink-0">
-									<span>{user.completedCount} 项达成</span>
+									<span>{user.completedCount} 项已完成</span>
 								</div>
 							</a>
 						{/each}

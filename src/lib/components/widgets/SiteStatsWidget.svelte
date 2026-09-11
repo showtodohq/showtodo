@@ -63,14 +63,14 @@
 				</div>
 
 				<div class="p-2.5 rounded-xl bg-emerald-50/50 dark:bg-emerald-950/20 border border-emerald-200/30 dark:border-emerald-800/30">
-					<div class="text-[11px] text-emerald-600 dark:text-emerald-400 font-medium">达成目标</div>
+					<div class="text-[11px] text-emerald-600 dark:text-emerald-400 font-medium">已完成</div>
 					<div class="text-base font-bold font-mono text-emerald-600 dark:text-emerald-400 mt-0.5">
 						{(overview?.completedTodos ?? 0).toLocaleString()}
 					</div>
 				</div>
 
 				<div class="p-2.5 rounded-xl bg-zinc-50/80 dark:bg-zinc-900/50 border border-zinc-200/40 dark:border-zinc-800/40">
-					<div class="text-[11px] text-zinc-400 font-medium">整体完成率</div>
+					<div class="text-[11px] text-zinc-400 font-medium">全站完成率</div>
 					<div class="text-base font-bold font-mono text-amber-600 dark:text-amber-400 mt-0.5">
 						{overview?.completionRate ?? 0}%
 					</div>
@@ -84,12 +84,12 @@
 				</div>
 			</div>
 
-			<!-- 社区整年行动心跳点阵 (支持横向平滑滚动查看，默认聚焦今天) -->
+			<!-- 社区整年行动足迹点阵 (支持横向平滑滚动查看，默认聚焦今天) -->
 			{#if statsStore.stats.heatmap?.days && statsStore.stats.heatmap.days.length > 0}
 				<div class="pt-1 border-t border-zinc-200/50 dark:border-zinc-800/50 space-y-1.5">
 					<div class="flex items-center justify-between text-[10px] text-zinc-400 font-medium">
 						<span class="flex items-center gap-1">
-							<span>社区近 1 年行动心跳</span>
+							<span>社区近 1 年行动足迹</span>
 							<span class="text-[9px] text-zinc-400/80 font-normal">（左右滑动查看）</span>
 						</span>
 						<span class="font-mono">{statsStore.stats.heatmap.totalActivities ?? 0} 次足迹</span>

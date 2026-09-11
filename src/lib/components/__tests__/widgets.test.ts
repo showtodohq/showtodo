@@ -64,5 +64,7 @@ describe('ActivityHeatmap & SiteStatsWidget rendering test', () => {
 		expect(rendered.body).toContain('全站数据脉搏');
 		expect(rendered.body).toContain('100');
 		expect(rendered.body).toContain('45');
+		expect(rendered.body).toContain('70 次足迹');
+		expect(rendered.body).toContain('全站完成率');
 	});
 });

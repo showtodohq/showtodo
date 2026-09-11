@@ -50,7 +50,7 @@ class TrendingStore {
 	}
 
 	/**
-	 * 0ms 乐观同步话题卡片的达成人数与 participant 状态
+	 * 0ms 乐观同步话题卡片的完成人数与 participant 状态
 	 */
 	syncStatus(todoId: string, prevStatus: TodoStatus, targetStatus: TodoStatus) {
 		let changed = false;

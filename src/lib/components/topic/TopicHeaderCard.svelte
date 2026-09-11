@@ -42,7 +42,7 @@
 					class="inline-flex items-center gap-1 text-xs font-bold text-amber-900 dark:text-amber-100 bg-gradient-to-r from-amber-300 via-yellow-300 to-amber-400 dark:from-amber-600 dark:via-yellow-600 dark:to-amber-500 px-2.5 py-0.5 rounded-full shadow-xs select-none animate-in zoom-in-95 duration-150"
 				>
 					<span>🏆</span>
-					<span>今日全员达成</span>
+					<span>今日全员完成</span>
 				</span>
 			{/if}
 

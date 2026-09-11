@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { HeatmapDayItem } from '$lib/types/stats';
 	import { parseLocalDate } from '$lib/utils/format';
+	import { ACTIVITY_CONFIG } from '$lib/constants/activity';
 
 	interface Props {
 		days?: HeatmapDayItem[];
@@ -193,7 +194,7 @@
 			<div class="flex items-center justify-between pt-1 text-[10px] text-zinc-400 font-medium {compact ? 'text-[9px]' : ''}">
 				{#if !compact}
 					<div>
-						<span>全站活跃心跳 · 最近一年</span>
+						<span>行动足迹 · 最近一年</span>
 					</div>
 				{/if}
 				<div class="flex items-center gap-1.5 ml-auto">
@@ -222,26 +223,26 @@
 			</div>
 			{#if hoveredDay.count === 0}
 				<div class="text-[11px] text-zinc-400 dark:text-zinc-500 py-0.5">
-					暂无足迹
+					暂无{ACTIVITY_CONFIG.total.label}
 				</div>
 			{:else}
 				<div class="space-y-1 text-[11px]">
 					<div class="flex items-center justify-between gap-3">
-						<span class="text-zinc-300 dark:text-zinc-600">足迹</span>
-						<span class="font-mono font-semibold text-emerald-400 dark:text-emerald-600">{hoveredDay.count} 次</span>
+						<span class="text-zinc-300 dark:text-zinc-600">{ACTIVITY_CONFIG.total.label}</span>
+						<span class="font-mono font-semibold text-emerald-400 dark:text-emerald-600">{hoveredDay.count} {ACTIVITY_CONFIG.total.unit}</span>
 					</div>
 					<div class="flex items-center justify-between gap-3">
-						<span class="text-zinc-400 dark:text-zinc-500">新建</span>
-						<span class="font-mono text-zinc-200 dark:text-zinc-700">{hoveredDay.created} 次</span>
+						<span class="text-zinc-400 dark:text-zinc-500">{ACTIVITY_CONFIG.created.label}</span>
+						<span class="font-mono text-zinc-200 dark:text-zinc-700">{hoveredDay.created} {ACTIVITY_CONFIG.created.unit}</span>
 					</div>
 					<div class="flex items-center justify-between gap-3">
-						<span class="text-zinc-400 dark:text-zinc-500">达成</span>
-						<span class="font-mono text-zinc-200 dark:text-zinc-700">{hoveredDay.completed} 次</span>
+						<span class="text-zinc-400 dark:text-zinc-500">{ACTIVITY_CONFIG.completed.label}</span>
+						<span class="font-mono text-zinc-200 dark:text-zinc-700">{hoveredDay.completed} {ACTIVITY_CONFIG.completed.unit}</span>
 					</div>
 					{#if hoveredDay.notes > 0}
 						<div class="flex items-center justify-between gap-3">
-							<span class="text-zinc-400 dark:text-zinc-500">进展</span>
-							<span class="font-mono text-zinc-200 dark:text-zinc-700">{hoveredDay.notes} 次</span>
+							<span class="text-zinc-400 dark:text-zinc-500">{ACTIVITY_CONFIG.notes.label}</span>
+							<span class="font-mono text-zinc-200 dark:text-zinc-700">{hoveredDay.notes} {ACTIVITY_CONFIG.notes.unit}</span>
 						</div>
 					{/if}
 				</div>

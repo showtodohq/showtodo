@@ -218,7 +218,7 @@ export async function getCategoryStats(db: Database): Promise<CategoryStatItem[]
 }
 
 /**
- * 聚合近 N 天趋势数据 (新建 vs 达成，时区感知)
+ * 聚合近 N 天趋势数据 (新建 vs 完成，时区感知)
  */
 export async function getTrendStats(
 	db: Database,
@@ -376,7 +376,7 @@ export async function getTopTopics(db: Database, limit: number = 5): Promise<Top
 }
 
 /**
- * 达成先锋榜 TOP 5 (累计完成待办最多的用户)
+ * 待办完成先锋榜 TOP 5 (累计完成待办最多的用户)
  */
 export async function getTopUsers(db: Database, limit: number = 5): Promise<TopUserItem[]> {
 	const result = await db
