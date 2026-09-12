@@ -171,7 +171,22 @@
 							</svg>
 							个人主页 (Profile)
 						</span>
-						<span class="text-[11px] text-zinc-400">查看待办与数据 →</span>
+						<span class="text-[11px] text-zinc-400">公开成果与打卡 →</span>
+					</a>
+
+					<!-- 扩展槽位 0.5：我的待办清单工作台 -->
+					<a
+						href="/todos"
+						onclick={closePopover}
+						class="flex items-center justify-between px-2.5 py-1.5 rounded-xl text-xs text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800/80 transition-colors cursor-pointer"
+					>
+						<span class="flex items-center gap-2 font-medium">
+							<svg class="h-3.5 w-3.5 text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+							</svg>
+							待办清单 (Todo List)
+						</span>
+						<span class="text-[11px] text-zinc-400">看板与日历 →</span>
 					</a>
 
 					<!-- 扩展槽位 1：快捷键指南 -->

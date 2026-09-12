@@ -1,7 +1,9 @@
 import { describe, it, expect } from 'vitest';
 import ActivityHeatmap from '../stats/ActivityHeatmap.svelte';
 import SiteStatsWidget from '../widgets/SiteStatsWidget.svelte';
+import MyTodayWidget from '../widgets/MyTodayWidget.svelte';
 import { statsStore } from '$lib/stores/stats.svelte';
+import { userStore } from '$lib/stores/user.svelte';
 import { render } from 'svelte/server';
 
 describe('ActivityHeatmap & SiteStatsWidget rendering test', () => {
@@ -66,5 +68,19 @@ describe('ActivityHeatmap & SiteStatsWidget rendering test', () => {
 		expect(rendered.body).toContain('45');
 		expect(rendered.body).toContain('70 次足迹');
 		expect(rendered.body).toContain('全站完成率');
+	});
+
+	it('renders MyTodayWidget with "全部" link when user is logged in', () => {
+		userStore.setSession({
+			id: 'u1',
+			email: 'test@example.com',
+			nickname: '测试用户',
+			handle: 'test'
+		});
+
+		const rendered = render(MyTodayWidget);
+		expect(rendered.body).toContain('📌 我的今日待办');
+		expect(rendered.body).toContain('href="/todos"');
+		expect(rendered.body).toContain('全部');
 	});
 });

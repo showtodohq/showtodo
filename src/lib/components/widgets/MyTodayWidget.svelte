@@ -20,17 +20,30 @@
 	<div
 		class="rounded-2xl border border-zinc-200/80 dark:border-zinc-800/90 bg-white/60 dark:bg-zinc-950/60 p-4 backdrop-blur-xs space-y-3"
 	>
-		<!-- 头部标题与今日进度 -->
+		<!-- 头部标题与今日进度 + 全部入口 -->
 		<div class="flex items-center justify-between">
 			<div class="flex items-center gap-1.5 font-semibold text-xs text-zinc-900 dark:text-zinc-100">
 				<span>📌 我的今日待办</span>
 			</div>
 
-			{#if todayStore.totalCount > 0}
-				<div class="font-mono text-xs text-zinc-400">
-					<strong class="font-semibold text-zinc-800 dark:text-zinc-200">{todayStore.doneCount}</strong>/{todayStore.totalCount}
-				</div>
-			{/if}
+			<div class="flex items-center gap-2">
+				{#if todayStore.totalCount > 0}
+					<div class="font-mono text-xs text-zinc-400">
+						<strong class="font-semibold text-zinc-800 dark:text-zinc-200">{todayStore.doneCount}</strong>/{todayStore.totalCount}
+					</div>
+				{/if}
+
+				<a
+					href="/todos"
+					class="inline-flex items-center gap-0.5 text-xs text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100 transition-colors font-medium group/all cursor-pointer"
+					title="进入我的待办清单工作台"
+				>
+					<span>全部</span>
+					<svg class="h-3 w-3 transition-transform duration-150 group-hover/all:translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+					</svg>
+				</a>
+			</div>
 		</div>
 
 		<!-- 待办清单内容 -->
