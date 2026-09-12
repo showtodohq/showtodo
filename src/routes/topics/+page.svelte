@@ -8,6 +8,7 @@
 	import Spinner from '$lib/components/ui/Spinner.svelte';
 	import TopicCard from '$lib/components/topic/TopicCard.svelte';
 	import TopicListSkeleton from '$lib/components/skeleton/TopicListSkeleton.svelte';
+	import Icon from '@iconify/svelte';
 
 	const topicsRes = createTopicsResource();
 
@@ -117,7 +118,7 @@
 					: 'bg-zinc-100/80 hover:bg-zinc-200/70 text-zinc-600 dark:bg-zinc-800/60 dark:hover:bg-zinc-800 dark:text-zinc-400'}"
 				title="切换是否只看已有2人及以上同行的目标"
 			>
-				<span>👥</span>
+				<Icon icon="lucide:users" class="h-3.5 w-3.5 shrink-0" />
 				<span>结伴同行</span>
 			</button>
 		</div>
@@ -132,11 +133,11 @@
 					class="appearance-none h-8 pl-3 pr-7 rounded-xl text-xs font-medium bg-zinc-100/80 hover:bg-zinc-200/70 dark:bg-zinc-800/80 dark:hover:bg-zinc-700/80 text-zinc-700 dark:text-zinc-200 focus:outline-hidden cursor-pointer transition-colors"
 					title="选择排序方式"
 				>
-					<option value="participants">🔥 最多同行</option>
-					<option value="recent">⚡ 最新活跃</option>
-					<option value="completion">🏆 完成率</option>
+					<option value="participants">最多同行</option>
+					<option value="recent">最新活跃</option>
+					<option value="completion">完成率</option>
 				</select>
-				<span class="absolute right-2.5 pointer-events-none text-zinc-400 text-[10px]">▼</span>
+				<Icon icon="lucide:chevron-down" class="absolute right-2 top-2.5 h-3 w-3 pointer-events-none text-zinc-400" />
 			</div>
 
 			<!-- 搜索框 -->
@@ -148,7 +149,7 @@
 					placeholder="搜索目标内容..."
 					class="w-full h-8 pl-8 pr-3 text-xs rounded-xl bg-zinc-100/80 dark:bg-zinc-800/80 text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 focus:outline-hidden focus:ring-1 focus:ring-zinc-400 dark:focus:ring-zinc-500 transition-all"
 				/>
-				<span class="absolute left-2.5 top-2 text-zinc-400 text-xs pointer-events-none">🔍</span>
+				<Icon icon="lucide:search" class="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-zinc-400 pointer-events-none" />
 			</div>
 		</div>
 	</div>
@@ -167,7 +168,9 @@
 			<div
 				class="p-10 rounded-3xl border border-dashed border-zinc-200 dark:border-zinc-800 text-center space-y-3 bg-white/40 dark:bg-zinc-900/20"
 			>
-				<div class="text-3xl">🌱</div>
+				<div class="inline-flex p-3 rounded-2xl bg-zinc-100 dark:bg-zinc-800/80 text-zinc-400">
+					<Icon icon="lucide:sprout" class="h-6 w-6" />
+				</div>
 				<div class="text-sm font-semibold text-zinc-800 dark:text-zinc-200">
 					暂无符合条件的同行目标
 				</div>
@@ -196,7 +199,9 @@
 			<div
 				class="p-8 rounded-3xl border border-dashed border-red-200 dark:border-red-900/50 bg-red-50/50 dark:bg-red-950/20 text-center space-y-3"
 			>
-				<div class="text-2xl">⚠️</div>
+				<div class="inline-flex p-3 rounded-2xl bg-red-100/80 dark:bg-red-950/60 text-red-500">
+					<Icon icon="lucide:alert-triangle" class="h-6 w-6" />
+				</div>
 				<div class="text-sm font-semibold text-zinc-800 dark:text-zinc-200">
 					{msg}
 				</div>

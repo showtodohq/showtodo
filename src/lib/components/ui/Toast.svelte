@@ -2,6 +2,7 @@
 	import type { ToastItem } from '$lib/stores/toast.svelte';
 	import { toast } from '$lib/stores/toast.svelte';
 	import { cn } from '$lib/utils/cn';
+	import Icon from '@iconify/svelte';
 
 	interface Props {
 		item: ToastItem;
@@ -14,25 +15,25 @@
 			border: 'border-emerald-500/30 dark:border-emerald-500/40',
 			bg: 'bg-white dark:bg-zinc-900',
 			iconColor: 'text-emerald-500',
-			icon: '✓'
+			icon: 'lucide:check-circle-2'
 		},
 		error: {
 			border: 'border-red-500/30 dark:border-red-500/40',
 			bg: 'bg-white dark:bg-zinc-900',
 			iconColor: 'text-red-500',
-			icon: '✕'
+			icon: 'lucide:alert-circle'
 		},
 		warning: {
 			border: 'border-amber-500/30 dark:border-amber-500/40',
 			bg: 'bg-white dark:bg-zinc-900',
 			iconColor: 'text-amber-500',
-			icon: '!'
+			icon: 'lucide:alert-triangle'
 		},
 		info: {
 			border: 'border-zinc-300 dark:border-zinc-700',
 			bg: 'bg-white dark:bg-zinc-900',
 			iconColor: 'text-zinc-500 dark:text-zinc-400',
-			icon: 'ℹ'
+			icon: 'lucide:info'
 		}
 	};
 
@@ -49,12 +50,12 @@
 >
 	<div
 		class={cn(
-			'flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-xs font-bold font-mono',
+			'flex h-5 w-5 shrink-0 items-center justify-center rounded-full',
 			currentType.iconColor,
 			'bg-zinc-100 dark:bg-zinc-800'
 		)}
 	>
-		{currentType.icon}
+		<Icon icon={currentType.icon} class="h-3.5 w-3.5" />
 	</div>
 
 	<p class="text-xs font-medium text-zinc-900 dark:text-zinc-100 leading-snug">

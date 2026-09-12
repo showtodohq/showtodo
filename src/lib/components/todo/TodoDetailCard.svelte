@@ -9,6 +9,7 @@
 	import CategoryBadge from '$lib/components/todo/CategoryBadge.svelte';
 	import TodoCheckbox from '$lib/components/todo/TodoCheckbox.svelte';
 	import TodoReactionsBar from '$lib/components/todo/TodoReactionsBar.svelte';
+	import Icon from '@iconify/svelte';
 
 	interface Props {
 		todo: Todo;
@@ -208,8 +209,8 @@
 			{/if}
 
 			{#if scheduleText}
-				<span class="flex items-center gap-1 font-mono text-[11px]">
-					<span>🗓️</span>
+				<span class="flex items-center gap-1 font-mono text-[11px] text-zinc-500 dark:text-zinc-400">
+					<Icon icon="lucide:calendar" class="h-3.5 w-3.5 text-zinc-400 shrink-0" />
 					<span>{scheduleText}</span>
 				</span>
 			{/if}
@@ -220,7 +221,7 @@
 			onclick={copyLink}
 			class="flex items-center gap-1 text-[11px] font-mono text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 hover:underline cursor-pointer"
 		>
-			<span>🔗</span>
+			<Icon icon="lucide:link-2" class="h-3.5 w-3.5 text-zinc-400 shrink-0" />
 			<span>{todo.shortId || todo.id.slice(0, 8)}</span>
 		</button>
 	</div>
@@ -251,7 +252,7 @@
 				<div class="flex items-center gap-2.5 text-xs flex-wrap">
 					{#if hasJoined}
 						<span class="flex items-center gap-1.5 font-semibold text-emerald-800 dark:text-emerald-200">
-							<span class="text-base">✓</span>
+							<Icon icon="lucide:check" class="h-4 w-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
 							<span>你正在并肩同行该目标</span>
 						</span>
 						{#if topicParticipantCount > 1}
@@ -261,7 +262,11 @@
 						{/if}
 					{:else if isMine}
 						<div class="flex items-center gap-2 text-zinc-700 dark:text-zinc-300">
-							<span class="text-base">{topicParticipantCount > 1 ? '🔥' : '🌱'}</span>
+							{#if topicParticipantCount > 1}
+								<Icon icon="lucide:flame" class="h-4 w-4 text-orange-500 shrink-0" />
+							{:else}
+								<Icon icon="lucide:sprout" class="h-4 w-4 text-emerald-500 shrink-0" />
+							{/if}
 							<span>
 								{#if topicParticipantCount > 1}
 									全网共 <strong>{topicParticipantCount}</strong> 人正在与你并肩同行该目标！
@@ -273,7 +278,11 @@
 					{:else}
 						<!-- 访客未加入 -->
 						<div class="flex items-center gap-2 text-zinc-700 dark:text-zinc-300">
-							<span class="text-base">{topicParticipantCount > 1 ? '🔥' : '🌱'}</span>
+							{#if topicParticipantCount > 1}
+								<Icon icon="lucide:flame" class="h-4 w-4 text-orange-500 shrink-0" />
+							{:else}
+								<Icon icon="lucide:sprout" class="h-4 w-4 text-emerald-500 shrink-0" />
+							{/if}
 							<span>
 								{#if topicParticipantCount > 1}
 									已有 <strong>{topicParticipantCount}</strong> 位伙伴正在并肩同行该目标！

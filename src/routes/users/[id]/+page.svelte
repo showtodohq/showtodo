@@ -14,6 +14,7 @@
 	import UserProfileCard from '$lib/components/user/UserProfileCard.svelte';
 	import UserStatsGrid from '$lib/components/user/UserStatsGrid.svelte';
 	import ActivityHeatmap from '$lib/components/stats/ActivityHeatmap.svelte';
+	import Icon from '@iconify/svelte';
 
 	const profileRes = createUserProfileResource(page.params.id);
 
@@ -115,7 +116,9 @@
 				<div
 					class="p-8 rounded-3xl border border-dashed border-red-200 dark:border-red-900/50 bg-red-50/50 dark:bg-red-950/20 text-center space-y-3"
 				>
-					<div class="text-2xl">👤</div>
+					<div class="inline-flex p-3 rounded-2xl bg-red-100/80 dark:bg-red-950/60 text-red-500">
+						<Icon icon="lucide:user-x" class="h-6 w-6" />
+					</div>
 					<div class="text-sm font-semibold text-zinc-800 dark:text-zinc-200">
 						未找到该用户
 					</div>
@@ -135,7 +138,9 @@
 				<div
 					class="p-8 rounded-3xl border border-dashed border-red-200 dark:border-red-900/50 bg-red-50/50 dark:bg-red-950/20 text-center space-y-3"
 				>
-					<div class="text-2xl">👤</div>
+					<div class="inline-flex p-3 rounded-2xl bg-red-100/80 dark:bg-red-950/60 text-red-500">
+						<Icon icon="lucide:user-x" class="h-6 w-6" />
+					</div>
 					<div class="text-sm font-semibold text-zinc-800 dark:text-zinc-200">
 						{msg}
 					</div>
@@ -245,10 +250,7 @@
 										style="background-color: {catConfig?.color};"
 									></span>
 									<span>{catConfig?.name || profileRes.activeCategory}</span>
-									<span
-										class="text-zinc-400 group-hover:text-zinc-700 dark:group-hover:text-zinc-200 text-xs ml-0.5"
-										>✕</span
-									>
+									<Icon icon="lucide:x" class="h-3 w-3 text-zinc-400 group-hover:text-zinc-700 dark:group-hover:text-zinc-200 ml-0.5" />
 								</button>
 							</div>
 						{/if}
@@ -267,7 +269,9 @@
 							<div
 								class="p-12 text-center rounded-3xl border border-dashed border-zinc-200 dark:border-zinc-800 text-zinc-400 space-y-2"
 							>
-								<div class="text-2xl">🌱</div>
+								<div class="inline-flex p-3 rounded-2xl bg-zinc-100 dark:bg-zinc-800 text-zinc-400">
+									<Icon icon="lucide:inbox" class="h-6 w-6" />
+								</div>
 								<div class="text-xs">
 									{#if profileRes.activeCategory}
 										{@const catConfig = getCategoryConfig(profileRes.activeCategory)}

@@ -12,6 +12,7 @@
 	import TodoStreamView from '$lib/components/todo/TodoStreamView.svelte';
 	import TodoKanbanView from '$lib/components/todo/TodoKanbanView.svelte';
 	import TodoCalendarView from '$lib/components/todo/TodoCalendarView.svelte';
+	import Icon from '@iconify/svelte';
 	import { api } from '$lib/services/api';
 	import { toast } from '$lib/stores/toast.svelte';
 
@@ -108,7 +109,9 @@
 		<div
 			class="rounded-3xl border border-dashed border-zinc-200 dark:border-zinc-800/80 py-20 text-center text-xs text-zinc-400 space-y-4 max-w-md mx-auto"
 		>
-			<div class="text-3xl">📋</div>
+			<div class="inline-flex p-3 rounded-2xl bg-zinc-100 dark:bg-zinc-800 text-zinc-400">
+				<Icon icon="lucide:inbox" class="h-8 w-8" />
+			</div>
 			<div class="space-y-1.5">
 				<div class="text-sm font-semibold text-zinc-800 dark:text-zinc-200">
 					开启您的专属待办工作台

@@ -2,6 +2,7 @@
 	import type { TodoStatus } from '$lib/types/todo';
 	import { TODO_STATUSES, getStatusConfig } from '$lib/constants/status';
 	import Button from '$lib/components/ui/Button.svelte';
+	import Icon from '@iconify/svelte';
 
 	interface Props {
 		currentStatus?: TodoStatus;
@@ -21,7 +22,7 @@
 
 	const checkInActionText = $derived(
 		checkInStatus === 'done'
-			? `${getStatusConfig('done').actionLabel} ✨`
+			? getStatusConfig('done').actionLabel
 			: checkInStatus === 'abandoned'
 				? getStatusConfig('abandoned').actionLabel
 				: checkInStatus === 'pending'
@@ -71,13 +72,13 @@
 					title="{st.label}: {st.description}"
 				>
 					{#if st.id === 'pending'}
-						<span class="text-[10px]">○</span>
+						<Icon icon="lucide:circle" class="h-3 w-3" />
 					{:else if st.id === 'in_progress'}
-						<span class="text-[10px] text-blue-500">◔</span>
+						<Icon icon="lucide:clock-3" class="h-3 w-3 text-blue-500" />
 					{:else if st.id === 'done'}
-						<span class="text-[10px] text-emerald-500">✓</span>
+						<Icon icon="lucide:check-circle-2" class="h-3 w-3 text-emerald-500" />
 					{:else if st.id === 'abandoned'}
-						<span class="text-[10px] text-zinc-400">✕</span>
+						<Icon icon="lucide:x-circle" class="h-3 w-3 text-zinc-400" />
 					{/if}
 					<span>{st.label}</span>
 				</button>

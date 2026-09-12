@@ -4,6 +4,7 @@
 	import ActivityHeatmap from '$lib/components/stats/ActivityHeatmap.svelte';
 	import WidgetSkeleton from '$lib/components/skeleton/WidgetSkeleton.svelte';
 	import DataView from '$lib/components/ui/DataView.svelte';
+	import Icon from '@iconify/svelte';
 
 	onMount(() => {
 		statsStore.load();
@@ -20,7 +21,8 @@
 			class="flex items-center gap-1.5 font-semibold text-xs text-zinc-900 dark:text-zinc-100 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors group/title"
 			title="进入全站数据大屏"
 		>
-			<span>📊 全站数据脉搏</span>
+			<Icon icon="lucide:activity" class="h-4 w-4 text-emerald-500 shrink-0" />
+			<span>全站数据脉搏</span>
 		</a>
 
 		<div class="flex items-center gap-1.5">
@@ -30,7 +32,7 @@
 				title="前往全站统计看板查看全部深度数据"
 			>
 				<span>深度看板</span>
-				<span class="transition-transform group-hover/link:translate-x-0.5">→</span>
+				<Icon icon="lucide:arrow-right" class="h-3 w-3 transition-transform group-hover/link:translate-x-0.5" />
 			</a>
 		</div>
 	</div>
@@ -100,13 +102,13 @@
 
 			<!-- 底部提示徽标与直达链接 -->
 			<div class="pt-1 flex items-center justify-between text-[11px] text-zinc-400">
-				<span>已产生 {overview?.totalReactions ?? 0} 次点赞鼓励 ✨</span>
+				<span>已产生 {overview?.totalReactions ?? 0} 次点赞鼓励</span>
 				<a
 					href="/stats"
 					class="text-xs font-semibold text-emerald-600 dark:text-emerald-400 hover:underline inline-flex items-center gap-0.5"
 				>
 					<span>探索数据大屏</span>
-					<span>↗</span>
+					<Icon icon="lucide:arrow-up-right" class="h-3.5 w-3.5" />
 				</a>
 			</div>
 		{/if}

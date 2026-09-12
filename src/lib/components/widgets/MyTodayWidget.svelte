@@ -6,6 +6,7 @@
 	import WidgetSkeleton from '$lib/components/skeleton/WidgetSkeleton.svelte';
 	import TodoCheckbox from '$lib/components/todo/TodoCheckbox.svelte';
 	import TodoContent from '$lib/components/todo/TodoContent.svelte';
+	import Icon from '@iconify/svelte';
 
 	$effect(() => {
 		const viewerId = userStore.id;
@@ -23,7 +24,8 @@
 		<!-- 头部标题与今日进度 + 全部入口 -->
 		<div class="flex items-center justify-between">
 			<div class="flex items-center gap-1.5 font-semibold text-xs text-zinc-900 dark:text-zinc-100">
-				<span>📌 我的今日待办</span>
+				<Icon icon="lucide:pin" class="h-3.5 w-3.5 text-blue-500 shrink-0" />
+				<span>我的今日待办</span>
 			</div>
 
 			<div class="flex items-center gap-2">
@@ -57,7 +59,7 @@
 
 			{#snippet emptyView()}
 				<div class="py-3 text-center text-xs text-zinc-400">
-					今天还没有发布待办，在上方写一个吧 ✨
+					今天还没有发布待办，在上方写一个吧
 				</div>
 			{/snippet}
 

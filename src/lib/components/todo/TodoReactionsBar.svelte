@@ -3,6 +3,7 @@
 	import { REACTIONS } from '$lib/constants/reactions';
 	import { api } from '$lib/services/api';
 	import ReactionButton from '$lib/components/todo/ReactionButton.svelte';
+	import Icon from '@iconify/svelte';
 
 	interface Props {
 		todoId: string;
@@ -133,7 +134,7 @@
 		{:else}
 			<!-- 零表态引导：优雅提示 -->
 			<div class="flex items-center gap-1.5 text-xs sm:text-sm text-zinc-400 dark:text-zinc-500 py-1 select-none">
-				<span class="text-base">🌱</span>
+				<Icon icon="lucide:sparkles" class="h-3.5 w-3.5 text-zinc-400" />
 				<span>期待第一份鼓励</span>
 			</div>
 		{/if}

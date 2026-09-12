@@ -5,6 +5,7 @@
 	import { CATEGORIES, getCategoryConfig } from '$lib/constants/categories';
 	import TodoItem from '$lib/components/todo/TodoItem.svelte';
 	import DataView from '$lib/components/ui/DataView.svelte';
+	import Icon from '@iconify/svelte';
 
 	interface Props {
 		resource: ReturnType<typeof createMyTodosResource>;
@@ -62,7 +63,7 @@
 					class="text-xs text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 p-1.5 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors cursor-pointer"
 					title="清除搜索"
 				>
-					✕
+					<Icon icon="lucide:x" class="h-3.5 w-3.5" />
 				</button>
 			{/if}
 		</div>
@@ -113,9 +114,7 @@
 							style="background-color: {catConfig?.color};"
 						></span>
 						<span>{catConfig?.name || resource.activeCategory}</span>
-						<span
-							class="text-zinc-400 group-hover:text-zinc-700 dark:group-hover:text-zinc-200 text-xs ml-0.5"
-						>✕</span>
+						<Icon icon="lucide:x" class="h-3 w-3 text-zinc-400 group-hover:text-zinc-700 dark:group-hover:text-zinc-200 ml-0.5" />
 					</button>
 				</div>
 			{/if}
@@ -135,7 +134,7 @@
 					{#if resource.searchQuery || resource.activeCategory || resource.streamTab !== 'all'}
 						没有找到匹配当前筛选条件的待办事项
 					{:else}
-						暂无待办事项，在上方发布第一条吧 ✨
+						暂无待办事项，在上方发布第一条吧
 					{/if}
 				</div>
 				{#if resource.searchQuery || resource.activeCategory || resource.streamTab !== 'all'}

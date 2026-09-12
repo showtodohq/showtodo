@@ -9,6 +9,7 @@
 	import Button from '$lib/components/ui/Button.svelte';
 	import TopicHeaderCard from '$lib/components/topic/TopicHeaderCard.svelte';
 	import TopicParticipantList from '$lib/components/topic/TopicParticipantList.svelte';
+	import Icon from '@iconify/svelte';
 
 	import { getTodayString } from '$lib/utils/format';
 
@@ -46,7 +47,9 @@
 				<div
 					class="p-8 rounded-3xl border border-dashed border-red-200 dark:border-red-900/50 bg-red-50/50 dark:bg-red-950/20 text-center space-y-3"
 				>
-					<div class="text-2xl">🔥</div>
+					<div class="inline-flex p-3 rounded-2xl bg-red-100/80 dark:bg-red-950/60 text-red-500">
+						<Icon icon="lucide:search-x" class="h-6 w-6" />
+					</div>
 					<div class="text-sm font-semibold text-zinc-800 dark:text-zinc-200">
 						未找到该同行目标
 					</div>
@@ -66,7 +69,9 @@
 				<div
 					class="p-8 rounded-3xl border border-dashed border-red-200 dark:border-red-900/50 bg-red-50/50 dark:bg-red-950/20 text-center space-y-3"
 				>
-					<div class="text-2xl">🔥</div>
+					<div class="inline-flex p-3 rounded-2xl bg-red-100/80 dark:bg-red-950/60 text-red-500">
+						<Icon icon="lucide:alert-triangle" class="h-6 w-6" />
+					</div>
 					<div class="text-sm font-semibold text-zinc-800 dark:text-zinc-200">
 						{msg}
 					</div>

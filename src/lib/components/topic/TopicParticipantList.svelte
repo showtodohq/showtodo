@@ -4,6 +4,7 @@
 	import { formatRelativeTime } from '$lib/utils/format';
 	import Avatar from '$lib/components/ui/Avatar.svelte';
 	import TodoCheckbox from '$lib/components/todo/TodoCheckbox.svelte';
+	import Icon from '@iconify/svelte';
 
 	interface Props {
 		participants?: TopicParticipant[];
@@ -105,7 +106,9 @@
 
 	{#if displayParticipants.length === 0}
 		<div class="py-8 px-4 text-center rounded-2xl border border-dashed border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/30 space-y-2">
-			<div class="text-2xl">🌱</div>
+			<div class="inline-flex p-2.5 rounded-2xl bg-zinc-100 dark:bg-zinc-800 text-zinc-400">
+				<Icon icon="lucide:users" class="h-5 w-5" />
+			</div>
 			<div class="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
 				{activeTab === 'today' ? '今日暂无伙伴同行打卡' : '暂无伙伴同行'}
 			</div>

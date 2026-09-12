@@ -14,6 +14,7 @@
 	import MyTodayWidget from '$lib/components/widgets/MyTodayWidget.svelte';
 	import TrendingTopicsWidget from '$lib/components/widgets/TrendingTopicsWidget.svelte';
 	import SiteStatsWidget from '$lib/components/widgets/SiteStatsWidget.svelte';
+	import Icon from '@iconify/svelte';
 
 	// 分类筛选与顶部发布框联动
 	let activeCategoryFilter = $state<CategoryId | null>(null);
@@ -91,10 +92,7 @@
 								style="background-color: {catConfig?.color};"
 							></span>
 							<span>{catConfig?.name || activeCategoryFilter}</span>
-							<span
-								class="text-zinc-400 group-hover:text-zinc-700 dark:group-hover:text-zinc-200 text-xs ml-0.5"
-								>✕</span
-							>
+							<Icon icon="lucide:x" class="h-3 w-3 text-zinc-400 group-hover:text-zinc-700 dark:group-hover:text-zinc-200 ml-0.5" />
 						</button>
 					</div>
 				{/if}
@@ -115,9 +113,9 @@
 					>
 						{#if activeCategoryFilter}
 							{@const catConfig = getCategoryConfig(activeCategoryFilter)}
-							暂无「{catConfig?.name || activeCategoryFilter}」类公开待办，在上方发布第一条吧 ✨
+							暂无「{catConfig?.name || activeCategoryFilter}」类公开待办，在上方发布第一条吧
 						{:else}
-							暂无公开待办，在上方发布第一条吧 ✨
+							暂无公开待办，在上方发布第一条吧
 						{/if}
 					</div>
 				{/snippet}

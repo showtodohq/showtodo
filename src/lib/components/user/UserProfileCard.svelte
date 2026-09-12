@@ -5,6 +5,7 @@
 	import { getAvatarUrl } from '$lib/services/avatar';
 	import Avatar from '$lib/components/ui/Avatar.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
+	import Icon from '@iconify/svelte';
 
 	interface Props {
 		user: UserProfile;
@@ -44,7 +45,7 @@
 		];
 		const randomSeed = `${seeds[Math.floor(Math.random() * seeds.length)]}-${Math.floor(Math.random() * 1000)}`;
 		editAvatar = `https://api.dicebear.com/7.x/notionists/svg?seed=${randomSeed}&backgroundColor=f4f4f5,e4e4e7,d4d4d8`;
-		toast.info('✨ 已随机生成个性头像');
+		toast.info('已随机生成个性头像');
 	}
 
 	function resetAvatar() {
@@ -224,9 +225,9 @@
 							class="ring-4 ring-blue-500/20 dark:ring-blue-400/20 shadow-md transition-transform group-hover/avatar:scale-105"
 						/>
 						<div
-							class="absolute inset-0 rounded-full bg-black/40 text-white text-[10px] font-medium flex flex-col items-center justify-center opacity-0 group-hover/avatar:opacity-100 transition-opacity backdrop-blur-xs select-none"
+							class="absolute inset-0 rounded-full bg-black/40 text-white text-[10px] font-medium flex flex-col items-center justify-center opacity-0 group-hover/avatar:opacity-100 transition-opacity backdrop-blur-xs select-none gap-0.5"
 						>
-							<span>🎲</span>
+							<Icon icon="lucide:dices" class="h-3.5 w-3.5" />
 							<span>换一个</span>
 						</div>
 					</div>
@@ -238,7 +239,7 @@
 							class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-medium text-zinc-600 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-zinc-100 bg-zinc-100 dark:bg-zinc-800/80 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors cursor-pointer"
 							title="随机生成 Notionist 风格头像"
 						>
-							<span>🎲</span>
+							<Icon icon="lucide:dices" class="h-3 w-3 shrink-0" />
 							<span>随机</span>
 						</button>
 
@@ -248,7 +249,7 @@
 							class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-medium text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200 bg-zinc-50 dark:bg-zinc-800/40 hover:bg-zinc-100 transition-colors cursor-pointer"
 							title="自定义图片外链"
 						>
-							<span>🔗</span>
+							<Icon icon="lucide:link-2" class="h-3 w-3 shrink-0" />
 							<span>URL</span>
 						</button>
 

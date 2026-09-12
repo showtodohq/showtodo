@@ -2,6 +2,7 @@
 	import type { ComponentSize } from '$lib/types/common';
 	import { userStore } from '$lib/stores/user.svelte';
 	import Avatar from '$lib/components/ui/Avatar.svelte';
+	import Icon from '@iconify/svelte';
 
 	interface UserData {
 		id?: string;
@@ -104,7 +105,10 @@
 				<span class="ml-1 text-[10px] text-amber-300 dark:text-amber-600 font-semibold">(我)</span>
 			{/if}
 			{#if goldBadge}
-				<span class="ml-1 text-[10px] text-amber-400 font-medium">🏆 全员完成</span>
+				<span class="inline-flex items-center gap-1 ml-1 text-[10px] text-amber-400 font-medium">
+					<Icon icon="lucide:trophy" class="h-3 w-3 shrink-0" />
+					<span>全员完成</span>
+				</span>
 			{/if}
 		</div>
 	</div>

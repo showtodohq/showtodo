@@ -183,7 +183,7 @@ class TodoMutations {
 
 			if (isAllDone) {
 				confetti.tripleCelebration();
-				toast.success('🎉 太棒了！今日全部待办已全部完成！');
+				toast.success('太棒了！今日全部待办已全部完成！');
 			} else {
 				confetti.burst(event?.clientX, event?.clientY, 300);
 			}

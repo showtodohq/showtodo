@@ -257,7 +257,7 @@ export function createTodoDetailResource(initialIdentifier?: string) {
 					shortId: joined.shortId,
 					status: joined.status
 				};
-				toast.success('🎉 成功加入该目标！');
+				toast.success('成功加入该目标！');
 			}
 		} catch (err) {
 			topicParticipantCount = Math.max(0, topicParticipantCount - 1);

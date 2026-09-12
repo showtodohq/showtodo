@@ -2,6 +2,7 @@
 	import type { TodoActivity, TodoStatus } from '$lib/types/todo';
 	import { getStatusConfig } from '$lib/constants/status';
 	import { formatRelativeTime } from '$lib/utils/format';
+	import Icon from '@iconify/svelte';
 
 	interface Props {
 		activities?: TodoActivity[];
@@ -19,8 +20,9 @@
 
 <div class="space-y-4">
 	<div class="flex items-center justify-between px-1">
-		<h2 class="text-xs font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">
-			🌱 成长动态与打卡记录 ({isLoading && sortedActivities.length === 0 ? '...' : sortedActivities.length})
+		<h2 class="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">
+			<Icon icon="lucide:activity" class="h-3.5 w-3.5" />
+			<span>成长动态与打卡记录 ({isLoading && sortedActivities.length === 0 ? '...' : sortedActivities.length})</span>
 		</h2>
 	</div>
 
@@ -55,14 +57,14 @@
 				<div class="relative group/act">
 					<!-- 轴点图标 -->
 					<div
-						class="absolute -left-6 top-1 h-5 w-5 rounded-full bg-white dark:bg-zinc-900 border-2 border-zinc-300 dark:border-zinc-700 flex items-center justify-center text-[10px]"
+						class="absolute -left-6 top-1 h-5 w-5 rounded-full bg-white dark:bg-zinc-900 border-2 border-zinc-300 dark:border-zinc-700 flex items-center justify-center text-zinc-500"
 					>
 						{#if act.type === 'created'}
-							<span>🚀</span>
+							<Icon icon="lucide:plus" class="h-3 w-3 text-blue-500" />
 						{:else if act.type === 'status_change'}
-							<span>🔄</span>
+							<Icon icon="lucide:refresh-cw" class="h-2.5 w-2.5 text-amber-500" />
 						{:else}
-							<span>🌱</span>
+							<Icon icon="lucide:check-circle-2" class="h-3 w-3 text-emerald-500" />
 						{/if}
 					</div>
 

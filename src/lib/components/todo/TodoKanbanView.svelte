@@ -5,6 +5,7 @@
 	import CategoryBadge from '$lib/components/todo/CategoryBadge.svelte';
 	import TodoCheckbox from '$lib/components/todo/TodoCheckbox.svelte';
 	import { formatRelativeTime } from '$lib/utils/format';
+	import Icon from '@iconify/svelte';
 
 	interface Props {
 		resource: ReturnType<typeof createMyTodosResource>;
@@ -141,7 +142,7 @@
 															<span>{targetSt.label}</span>
 														</span>
 														{#if todo.status === targetSt.id}
-															<span class="text-xs text-zinc-400">✓</span>
+															<Icon icon="lucide:check" class="h-3.5 w-3.5 text-zinc-400" />
 														{/if}
 													</button>
 												{/each}

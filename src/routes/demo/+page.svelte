@@ -842,7 +842,7 @@
 											{:else if p.status === 'in_progress'}
 												<span class="h-2 w-2 rounded-full bg-zinc-900 dark:bg-zinc-100 animate-pulse" title="进行中"></span>
 											{:else if p.status === 'abandoned'}
-												<span class="text-[10px] text-zinc-400" title="已放弃">✕</span>
+												<Icon icon="lucide:x" class="h-2.5 w-2.5 text-zinc-400 stroke-[3]" />
 											{:else}
 												<span class="h-1.5 w-1.5 rounded-full bg-zinc-300 dark:bg-zinc-600" title="待办"></span>
 											{/if}

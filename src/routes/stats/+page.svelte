@@ -7,6 +7,7 @@
 	import StatsSkeleton from '$lib/components/skeleton/StatsSkeleton.svelte';
 	import ActivityHeatmap from '$lib/components/stats/ActivityHeatmap.svelte';
 	import CategoryDonutChart from '$lib/components/stats/CategoryDonutChart.svelte';
+	import Icon from '@iconify/svelte';
 
 	let hoveredTrendIndex = $state<number | null>(null);
 
@@ -49,7 +50,7 @@
 				class="px-2.5 py-1 rounded-lg border border-zinc-200/80 dark:border-zinc-800 bg-white/80 dark:bg-zinc-900/80 hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-700 dark:text-zinc-300 transition-all cursor-pointer inline-flex items-center gap-1.5 shadow-2xs disabled:opacity-50"
 				title="重新拉取最新数据"
 			>
-				<span class="{statsStore.loading ? 'animate-spin' : ''}">↻</span>
+				<Icon icon="lucide:rotate-cw" class="h-3.5 w-3.5 {statsStore.loading ? 'animate-spin' : ''}" />
 				<span>刷新</span>
 			</button>
 		</div>
@@ -74,7 +75,7 @@
 			>
 				<div class="flex items-center justify-between text-xs text-zinc-400 font-medium">
 					<span>累计公开待办</span>
-					<span class="text-sm">📝</span>
+					<Icon icon="lucide:list-todo" class="h-4 w-4 text-blue-500 shrink-0" />
 				</div>
 				<div class="text-2xl sm:text-3xl font-black font-mono text-zinc-900 dark:text-zinc-100">
 					{overview.totalTodos.toLocaleString()}
@@ -90,7 +91,7 @@
 			>
 				<div class="flex items-center justify-between text-xs text-emerald-600 dark:text-emerald-400 font-medium">
 					<span>已完成待办总数</span>
-					<span class="text-sm">✅</span>
+					<Icon icon="lucide:check-circle-2" class="h-4 w-4 text-emerald-500 shrink-0" />
 				</div>
 				<div class="text-2xl sm:text-3xl font-black font-mono text-emerald-600 dark:text-emerald-400">
 					{overview.completedTodos.toLocaleString()}
@@ -106,7 +107,7 @@
 			>
 				<div class="flex items-center justify-between text-xs text-amber-600 dark:text-amber-400 font-medium">
 					<span>全站待办完成率</span>
-					<span class="text-sm">⚡</span>
+					<Icon icon="lucide:zap" class="h-4 w-4 text-amber-500 shrink-0" />
 				</div>
 				<div class="text-2xl sm:text-3xl font-black font-mono text-amber-600 dark:text-amber-400">
 					{overview.completionRate}%
@@ -122,7 +123,7 @@
 			>
 				<div class="flex items-center justify-between text-xs text-blue-600 dark:text-blue-400 font-medium">
 					<span>同行探索者</span>
-					<span class="text-sm">👥</span>
+					<Icon icon="lucide:users" class="h-4 w-4 text-blue-500 shrink-0" />
 				</div>
 				<div class="text-2xl sm:text-3xl font-black font-mono text-blue-600 dark:text-blue-400">
 					{overview.totalUsers.toLocaleString()}
@@ -140,7 +141,7 @@
 			<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
 				<div class="space-y-0.5">
 					<h2 class="text-sm sm:text-base font-bold text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
-						<span>🟩</span>
+						<Icon icon="lucide:calendar" class="h-4 w-4 text-emerald-500 shrink-0" />
 						<span>全站行动足迹热力图 (Activity Heatmap)</span>
 					</h2>
 					<p class="text-xs text-zinc-400">
@@ -164,7 +165,7 @@
 			<div class="flex items-center justify-between">
 				<div class="space-y-0.5">
 					<h2 class="text-sm sm:text-base font-bold text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
-						<span>📈</span>
+						<Icon icon="lucide:trending-up" class="h-4 w-4 text-blue-500 shrink-0" />
 						<span>近 14 天新建与完成走势 (14-Day Trend)</span>
 					</h2>
 					<p class="text-xs text-zinc-400">对比每日公开待办的新建与完成节奏</p>
@@ -233,7 +234,7 @@
 		>
 			<div class="space-y-0.5">
 				<h2 class="text-sm sm:text-base font-bold text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
-					<span>🎯</span>
+					<Icon icon="lucide:target" class="h-4 w-4 text-indigo-500 shrink-0" />
 					<span>领域分类全景 (Category Insights)</span>
 				</h2>
 				<p class="text-xs text-zinc-400">各类别待办总数、占比及目标完成率</p>
@@ -251,7 +252,7 @@
 					<div class="flex items-center justify-between">
 						<div class="space-y-0.5">
 							<h2 class="text-sm sm:text-base font-bold text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
-								<span>🔥</span>
+								<Icon icon="lucide:flame" class="h-4 w-4 text-orange-500 shrink-0" />
 								<span>最具号召力同行目标</span>
 							</h2>
 							<p class="text-xs text-zinc-400">同行人数最多的共同挑战目标</p>
@@ -295,7 +296,7 @@
 				>
 					<div class="space-y-0.5">
 						<h2 class="text-sm sm:text-base font-bold text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
-							<span>🏆</span>
+							<Icon icon="lucide:trophy" class="h-4 w-4 text-amber-500 shrink-0" />
 							<span>待办完成先锋榜</span>
 						</h2>
 						<p class="text-xs text-zinc-400">全平台累计完成待办最多的活跃伙伴</p>

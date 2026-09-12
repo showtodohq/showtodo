@@ -2,6 +2,7 @@
 	import type { TopicItem } from '$lib/types/todo';
 	import UserAvatarTooltip from '$lib/components/user/UserAvatarTooltip.svelte';
 	import { userStore } from '$lib/stores/user.svelte';
+	import Icon from '@iconify/svelte';
 
 	interface Props {
 		topic: TopicItem;
@@ -34,7 +35,7 @@
 					class="inline-flex items-center gap-1 text-[11px] font-bold text-amber-900 dark:text-amber-100 bg-gradient-to-r from-amber-300 via-yellow-300 to-amber-400 dark:from-amber-600 dark:via-yellow-600 dark:to-amber-500 px-2 py-0.5 rounded-md shadow-xs animate-in zoom-in-95 duration-150 select-none"
 					title="所有同行伙伴已全部完成"
 				>
-					<span>🏆</span>
+					<Icon icon="lucide:trophy" class="h-3 w-3 shrink-0" />
 					<span>全员完成</span>
 				</span>
 			{/if}
@@ -52,7 +53,7 @@
 						? 'text-amber-700 dark:text-amber-300 bg-amber-100/70 dark:bg-amber-900/40 border border-amber-300/60 dark:border-amber-700/50'
 						: 'text-emerald-600 dark:text-emerald-400 bg-emerald-50/80 dark:bg-emerald-950/40 border border-emerald-200/60 dark:border-emerald-800/40'} px-2.5 py-1 rounded-lg select-none"
 				>
-					<span>✓</span>
+					<Icon icon="lucide:check" class="h-3 w-3 shrink-0" />
 					<span>已同行</span>
 				</span>
 			{:else}
@@ -88,7 +89,7 @@
 		<div class="flex items-center justify-between text-xs font-mono">
 			<div class="flex items-center gap-1.5 text-zinc-500 dark:text-zinc-400">
 				{#if isAllDone}
-					<span class="text-amber-500">✨</span>
+					<Icon icon="lucide:sparkles" class="h-3.5 w-3.5 text-amber-500 shrink-0" />
 					<span class="font-medium text-amber-600 dark:text-amber-400">全员 {topic.totalParticipants} 人共同冲线</span>
 				{:else if topic.totalParticipants > 1}
 					<span class="text-amber-500 font-semibold">{topic.totalParticipants}</span>

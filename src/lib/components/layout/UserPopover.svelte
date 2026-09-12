@@ -6,6 +6,7 @@
 	import { theme } from '$lib/stores/theme.svelte';
 	import { toast } from '$lib/stores/toast.svelte';
 	import { api } from '$lib/services/api';
+	import Icon from '@iconify/svelte';
 
 	let isOpen = $state(false);
 	let emailInput = $state('');
@@ -105,8 +106,8 @@
 		<div
 			class="absolute right-0 top-full mt-2 w-72 sm:w-80 z-50 rounded-2xl border border-zinc-200/90 dark:border-zinc-800 bg-white/95 dark:bg-zinc-900/95 backdrop-blur-md p-2 shadow-2xl text-left animate-in fade-in zoom-in-95 duration-150 divide-y divide-zinc-100 dark:divide-zinc-800/70 select-none"
 		>
-			<!-- 👤 【第 1 段：身份识别区 (Identity Header)】 -->
-			<div class="p-2">
+			<!-- 【第 1 段：身份识别区 (Identity Header)】 -->
+			<div class="p-3 bg-zinc-50/50 dark:bg-zinc-900/30 border-b border-zinc-100 dark:border-zinc-800">
 				{#if userStore.current}
 					{@const myProfileUrl = `/users/${userStore.handle || userStore.id}`}
 					<div class="flex items-center gap-3">
@@ -156,14 +157,14 @@
 				{/if}
 			</div>
 
-			<!-- 📋 【第 2 段：业务与功能扩展槽位 (Feature Slots & Menu Items)】 -->
+			<!-- 【第 2 段：业务与功能扩展槽位 (Feature Slots & Menu Items)】 -->
 			<div class="py-1.5 space-y-0.5">
 				{#if userStore.current}
 					<!-- 扩展槽位 0：个人主页 -->
 					<a
 						href={`/users/${userStore.handle || userStore.id}`}
 						onclick={closePopover}
-						class="flex items-center justify-between px-2.5 py-1.5 rounded-xl text-xs text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800/80 transition-colors cursor-pointer"
+						class="flex items-center justify-between px-2.5 py-1.5 rounded-xl text-xs text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800/80 transition-colors cursor-pointer group/link"
 					>
 						<span class="flex items-center gap-2 font-medium">
 							<svg class="h-3.5 w-3.5 text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -171,14 +172,17 @@
 							</svg>
 							个人主页 (Profile)
 						</span>
-						<span class="text-[11px] text-zinc-400">公开成果与打卡 →</span>
+						<span class="text-[11px] text-zinc-400 inline-flex items-center gap-0.5">
+							<span>公开成果与打卡</span>
+							<Icon icon="lucide:arrow-right" class="h-3 w-3 transition-transform group-hover/link:translate-x-0.5" />
+						</span>
 					</a>
 
 					<!-- 扩展槽位 0.5：我的待办清单工作台 -->
 					<a
 						href="/todos"
 						onclick={closePopover}
-						class="flex items-center justify-between px-2.5 py-1.5 rounded-xl text-xs text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800/80 transition-colors cursor-pointer"
+						class="flex items-center justify-between px-2.5 py-1.5 rounded-xl text-xs text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800/80 transition-colors cursor-pointer group/link"
 					>
 						<span class="flex items-center gap-2 font-medium">
 							<svg class="h-3.5 w-3.5 text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -186,7 +190,10 @@
 							</svg>
 							待办清单 (Todo List)
 						</span>
-						<span class="text-[11px] text-zinc-400">看板与日历 →</span>
+						<span class="text-[11px] text-zinc-400 inline-flex items-center gap-0.5">
+							<span>看板与日历</span>
+							<Icon icon="lucide:arrow-right" class="h-3 w-3 transition-transform group-hover/link:translate-x-0.5" />
+						</span>
 					</a>
 
 					<!-- 扩展槽位 1：快捷键指南 -->
@@ -238,7 +245,7 @@
 				{/if}
 			</div>
 
-			<!-- 🎨 【第 3 段：系统偏好设置区 (Preferences)】 -->
+			<!-- 【第 3 段：系统偏好设置区 (Preferences)】 -->
 			<div class="p-2">
 				<div class="flex items-center justify-between gap-2">
 					<span class="text-xs font-medium text-zinc-600 dark:text-zinc-400 shrink-0">
@@ -270,7 +277,7 @@
 				</div>
 			</div>
 
-			<!-- 🚪 【第 4 段：底部危险与退出区 (Actions & Logout)】 -->
+			<!-- 【第 4 段：底部危险与退出区 (Actions & Logout)】 -->
 			{#if userStore.current}
 				<div class="p-1">
 					<button

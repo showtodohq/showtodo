@@ -9,6 +9,7 @@
 	import { api } from '$lib/services/api';
 	import { todoMutations } from '$lib/stores/mutations.svelte';
 	import { createTodoModalStore } from '$lib/stores/create-todo-modal.svelte';
+	import Icon from '@iconify/svelte';
 
 	let content = $state(createTodoModalStore.initialContent || '');
 	let note = $state('');
@@ -446,10 +447,10 @@
 									<button
 										type="button"
 										onclick={clearStartDate}
-										class="text-[10px] text-red-500 hover:text-red-600 px-1 cursor-pointer leading-none"
+										class="text-[10px] text-red-500 hover:text-red-600 px-1 cursor-pointer leading-none flex items-center justify-center"
 										title="清除开始时间"
 									>
-										✕
+										<Icon icon="lucide:x" class="h-3 w-3" />
 									</button>
 								{/if}
 							</div>
@@ -504,10 +505,10 @@
 									<button
 										type="button"
 										onclick={clearDueDate}
-										class="text-[10px] text-red-500 hover:text-red-600 px-1 cursor-pointer leading-none"
+										class="text-[10px] text-red-500 hover:text-red-600 px-1 cursor-pointer leading-none flex items-center justify-center"
 										title="清除截止时间"
 									>
-										✕
+										<Icon icon="lucide:x" class="h-3 w-3" />
 									</button>
 								{/if}
 							</div>

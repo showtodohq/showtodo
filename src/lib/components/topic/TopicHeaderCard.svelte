@@ -3,6 +3,7 @@
 	import { getStatusConfig } from '$lib/constants/status';
 	import TodoCheckbox from '$lib/components/todo/TodoCheckbox.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
+	import Icon from '@iconify/svelte';
 
 	interface Props {
 		topic: TopicDetail;
@@ -41,7 +42,7 @@
 				<span
 					class="inline-flex items-center gap-1 text-xs font-bold text-amber-900 dark:text-amber-100 bg-gradient-to-r from-amber-300 via-yellow-300 to-amber-400 dark:from-amber-600 dark:via-yellow-600 dark:to-amber-500 px-2.5 py-0.5 rounded-full shadow-xs select-none animate-in zoom-in-95 duration-150"
 				>
-					<span>🏆</span>
+					<Icon icon="lucide:trophy" class="h-3.5 w-3.5 shrink-0" />
 					<span>今日全员完成</span>
 				</span>
 			{/if}
@@ -66,7 +67,7 @@
 			<div
 				class="flex items-center gap-1.5 font-medium text-zinc-700 dark:text-zinc-300 flex-wrap"
 			>
-				<span class="text-amber-500">🔥</span>
+				<Icon icon="lucide:flame" class="h-4 w-4 text-orange-500 shrink-0" />
 				{#if topic.todayParticipants > 0}
 					<span><strong>{topic.todayParticipants}</strong> 位伙伴今日同行</span>
 					<span>·</span>
@@ -109,7 +110,7 @@
 				<span
 					class="inline-flex items-center gap-1 text-xs font-semibold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800/60 px-3 py-1 rounded-full"
 				>
-					<span>✓</span>
+					<Icon icon="lucide:check" class="h-3.5 w-3.5 shrink-0" />
 					<span>你正在同行该目标</span>
 				</span>
 				<span class="text-xs text-zinc-400">

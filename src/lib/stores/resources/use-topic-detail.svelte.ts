@@ -214,7 +214,7 @@ export function createTopicDetailResource(initialHash?: string) {
 					p.shortId = realTodo.shortId || realTodo.id;
 				}
 			}
-			toast.success('🎉 成功加入该目标！');
+			toast.success('成功加入该目标！');
 		} catch (err) {
 			// 回滚
 			topic.participants = topic.participants.filter((p) => p.todoId !== tempTodoId);

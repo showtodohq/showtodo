@@ -79,7 +79,7 @@ describe('ActivityHeatmap & SiteStatsWidget rendering test', () => {
 		});
 
 		const rendered = render(MyTodayWidget);
-		expect(rendered.body).toContain('📌 我的今日待办');
+		expect(rendered.body).toContain('我的今日待办');
 		expect(rendered.body).toContain('href="/todos"');
 		expect(rendered.body).toContain('全部');
 	});

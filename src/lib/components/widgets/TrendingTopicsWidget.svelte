@@ -8,6 +8,7 @@
 	import UserAvatarTooltip from '$lib/components/user/UserAvatarTooltip.svelte';
 	import DataView from '$lib/components/ui/DataView.svelte';
 	import WidgetSkeleton from '$lib/components/skeleton/WidgetSkeleton.svelte';
+	import Icon from '@iconify/svelte';
 
 	interface Props {
 		onJoinTopic?: (content: string, category?: string | null) => void;
@@ -46,7 +47,8 @@
 			class="flex items-center gap-1.5 font-semibold text-xs text-zinc-900 dark:text-zinc-100 hover:text-amber-600 dark:hover:text-amber-400 transition-colors group/title"
 			title="前往同行广场"
 		>
-			<span>🔥 热门同行目标</span>
+			<Icon icon="lucide:flame" class="h-4 w-4 text-orange-500 shrink-0" />
+			<span>热门同行目标</span>
 		</a>
 
 		<div class="flex items-center gap-1.5">
@@ -113,7 +115,7 @@
 									class="inline-flex items-center gap-1 text-[10px] font-bold text-amber-900 dark:text-amber-100 bg-gradient-to-r from-amber-300 via-yellow-300 to-amber-400 dark:from-amber-600 dark:via-yellow-600 dark:to-amber-500 px-2 py-0.5 rounded-md shadow-xs animate-in zoom-in-90 duration-150 select-none"
 									title="所有同行伙伴已全部完成"
 								>
-									<span>🏆</span>
+									<Icon icon="lucide:trophy" class="h-3 w-3 shrink-0" />
 									<span>全员完成</span>
 								</span>
 							{/if}
@@ -148,7 +150,7 @@
 							title="查看同行详情"
 						>
 							{#if isAllDone}
-								<span class="text-amber-500">✨</span>
+								<Icon icon="lucide:sparkles" class="h-3.5 w-3.5 text-amber-500 shrink-0" />
 								<span class="font-semibold text-amber-600 dark:text-amber-400">{card.totalParticipants} 人同行全部完成</span>
 							{:else}
 								<span class="text-amber-500 font-semibold">{card.totalParticipants}</span>
