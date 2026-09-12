@@ -91,6 +91,94 @@ describe('todoMutations.createTodo', () => {
 		expect(storedInRegistry?.author?.nickname).toBe('云端昵称');
 	});
 
+	it('should pass dueDate to api.createTodo and reflect in optimistic tempTodo', async () => {
+		const rawTodoFromApi = {
+			id: 'real-todo-with-due',
+			shortId: 'shortdue',
+			topicHash: 'hash-due',
+			content: '有截止日期的待办',
+			note: null,
+			isNotePublic: true,
+			category: 'dev' as const,
+			authorId: 'user-uuid-1',
+			status: 'pending' as const,
+			startDate: '2026-09-10T12:00:00.000Z',
+			dueDate: '2026-09-30T18:00:00.000Z',
+			createdAt: '2026-09-10T12:00:00.000Z',
+			updatedAt: '2026-09-10T12:00:00.000Z'
+		} as Todo;
+
+		vi.mocked(api.createTodo).mockResolvedValueOnce({
+			todo: rawTodoFromApi,
+			author: {
+				id: 'user-uuid-1',
+				email: 'tester@example.com',
+				nickname: '测试用户',
+				handle: 'tester',
+				avatar: 'https://example.com/avatar.jpg',
+				createdAt: '2026-09-10T12:00:00.000Z',
+				updatedAt: '2026-09-10T12:00:00.000Z'
+			}
+		});
+
+		const result = await todoMutations.createTodo({
+			content: '有截止日期的待办',
+			category: 'dev',
+			dueDate: '2026-09-30T18:00:00.000Z'
+		});
+
+		expect(api.createTodo).toHaveBeenCalledWith(
+			expect.objectContaining({
+				dueDate: '2026-09-30T18:00:00.000Z'
+			})
+		);
+		expect(result?.dueDate).toBe('2026-09-30T18:00:00.000Z');
+	});
+
+	it('should pass custom startDate to api.createTodo and reflect in optimistic tempTodo', async () => {
+		const rawTodoFromApi = {
+			id: 'real-todo-with-start',
+			shortId: 'shortstart',
+			topicHash: 'hash-start',
+			content: '有开始日期的待办',
+			note: null,
+			isNotePublic: true,
+			category: 'dev' as const,
+			authorId: 'user-uuid-1',
+			status: 'pending' as const,
+			startDate: '2026-09-25T00:00:00.000Z',
+			dueDate: null,
+			createdAt: '2026-09-10T12:00:00.000Z',
+			updatedAt: '2026-09-10T12:00:00.000Z'
+		} as Todo;
+
+		vi.mocked(api.createTodo).mockResolvedValueOnce({
+			todo: rawTodoFromApi,
+			author: {
+				id: 'user-uuid-1',
+				email: 'tester@example.com',
+				nickname: '测试用户',
+				handle: 'tester',
+				avatar: 'https://example.com/avatar.jpg',
+				createdAt: '2026-09-10T12:00:00.000Z',
+				updatedAt: '2026-09-10T12:00:00.000Z'
+			}
+		});
+
+		const result = await todoMutations.createTodo({
+			content: '有开始日期的待办',
+			category: 'dev',
+			startDate: '2026-09-25T00:00:00.000Z'
+		});
+
+		expect(api.createTodo).toHaveBeenCalledWith(
+			expect.objectContaining({
+				startDate: '2026-09-25T00:00:00.000Z'
+			})
+		);
+		expect(result?.startDate).toBe('2026-09-25T00:00:00.000Z');
+	});
+
 	it('increments count by exactly 1 when toggleReaction is called with fallbackTodo (detail page scenario)', async () => {
 		const todo = todoRegistry.upsert({
 			id: 'detail-todo-1',

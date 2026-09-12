@@ -97,6 +97,8 @@ class TodoStore {
 		note?: string | null;
 		isNotePublic?: boolean;
 		category?: CategoryId | string | null;
+		startDate?: string | null;
+		dueDate?: string | null;
 	}) {
 		return todoMutations.createTodo(data);
 	}

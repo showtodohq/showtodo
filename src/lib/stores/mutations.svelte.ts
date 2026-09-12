@@ -18,6 +18,8 @@ class TodoMutations {
 		note?: string | null;
 		isNotePublic?: boolean;
 		category?: CategoryId | string | null;
+		startDate?: string | null;
+		dueDate?: string | null;
 	}): Promise<Todo | undefined> {
 		const email = userStore.email;
 		if (!email) {
@@ -35,6 +37,7 @@ class TodoMutations {
 		};
 
 		const isNotePublic = data.isNotePublic ?? true;
+		const startDateIso = data.startDate ? new Date(data.startDate).toISOString() : nowIso;
 
 		const tempTodo: Todo = {
 			id: tempId,
@@ -46,8 +49,8 @@ class TodoMutations {
 			category: data.category ?? null,
 			authorId: currentUser.id,
 			status: 'pending',
-			startDate: nowIso,
-			dueDate: null,
+			startDate: startDateIso,
+			dueDate: data.dueDate ? new Date(data.dueDate).toISOString() : null,
 			createdAt: nowIso,
 			updatedAt: nowIso,
 			author: currentUser,
@@ -82,7 +85,8 @@ class TodoMutations {
 						note: data.note,
 						isNotePublic,
 						category: data.category ?? undefined,
-						startDate: nowIso
+						startDate: startDateIso,
+						dueDate: data.dueDate ? new Date(data.dueDate).toISOString() : undefined
 					});
 
 					const authorData = res.author || {

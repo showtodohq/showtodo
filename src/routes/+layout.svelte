@@ -5,6 +5,7 @@
 	import Footer from '$lib/components/layout/Footer.svelte';
 	import ToastContainer from '$lib/components/ui/ToastContainer.svelte';
 	import TopProgressBar from '$lib/components/ui/TopProgressBar.svelte';
+	import CreateTodoModal from '$lib/components/todo/CreateTodoModal.svelte';
 	import { progressStore } from '$lib/stores/progress.svelte';
 
 	let { children } = $props();
@@ -42,4 +43,7 @@
 
 	<!-- 全局浮动 Toast 容器 -->
 	<ToastContainer />
+
+	<!-- 全局发布 Todo 弹窗 -->
+	<CreateTodoModal />
 </div>

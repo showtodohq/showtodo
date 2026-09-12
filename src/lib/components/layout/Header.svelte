@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { page } from '$app/state';
 	import UserPopover from '$lib/components/layout/UserPopover.svelte';
+	import { createTodoModalStore } from '$lib/stores/create-todo-modal.svelte';
 
 	let scrollY = $state(0);
 	const isScrolled = $derived(scrollY > 12);
@@ -9,9 +10,27 @@
 	const isFeed = $derived(pathname === '/');
 	const isTopics = $derived(pathname.startsWith('/topics'));
 	const isStats = $derived(pathname.startsWith('/stats'));
+
+	function handleGlobalKeydown(e: KeyboardEvent) {
+		// 当用户在表单输入框内输入时，不拦截快捷键
+		const target = e.target as HTMLElement | null;
+		const isInputActive =
+			target?.tagName === 'INPUT' ||
+			target?.tagName === 'TEXTAREA' ||
+			target?.tagName === 'SELECT' ||
+			target?.isContentEditable;
+
+		if (isInputActive) return;
+
+		// 快捷键 'c' 或 'C' 且未按 Ctrl/Cmd/Alt，直接唤起发布弹窗
+		if ((e.key === 'c' || e.key === 'C') && !e.metaKey && !e.ctrlKey && !e.altKey) {
+			e.preventDefault();
+			createTodoModalStore.show();
+		}
+	}
 </script>
 
-<svelte:window bind:scrollY />
+<svelte:window bind:scrollY onkeydown={handleGlobalKeydown} />
 
 <header
 	class="sticky top-0 z-30 h-14 transition-all duration-200 {isScrolled
@@ -57,10 +76,24 @@
 			</a>
 		</nav>
 
-		<!-- 右侧：Apple / Linear 风格用户身份与偏好 Popover -->
-		<div class="shrink-0">
+		<!-- 右侧：全局发布按钮与用户身份 Popover -->
+		<div class="flex items-center gap-2 shrink-0">
+			<!-- 高对比度实心微胶囊新建按钮 (Linear 风格) -->
+			<button
+				type="button"
+				onclick={() => createTodoModalStore.show()}
+				class="flex h-8 items-center gap-1.5 px-2.5 rounded-xl bg-zinc-900 text-white dark:bg-white dark:text-zinc-900 hover:opacity-90 active:scale-95 transition-all text-xs font-semibold shadow-xs cursor-pointer group"
+				title="新建公开待办 (按 C 唤起)"
+				aria-label="发布新待办"
+			>
+				<svg class="h-3.5 w-3.5 stroke-[2.5] transition-transform group-hover:rotate-90 duration-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+					<path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+				</svg>
+				<span class="hidden sm:inline">发布</span>
+				<kbd class="hidden md:inline-flex items-center justify-center h-4 min-w-4 px-1 rounded bg-zinc-800 dark:bg-zinc-200 text-[10px] font-mono text-zinc-300 dark:text-zinc-700 leading-none">C</kbd>
+			</button>
+
 			<UserPopover />
 		</div>
 	</div>
 </header>
-
