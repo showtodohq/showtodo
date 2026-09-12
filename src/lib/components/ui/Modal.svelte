@@ -1,3 +1,35 @@
+<script lang="ts" module>
+	// 模块级单例计数器，完美支持多层弹窗嵌套或并发时的滚动锁引用计数
+	let activeModalCount = 0;
+	let originalOverflow = '';
+	let originalPaddingRight = '';
+
+	function acquireScrollLock() {
+		if (typeof document === 'undefined') return;
+		if (activeModalCount === 0) {
+			originalOverflow = document.body.style.overflow;
+			originalPaddingRight = document.body.style.paddingRight;
+
+			// 计算原生垂直滚动条宽度，防止 overflow: hidden 后页面内容跳动（Layout Shift）
+			const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
+			if (scrollbarWidth > 0) {
+				document.body.style.paddingRight = `${scrollbarWidth}px`;
+			}
+			document.body.style.overflow = 'hidden';
+		}
+		activeModalCount++;
+	}
+
+	function releaseScrollLock() {
+		if (typeof document === 'undefined') return;
+		activeModalCount = Math.max(0, activeModalCount - 1);
+		if (activeModalCount === 0) {
+			document.body.style.overflow = originalOverflow;
+			document.body.style.paddingRight = originalPaddingRight;
+		}
+	}
+</script>
+
 <script lang="ts">
 	import type { Snippet } from 'svelte';
 	import { cn } from '$lib/utils/cn';
@@ -30,6 +62,16 @@
 		onclose
 	}: Props = $props();
 
+	// 监听 open 状态，在客户端挂载时锁定背景滚动，并在关闭或组件销毁时完整还原
+	$effect(() => {
+		if (open) {
+			acquireScrollLock();
+			return () => {
+				releaseScrollLock();
+			};
+		}
+	});
+
 	function handleClose() {
 		open = false;
 		if (onclose) onclose();
@@ -54,23 +96,23 @@
 <svelte:window onkeydown={handleKeydown} />
 
 {#if open}
-	<!-- 背景遮罩 -->
+	<!-- 背景遮罩 (配置 overscroll-contain 彻底隔离滚动链向底层穿透) -->
 	<!-- svelte-ignore a11y_click_events_have_key_events -->
 	<div
 		role="dialog"
 		aria-modal="true"
 		tabindex="-1"
-		class="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto bg-black/50 backdrop-blur-xs animate-in fade-in duration-200"
+		class="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto overscroll-contain bg-black/50 backdrop-blur-xs animate-in fade-in duration-200"
 		onclick={(e) => {
 			if (closeOnClickOutside && e.target === e.currentTarget) {
 				handleClose();
 			}
 		}}
 	>
-		<!-- 弹窗本体 -->
+		<!-- 弹窗本体 (自包含滚动容器) -->
 		<div
 			class={cn(
-				'w-full rounded-2xl border border-zinc-200/90 bg-white dark:border-zinc-800 dark:bg-zinc-900 shadow-2xl overflow-hidden my-8 animate-in zoom-in-95 duration-150 text-left',
+				'w-full rounded-2xl border border-zinc-200/90 bg-white dark:border-zinc-800 dark:bg-zinc-900 shadow-2xl overflow-hidden my-8 animate-in zoom-in-95 duration-150 text-left overscroll-contain',
 				sizeClasses[size],
 				className
 			)}
