@@ -36,12 +36,14 @@
 
 <svelte:window onclick={closeMenu} />
 
-<div class="space-y-6">
-	<!-- 主流看板布局：大间距留白、无边框软背景列通道 (Linear / Notion 风格) -->
-	<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 sm:gap-6 items-start">
+<div class="space-y-4">
+	<!-- 主流横向看板通道：横向自由滑动、固定舒适列宽、释放垂直空间 (Linear / Trello 风格) -->
+	<div
+		class="-mx-4 px-4 sm:-mx-6 sm:px-6 overflow-x-auto pb-4 pt-1 flex gap-4 sm:gap-5 scrollbar-thin snap-x snap-mandatory scroll-smooth"
+	>
 		{#each columns as col (col.status)}
 			<div
-				class="flex flex-col rounded-3xl bg-zinc-100/50 dark:bg-zinc-900/40 p-3.5 sm:p-4 space-y-3.5 min-h-[480px]"
+				class="flex flex-col rounded-3xl bg-zinc-100/50 dark:bg-zinc-900/40 p-3.5 sm:p-4 space-y-3.5 w-[280px] sm:w-[300px] shrink-0 snap-start min-h-[460px]"
 			>
 				<!-- 列头 (无下划线硬分割，宽裕留白) -->
 				<div class="flex items-center justify-between px-1 py-0.5">
