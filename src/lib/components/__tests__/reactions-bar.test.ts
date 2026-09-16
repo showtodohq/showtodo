@@ -12,7 +12,7 @@ describe('TodoReactionsBar domain component', () => {
 			}
 		});
 
-		expect(rendered.body).toContain('期待第一份鼓励');
+		expect(rendered.body).toContain('Be the first to cheer!');
 		// 右侧仍应有原版熟悉的 ReactionButton
 		expect(rendered.body).toContain('aria-label="Reaction button"');
 	});
@@ -45,7 +45,7 @@ describe('TodoReactionsBar domain component', () => {
 		});
 
 		// 当前用户投过的表情具有已表态标记/高亮 class 或 title
-		expect(rendered.body).toContain('已表态');
+		expect(rendered.body).toContain('Reacted');
 	});
 
 	it('renders icon-only edit button when isMine is true and onedit is provided', () => {
@@ -57,7 +57,7 @@ describe('TodoReactionsBar domain component', () => {
 			}
 		});
 
-		expect(rendered.body).toContain('编辑待办正文');
+		expect(rendered.body).toContain('Edit todo content');
 	});
 
 	it('does not render edit button when isMine is false', () => {
@@ -68,7 +68,7 @@ describe('TodoReactionsBar domain component', () => {
 			}
 		});
 
-		expect(rendered.body).not.toContain('编辑待办正文');
+		expect(rendered.body).not.toContain('Edit todo content');
 	});
 });
 
@@ -79,8 +79,8 @@ describe('TodoDetailCard integration with TodoReactionsBar', () => {
 			id: 'todo-uuid-1',
 			shortId: 'test1234',
 			topicHash: '',
-			content: '每天坚持跑步五公里',
-			note: '为了健康和体魄',
+			content: 'Run 5km every morning',
+			note: 'For health and fitness',
 			isNotePublic: true,
 			category: 'fitness',
 			authorId: 'user-uuid-1',
@@ -107,7 +107,7 @@ describe('TodoDetailCard integration with TodoReactionsBar', () => {
 		});
 
 		// 验证待办正文
-		expect(rendered.body).toContain('每天坚持跑步五公里');
+		expect(rendered.body).toContain('Run 5km every morning');
 		// 验证平铺表情胶囊
 		expect(rendered.body).toContain('🔥');
 		expect(rendered.body).toContain('4');
@@ -116,6 +116,6 @@ describe('TodoDetailCard integration with TodoReactionsBar', () => {
 		// 验证右侧操作区原版 ReactionButton
 		expect(rendered.body).toContain('aria-label="Reaction button"');
 		// 验证图标化编辑按钮存在
-		expect(rendered.body).toContain('编辑待办正文');
+		expect(rendered.body).toContain('Edit todo content');
 	});
 });

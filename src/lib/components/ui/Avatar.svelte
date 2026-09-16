@@ -131,7 +131,7 @@
 				'absolute z-10 flex items-center justify-center rounded-full bg-gradient-to-tr from-amber-500 via-amber-400 to-yellow-300 text-amber-950 shadow-xs ring-1.5 ring-white dark:ring-zinc-950 animate-in zoom-in-75 duration-200',
 				sizeClasses[size]?.badge || 'h-3.5 w-3.5 -top-1 -right-1'
 			)}
-			title="全员完成金色荣誉徽章"
+			title="All completed gold badge"
 		>
 			<svg
 				class={cn('shrink-0 fill-current', sizeClasses[size]?.icon || 'h-2 w-2')}

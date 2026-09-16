@@ -40,7 +40,7 @@
 				)
 	);
 
-	const nickname = $derived(user?.nickname || (isMe && userStore.email ? userStore.nickname : '匿名待办者'));
+	const nickname = $derived(user?.nickname || (isMe && userStore.email ? userStore.nickname : 'Anonymous'));
 	const handle = $derived(user?.handle || (isMe && userStore.email ? userStore.handle : undefined));
 	const avatar = $derived(user?.avatar ?? (isMe && userStore.email ? userStore.avatar : null));
 
@@ -88,7 +88,7 @@
 		/>
 	{/if}
 
-	<!-- 悬停精致微型 Tooltip 气泡 (全站标准黑白反色胶囊) -->
+	<!-- Tooltip popup -->
 	<div
 		class="pointer-events-none absolute bottom-full mb-1.5 hidden group-hover/avatar:flex flex-col z-30 animate-in fade-in zoom-in-95 duration-100 {alignClasses[
 			align
@@ -102,12 +102,12 @@
 				<span class="opacity-60 text-[10px] ml-1 font-mono">@{handle}</span>
 			{/if}
 			{#if isMe}
-				<span class="ml-1 text-[10px] text-amber-300 dark:text-amber-600 font-semibold">(我)</span>
+				<span class="ml-1 text-[10px] text-amber-300 dark:text-amber-600 font-semibold">(You)</span>
 			{/if}
 			{#if goldBadge}
 				<span class="inline-flex items-center gap-1 ml-1 text-[10px] text-amber-400 font-medium">
 					<Icon icon="lucide:trophy" class="h-3 w-3 shrink-0" />
-					<span>全员完成</span>
+					<span>All Completed</span>
 				</span>
 			{/if}
 		</div>

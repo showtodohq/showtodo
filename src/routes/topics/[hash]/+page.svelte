@@ -28,7 +28,7 @@
 </script>
 
 <svelte:head>
-	<title>{topicRes.topic ? `#${topicRes.topic.content} · 同行目标 · ptdl-alpha` : '同行目标 · ptdl-alpha'}</title>
+	<title>{topicRes.topic ? `#${topicRes.topic.content} · Goal · ShowTodo` : 'Goal · ShowTodo'}</title>
 </svelte:head>
 
 <div class="w-full space-y-6 sm:space-y-8">
@@ -43,7 +43,7 @@
 
 		{#snippet emptyView()}
 			<div class="space-y-6 sm:space-y-8">
-				<BreadcrumbNav backHref="/topics" backLabel="返回同行广场" />
+				<BreadcrumbNav backHref="/topics" backLabel="Back to Topics" />
 				<div
 					class="p-8 rounded-3xl border border-dashed border-red-200 dark:border-red-900/50 bg-red-50/50 dark:bg-red-950/20 text-center space-y-3"
 				>
@@ -51,13 +51,13 @@
 						<Icon icon="lucide:search-x" class="h-6 w-6" />
 					</div>
 					<div class="text-sm font-semibold text-zinc-800 dark:text-zinc-200">
-						未找到该同行目标
+						Goal not found
 					</div>
 					<p class="text-xs text-zinc-500 max-w-sm mx-auto">
-						该目标可能尚未有成员参与，请返回广场探索最新热门目标。
+						This goal may not have any participants yet. Return to topics to explore trending goals.
 					</p>
 					<Button variant="outline" size="sm" onclick={() => goto('/topics')}>
-						返回同行广场
+						Back to Topics
 					</Button>
 				</div>
 			</div>
@@ -65,7 +65,7 @@
 
 		{#snippet errorView(msg)}
 			<div class="space-y-6 sm:space-y-8">
-				<BreadcrumbNav backHref="/topics" backLabel="返回同行广场" />
+				<BreadcrumbNav backHref="/topics" backLabel="Back to Topics" />
 				<div
 					class="p-8 rounded-3xl border border-dashed border-red-200 dark:border-red-900/50 bg-red-50/50 dark:bg-red-950/20 text-center space-y-3"
 				>
@@ -76,10 +76,10 @@
 						{msg}
 					</div>
 					<p class="text-xs text-zinc-500 max-w-sm mx-auto">
-						该目标可能尚未有成员参与，请返回广场探索最新热门目标。
+						This goal may not have any participants yet. Return to topics to explore trending goals.
 					</p>
 					<Button variant="outline" size="sm" onclick={() => goto('/topics')}>
-						返回同行广场
+						Back to Topics
 					</Button>
 				</div>
 			</div>
@@ -87,12 +87,12 @@
 
 		{#if topicRes.topic}
 			<div class="space-y-5 sm:space-y-6">
-				<!-- 极简面包屑与溯源导航 -->
+				<!-- Breadcrumb navigation -->
 				<BreadcrumbNav
 					backHref="/topics"
-					backLabel="返回同行广场"
+					backLabel="Back to Topics"
 					crumbs={[
-						{ label: '同行广场', href: '/topics' },
+						{ label: 'Topics', href: '/topics' },
 						{ label: `#${topicRes.topic.content}` }
 					]}
 				/>

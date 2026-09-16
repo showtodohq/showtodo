@@ -63,24 +63,25 @@ describe('ActivityHeatmap & SiteStatsWidget rendering test', () => {
 		statsStore.loaded = true;
 
 		const rendered = render(SiteStatsWidget);
-		expect(rendered.body).toContain('全站数据脉搏');
+		expect(rendered.body).toContain('Site Pulse');
+		expect(rendered.body).toContain('10 members');
 		expect(rendered.body).toContain('100');
 		expect(rendered.body).toContain('45');
-		expect(rendered.body).toContain('70 次足迹');
-		expect(rendered.body).toContain('全站完成率');
+		expect(rendered.body).toContain('70 activities');
+		expect(rendered.body).toContain('Overall Completion');
 	});
 
-	it('renders MyTodayWidget with "全部" link when user is logged in', () => {
+	it('renders MyTodayWidget with "View all" link when user is logged in', () => {
 		userStore.setSession({
 			id: 'u1',
 			email: 'test@example.com',
-			nickname: '测试用户',
+			nickname: 'Test User',
 			handle: 'test'
 		});
 
 		const rendered = render(MyTodayWidget);
-		expect(rendered.body).toContain('我的今日待办');
+		expect(rendered.body).toContain("My Today's Todos");
 		expect(rendered.body).toContain('href="/todos"');
-		expect(rendered.body).toContain('全部');
+		expect(rendered.body).toContain('View all');
 	});
 });

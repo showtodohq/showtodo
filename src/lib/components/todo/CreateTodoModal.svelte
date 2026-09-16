@@ -69,11 +69,11 @@
 		try {
 			const d = new Date(val);
 			if (isNaN(d.getTime())) return val;
-			const m = d.getMonth() + 1;
+			const month = d.toLocaleDateString('en-US', { month: 'short' });
 			const day = d.getDate();
 			const h = String(d.getHours()).padStart(2, '0');
 			const min = String(d.getMinutes()).padStart(2, '0');
-			return `${m}月${day}日 ${h}:${min}`;
+			return `${month} ${day} ${h}:${min}`;
 		} catch {
 			return val;
 		}
@@ -176,7 +176,7 @@
 		if (!userStore.email) {
 			const cleanEmail = inlineEmail.trim().toLowerCase();
 			if (!cleanEmail || !cleanEmail.includes('@')) {
-				toast.info('请填写有效邮箱以一键快捷发布');
+				toast.info('Please enter a valid email to post');
 				return;
 			}
 
@@ -205,7 +205,7 @@
 			});
 
 			if (res) {
-				toast.success('待办已发布到广场');
+				toast.success('Todo posted to square');
 				handleClose();
 			}
 		} catch (error) {
@@ -228,19 +228,19 @@
 			<div class="flex items-center gap-2">
 				<div class="h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></div>
 				<h3 class="text-xs font-semibold tracking-tight text-zinc-900 dark:text-zinc-100">
-					发起公开待办
+					Create Public Todo
 				</h3>
 			</div>
 
 			<div class="flex items-center gap-2">
 				<span class="text-[11px] font-mono text-zinc-400 dark:text-zinc-500 hidden sm:inline">
-					ESC 关闭
+					ESC to close
 				</span>
 				<button
 					type="button"
 					onclick={handleClose}
 					class="p-1 rounded-lg text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors cursor-pointer"
-					aria-label="关闭弹窗"
+					aria-label="Close modal"
 				>
 					<svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
 						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
@@ -262,14 +262,14 @@
 			/>
 			{#if userStore.email}
 				<div class="text-xs text-zinc-500 dark:text-zinc-400 truncate">
-					以 <span class="font-medium text-zinc-900 dark:text-zinc-200">{userStore.nickname}</span> 的身份公开
+					Posting as <span class="font-medium text-zinc-900 dark:text-zinc-200">{userStore.nickname}</span>
 				</div>
 			{:else}
 				<div class="flex-1 min-w-0">
 					<input
 						type="email"
 						bind:value={inlineEmail}
-						placeholder="输入你的邮箱一键免密建号..."
+						placeholder="Enter your email to get started..."
 						class="w-full bg-zinc-50 dark:bg-zinc-900/60 border border-zinc-200/80 dark:border-zinc-800 rounded-xl px-3 py-1.5 text-xs text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 focus:outline-hidden focus:ring-1 focus:ring-zinc-400 dark:focus:ring-zinc-600 transition-all"
 					/>
 				</div>
@@ -284,7 +284,7 @@
 				onkeydown={handleKeydown}
 				oncompositionstart={handleCompositionStart}
 				oncompositionend={handleCompositionEnd}
-				placeholder="今天计划完成什么？例如：背 50 个单词、完成需求开发..."
+				placeholder="What are you planning to do today? e.g. Read 50 pages, ship feature..."
 				rows="3"
 				class="w-full resize-none bg-transparent text-sm sm:text-base font-medium placeholder:font-normal placeholder:text-zinc-400 dark:placeholder:text-zinc-500 text-zinc-900 dark:text-zinc-100 focus:outline-hidden leading-relaxed py-1"
 			></textarea>
@@ -297,7 +297,7 @@
 					type="button"
 					onclick={() => (isTimePlanningOpen = true)}
 					class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium bg-zinc-100 dark:bg-zinc-800/90 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-all cursor-pointer group"
-					title="点击展开修改起止时间"
+					title="Click to expand schedule"
 				>
 					<svg class="h-3.5 w-3.5 text-zinc-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
 						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -306,9 +306,9 @@
 						{#if startDate && dueDate}
 							{formatDisplayDateTime(startDate)} → {formatDisplayDateTime(dueDate)}
 						{:else if startDate}
-							{formatDisplayDateTime(startDate)} 开始
+							Starts: {formatDisplayDateTime(startDate)}
 						{:else}
-							截止: {formatDisplayDateTime(dueDate)}
+							Due: {formatDisplayDateTime(dueDate)}
 						{/if}
 					</span>
 				</button>
@@ -317,8 +317,8 @@
 					type="button"
 					onclick={clearAllTime}
 					class="p-1 rounded-md text-zinc-400 hover:text-red-500 dark:hover:text-red-400 transition-colors cursor-pointer"
-					title="清除起止时间"
-					aria-label="清除起止时间"
+					title="Clear schedule"
+					aria-label="Clear schedule"
 				>
 					<svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
 						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
@@ -332,7 +332,7 @@
 			<div class="space-y-2 pt-2 border-t border-zinc-100 dark:border-zinc-900 animate-in fade-in duration-150">
 				<textarea
 					bind:value={note}
-					placeholder="添加备注、参考链接、拆解步骤等细节..."
+					placeholder="Add notes, reference links, action steps..."
 					rows="2"
 					class="w-full resize-none bg-transparent text-xs text-zinc-600 dark:text-zinc-300 placeholder:text-zinc-400/80 dark:placeholder:text-zinc-600 focus:outline-hidden leading-relaxed py-1"
 				></textarea>
@@ -355,7 +355,7 @@
 								</svg>
 							{/if}
 						</div>
-						<span>{isNotePublic ? '公开此备注到广场' : '仅自己可见 (保密)'}</span>
+						<span>{isNotePublic ? 'Public note in square' : 'Private (only to you)'}</span>
 					</button>
 				</div>
 			</div>
@@ -370,7 +370,7 @@
 						<svg class="h-3.5 w-3.5 text-zinc-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
 							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
 						</svg>
-						<span>起止时间</span>
+						<span>Schedule</span>
 					</div>
 
 					<div class="flex items-center gap-1.5 sm:gap-2">
@@ -379,26 +379,26 @@
 								type="button"
 								onclick={clearAllTime}
 								class="inline-flex items-center justify-center gap-1 h-7 px-2 rounded-lg text-[11px] text-zinc-500 hover:text-red-600 dark:text-zinc-400 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors cursor-pointer"
-								title="清空已选时间输入"
-								aria-label="清空时间"
+								title="Clear selected dates"
+								aria-label="Clear dates"
 							>
 								<svg class="h-3.5 w-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
 									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
 								</svg>
-								<span class="hidden sm:inline">清空</span>
+								<span class="hidden sm:inline">Clear</span>
 							</button>
 						{/if}
 						<button
 							type="button"
 							onclick={() => (isTimePlanningOpen = false)}
 							class="inline-flex items-center justify-center gap-1 h-7 px-2 rounded-lg text-[11px] font-medium text-zinc-500 hover:text-zinc-800 dark:text-zinc-400 dark:hover:text-zinc-200 hover:bg-zinc-200/70 dark:hover:bg-zinc-800 transition-all cursor-pointer"
-							title="收起时间规划面板"
-							aria-label="收起面板"
+							title="Collapse schedule panel"
+							aria-label="Collapse panel"
 						>
 							<svg class="h-3.5 w-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
 								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />
 							</svg>
-							<span class="hidden sm:inline">收起</span>
+							<span class="hidden sm:inline">Collapse</span>
 						</button>
 					</div>
 				</div>
@@ -408,7 +408,7 @@
 					<!-- 左栏：开始时间 (快捷操作采用国际化标准英文简写：Now / Tmr / Mon) -->
 					<div class="space-y-1.5">
 						<div class="flex items-center justify-between">
-							<span class="text-[11px] font-medium text-zinc-500 dark:text-zinc-400">开始时间</span>
+							<span class="text-[11px] font-medium text-zinc-500 dark:text-zinc-400">Start Date</span>
 							<div class="flex items-center gap-1">
 								<button
 									type="button"
@@ -416,7 +416,7 @@
 									class="px-2 py-0.5 rounded text-[10px] font-mono font-medium transition-all duration-150 cursor-pointer {activeStartQuick === 'now'
 										? 'bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900 shadow-2xs font-semibold'
 										: 'bg-white dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-700 border border-zinc-200/80 dark:border-zinc-700/80'}"
-									title="设为现在开始 (Now)"
+									title="Set to now (Now)"
 									aria-pressed={activeStartQuick === 'now'}
 								>
 									Now
@@ -427,7 +427,7 @@
 									class="px-2 py-0.5 rounded text-[10px] font-mono font-medium transition-all duration-150 cursor-pointer {activeStartQuick === 'tomorrow'
 										? 'bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900 shadow-2xs font-semibold'
 										: 'bg-white dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-700 border border-zinc-200/80 dark:border-zinc-700/80'}"
-									title="设为明天开始 (Tomorrow)"
+									title="Set to tomorrow (Tomorrow)"
 									aria-pressed={activeStartQuick === 'tomorrow'}
 								>
 									Tmr
@@ -438,7 +438,7 @@
 									class="px-2 py-0.5 rounded text-[10px] font-mono font-medium transition-all duration-150 cursor-pointer {activeStartQuick === 'nextMonday'
 										? 'bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900 shadow-2xs font-semibold'
 										: 'bg-white dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-700 border border-zinc-200/80 dark:border-zinc-700/80'}"
-									title="设为下周一开始 (Monday)"
+									title="Set to next Monday (Monday)"
 									aria-pressed={activeStartQuick === 'nextMonday'}
 								>
 									Mon
@@ -448,7 +448,7 @@
 										type="button"
 										onclick={clearStartDate}
 										class="text-[10px] text-red-500 hover:text-red-600 px-1 cursor-pointer leading-none flex items-center justify-center"
-										title="清除开始时间"
+										title="Clear start date"
 									>
 										<Icon icon="lucide:x" class="h-3 w-3" />
 									</button>
@@ -466,7 +466,7 @@
 					<!-- 右栏：截止时间 (快捷操作采用专业英文简写：EOD / Tmr / +1w，彻底告别生硬的 DDL) -->
 					<div class="space-y-1.5">
 						<div class="flex items-center justify-between">
-							<span class="text-[11px] font-medium text-zinc-500 dark:text-zinc-400">截止时间</span>
+							<span class="text-[11px] font-medium text-zinc-500 dark:text-zinc-400">Due Date</span>
 							<div class="flex items-center gap-1">
 								<button
 									type="button"
@@ -474,7 +474,7 @@
 									class="px-2 py-0.5 rounded text-[10px] font-mono font-medium transition-all duration-150 cursor-pointer {activeDueQuick === 'eod'
 										? 'bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900 shadow-2xs font-semibold'
 										: 'bg-white dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-700 border border-zinc-200/80 dark:border-zinc-700/80'}"
-									title="设为今晚截止 (End of Day)"
+									title="Set to end of day (End of Day)"
 									aria-pressed={activeDueQuick === 'eod'}
 								>
 									EOD
@@ -485,7 +485,7 @@
 									class="px-2 py-0.5 rounded text-[10px] font-mono font-medium transition-all duration-150 cursor-pointer {activeDueQuick === 'tomorrow'
 										? 'bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900 shadow-2xs font-semibold'
 										: 'bg-white dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-700 border border-zinc-200/80 dark:border-zinc-700/80'}"
-									title="设为明天截止 (Tomorrow)"
+									title="Set to tomorrow (Tomorrow)"
 									aria-pressed={activeDueQuick === 'tomorrow'}
 								>
 									Tmr
@@ -496,7 +496,7 @@
 									class="px-2 py-0.5 rounded text-[10px] font-mono font-medium transition-all duration-150 cursor-pointer {activeDueQuick === 'nextWeek'
 										? 'bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900 shadow-2xs font-semibold'
 										: 'bg-white dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-700 border border-zinc-200/80 dark:border-zinc-700/80'}"
-									title="设为一周后截止 (+1 Week)"
+									title="Set to 1 week from now (+1 Week)"
 									aria-pressed={activeDueQuick === 'nextWeek'}
 								>
 									+1w
@@ -506,7 +506,7 @@
 										type="button"
 										onclick={clearDueDate}
 										class="text-[10px] text-red-500 hover:text-red-600 px-1 cursor-pointer leading-none flex items-center justify-center"
-										title="清除截止时间"
+										title="Clear due date"
 									>
 										<Icon icon="lucide:x" class="h-3 w-3" />
 									</button>
@@ -528,7 +528,7 @@
 						<svg class="h-3.5 w-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
 							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
 						</svg>
-						<span>开始时间不能晚于截止时间，请核对后提交</span>
+						<span>Start date cannot be later than due date</span>
 					</div>
 				{/if}
 			</div>
@@ -538,7 +538,7 @@
 		<div class="pt-2 border-t border-zinc-100 dark:border-zinc-900 space-y-2.5">
 			<!-- 分类选择药丸 (移动端全宽平滑横向滚动，不换行挤压) -->
 			<div class="flex items-center gap-1.5 overflow-x-auto py-0.5 scrollbar-none">
-				<span class="text-[11px] text-zinc-400 shrink-0 mr-0.5">分类:</span>
+				<span class="text-[11px] text-zinc-400 shrink-0 mr-0.5">Category:</span>
 				{#each CATEGORIES as cat}
 					{@const isSelected = selectedCategory === cat.id}
 					<button
@@ -565,13 +565,13 @@
 						class="inline-flex h-8 items-center justify-center gap-1.5 px-2.5 sm:px-3 rounded-xl text-xs font-medium transition-all cursor-pointer {isNoteOpen || note.trim()
 							? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 font-semibold shadow-2xs'
 							: 'text-zinc-500 hover:text-zinc-800 dark:text-zinc-400 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-900'}"
-						title={isNoteOpen ? '收起备注' : '添加备注'}
-						aria-label="添加备注"
+						title={isNoteOpen ? 'Collapse note' : 'Add note'}
+						aria-label="Add note"
 					>
 						<svg class="h-3.5 w-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
 							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
 						</svg>
-						<span class="hidden sm:inline">备注</span>
+						<span class="hidden sm:inline">Note</span>
 					</button>
 
 					<!-- 展开/收起起止时间卡片按钮 -->
@@ -581,13 +581,13 @@
 						class="inline-flex h-8 items-center justify-center gap-1.5 px-2.5 sm:px-3 rounded-xl text-xs font-medium transition-all cursor-pointer {isTimePlanningOpen || hasTimeConfigured
 							? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 font-semibold shadow-2xs'
 							: 'text-zinc-500 hover:text-zinc-800 dark:text-zinc-400 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-900'}"
-						title={isTimePlanningOpen ? '收起起止时间' : hasTimeConfigured ? '修改起止时间' : '起止时间'}
-						aria-label="起止时间"
+						title={isTimePlanningOpen ? 'Collapse schedule' : hasTimeConfigured ? 'Edit schedule' : 'Schedule'}
+						aria-label="Schedule"
 					>
 						<svg class="h-3.5 w-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
 							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
 						</svg>
-						<span class="hidden sm:inline">{isTimePlanningOpen ? '收起' : hasTimeConfigured ? '修改起止时间' : '起止时间'}</span>
+						<span class="hidden sm:inline">{isTimePlanningOpen ? 'Collapse' : hasTimeConfigured ? 'Edit schedule' : 'Schedule'}</span>
 					</button>
 				</div>
 
@@ -597,13 +597,13 @@
 						type="button"
 						onclick={handleClose}
 						class="inline-flex h-8 items-center justify-center gap-1 px-2.5 sm:px-3 rounded-xl text-xs font-medium text-zinc-500 hover:text-zinc-800 dark:text-zinc-400 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-900 transition-colors cursor-pointer"
-						title="取消 (Esc)"
-						aria-label="取消"
+						title="Cancel (Esc)"
+						aria-label="Cancel"
 					>
 						<svg class="h-3.5 w-3.5 shrink-0 sm:hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor">
 							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
 						</svg>
-						<span class="hidden sm:inline">取消</span>
+						<span class="hidden sm:inline">Cancel</span>
 					</button>
 
 					<button
@@ -611,12 +611,12 @@
 						onclick={handleSubmit}
 						disabled={!content.trim() || submitting || isTimeInvalid || (!userStore.email && !inlineEmail.trim())}
 						class="inline-flex h-8 items-center gap-1.5 rounded-xl bg-zinc-900 px-3 sm:px-4 text-xs font-semibold text-white dark:bg-zinc-100 dark:text-zinc-900 hover:opacity-90 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer shadow-xs"
-						title="发布待办 (⌘+Enter)"
+						title="Post todo (⌘+Enter)"
 					>
 						<svg class="h-3.5 w-3.5 shrink-0 stroke-[2.2]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
 							<path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
 						</svg>
-						<span>{submitting ? '发布中...' : '发布'}</span>
+						<span>{submitting ? 'Posting...' : 'Post'}</span>
 						<span class="text-[10px] opacity-60 font-mono hidden md:inline">⌘↵</span>
 					</button>
 				</div>

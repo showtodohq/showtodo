@@ -56,36 +56,36 @@
 </script>
 
 <svelte:head>
-	<title>全网公开协同 Todo · ptdl-alpha</title>
+	<title>ShowTodo · Public Collaborative Todos</title>
 </svelte:head>
 
 <div class="w-full space-y-6 sm:space-y-8">
-	<!-- 顶部 Twitter / X 风格极简快速发布框 (直接委托 todoMutations) -->
+	<!-- Top composer -->
 	<TodoComposer
 		bind:selectedCategory={composerCategory}
 		onsubmit={(data) => todoMutations.createTodo(data)}
 	/>
 
-	<!-- 下方主体：左侧最新待办 Feed + 右侧辅助 Widgets 左右双栏布局 -->
+	<!-- Main grid -->
 	<div class="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8 items-start">
-		<!-- 左侧主流：最新公开待办动态流 (占 7~8 栏) -->
+		<!-- Left stream -->
 		<div class="lg:col-span-7 xl:col-span-8 space-y-4">
 			<div class="flex items-center justify-between px-1">
 				<h2 class="text-xs font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">
-					最新动态流 (Latest Stream)
+					Latest Stream
 				</h2>
 
-				<!-- 分类筛选激活指示条与一键清除 -->
+				<!-- Category filter tag -->
 				{#if activeCategoryFilter}
 					{@const catConfig = getCategoryConfig(activeCategoryFilter)}
 					<div class="flex items-center gap-1.5 animate-in fade-in duration-150">
-						<span class="text-xs text-zinc-400">正在筛选:</span>
+						<span class="text-xs text-zinc-400">Filtering:</span>
 						<button
 							type="button"
 							onclick={handleClearCategoryFilter}
 							class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium border border-zinc-200 dark:border-zinc-800 bg-white/80 dark:bg-zinc-900/80 shadow-2xs hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-all cursor-pointer group"
 							style="color: {catConfig?.color};"
-							title="点击清除分类筛选并恢复全部"
+							title="Clear filter and view all"
 						>
 							<span
 								class="h-1.5 w-1.5 rounded-full shrink-0"
@@ -98,7 +98,7 @@
 				{/if}
 			</div>
 
-			<!-- Feed 内容区 -->
+			<!-- Feed content -->
 			<DataView
 				loading={!feedStore.loaded || feedStore.loading}
 				empty={feedStore.todos.length === 0}
@@ -113,9 +113,9 @@
 					>
 						{#if activeCategoryFilter}
 							{@const catConfig = getCategoryConfig(activeCategoryFilter)}
-							暂无「{catConfig?.name || activeCategoryFilter}」类公开待办，在上方发布第一条吧
+							No public todos in "{catConfig?.name || activeCategoryFilter}". Create the first one above!
 						{:else}
-							暂无公开待办，在上方发布第一条吧
+							No public todos yet. Create the first one above!
 						{/if}
 					</div>
 				{/snippet}
@@ -132,7 +132,7 @@
 					{/each}
 				</div>
 
-				<!-- 分页加载更多 -->
+				<!-- Pagination -->
 				{#if feedStore.nextCursor}
 					<div class="pt-4 flex justify-center">
 						<button
@@ -143,9 +143,9 @@
 						>
 							{#if feedStore.loadingMore}
 								<Spinner size="xs" />
-								<span>加载中...</span>
+								<span>Loading...</span>
 							{:else}
-								<span>加载更多待办</span>
+								<span>Load more todos</span>
 								<svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
 									<path
 										stroke-linecap="round"

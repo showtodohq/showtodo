@@ -7,33 +7,33 @@ describe('BreadcrumbNav rendering test', () => {
 		const rendered = render(BreadcrumbNav, {
 			props: {
 				backHref: '/topics',
-				backLabel: '返回同行广场'
+				backLabel: 'Back to Topics'
 			}
 		});
 
-		expect(rendered.body).toContain('返回同行广场');
+		expect(rendered.body).toContain('Back to Topics');
 	});
 
 	it('renders crumbs and hides redundant back label text when crumbs are provided', () => {
 		const rendered = render(BreadcrumbNav, {
 			props: {
 				backHref: '/',
-				backLabel: '返回动态流',
+				backLabel: 'Back to Feed',
 				crumbs: [
-					{ label: '动态流', href: '/' },
-					{ label: '#晨跑打卡' }
+					{ label: 'Feed', href: '/' },
+					{ label: '#Morning Run' }
 				]
 			}
 		});
 
-		// 包含面包屑项
-		expect(rendered.body).toContain('动态流');
+		// Contains breadcrumb items
+		expect(rendered.body).toContain('Feed');
 		expect(rendered.body).toContain('href="/"');
-		expect(rendered.body).toContain('#晨跑打卡');
+		expect(rendered.body).toContain('#Morning Run');
 
-		// 确保不出现重复的“返回动态流”可见文本 span
-		expect(rendered.body).not.toContain('<span class="ml-1 font-medium">返回动态流</span>');
-		// 但依然保留在 title 和 aria-label 中供无障碍使用
-		expect(rendered.body).toContain('title="返回动态流"');
+		// Ensure redundant visible span is hidden
+		expect(rendered.body).not.toContain('<span class="ml-1 font-medium">Back to Feed</span>');
+		// Kept in title and aria-label for accessibility
+		expect(rendered.body).toContain('title="Back to Feed"');
 	});
 });

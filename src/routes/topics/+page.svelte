@@ -27,7 +27,7 @@
 	function handleTabSwitch(tab: ViewTab) {
 		if (tab === 'mine') {
 			if (!userStore.email) {
-				toast.info('请先点击右上角头像绑定邮箱后再查看');
+				toast.info('Please link your email in the top-right menu first');
 				return;
 			}
 			topicsRes.setTimeRange('all');
@@ -56,28 +56,28 @@
 </script>
 
 <svelte:head>
-	<title>同行广场 · ptdl-alpha</title>
+	<title>Topics · ShowTodo</title>
 </svelte:head>
 
 <div class="w-full space-y-5 sm:space-y-6">
-	<!-- 极简页面标题栏 (紧凑单行) -->
+	<!-- Page title bar -->
 	<div class="flex items-center justify-between pb-2 border-b border-zinc-100 dark:border-zinc-800/60">
 		<div class="flex items-center gap-2">
 			<span class="text-base sm:text-lg font-bold tracking-tight text-zinc-900 dark:text-zinc-100">
-				同行广场
+				Topics
 			</span>
 			{#if topicsRes.loaded}
 				<span class="px-2 py-0.5 rounded-full text-xs font-mono font-medium bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400">
-					{topicsRes.total} 个目标
+					{topicsRes.total} goals
 				</span>
 			{/if}
 		</div>
-		<span class="text-xs text-zinc-400 font-mono hidden sm:inline">相同目标 · 并肩冲线</span>
+		<span class="text-xs text-zinc-400 font-mono hidden sm:inline">Shared Goals · Pursued Together</span>
 	</div>
 
-	<!-- 筛选与控制栏：通透单行流式架构 (无大盒嵌套，零冗余分类) -->
+	<!-- Filter & control bar -->
 	<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
-		<!-- 左侧：主视图分段切片 (全网同行 / 今日活跃 / 我参与的) + 多人组微过滤 -->
+		<!-- Left: tabs (All Goals / Active Today / My Goals) + Group filter -->
 		<div class="flex items-center gap-2 flex-wrap">
 			<div class="inline-flex items-center rounded-xl bg-zinc-100/90 dark:bg-zinc-800/80 p-0.5">
 				<button
@@ -87,7 +87,7 @@
 						? 'bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 shadow-2xs font-semibold'
 						: 'text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100'}"
 				>
-					全网同行
+					All Goals
 				</button>
 				<button
 					type="button"
@@ -96,7 +96,7 @@
 						? 'bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 shadow-2xs font-semibold'
 						: 'text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100'}"
 				>
-					今日活跃
+					Active Today
 				</button>
 				<button
 					type="button"
@@ -105,48 +105,47 @@
 						? 'bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 shadow-2xs font-semibold'
 						: 'text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100'}"
 				>
-					我参与的
+					My Goals
 				</button>
 			</div>
 
-			<!-- 结伴同行快捷过滤芯片 (≥2人) -->
+			<!-- Group filter chip (>=2 participants) -->
 			<button
 				type="button"
 				onclick={() => topicsRes.setMinParticipants(topicsRes.minParticipants > 1 ? 1 : 2)}
 				class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl font-medium transition-all cursor-pointer {topicsRes.minParticipants > 1
 					? 'bg-amber-100/80 text-amber-900 dark:bg-amber-950/60 dark:text-amber-200 font-semibold'
 					: 'bg-zinc-100/80 hover:bg-zinc-200/70 text-zinc-600 dark:bg-zinc-800/60 dark:hover:bg-zinc-800 dark:text-zinc-400'}"
-				title="切换是否只看已有2人及以上同行的目标"
+				title="Toggle showing goals with 2 or more participants"
 			>
 				<Icon icon="lucide:users" class="h-3.5 w-3.5 shrink-0" />
-				<span>结伴同行</span>
+				<span>Group Goals</span>
 			</button>
 		</div>
 
-		<!-- 右侧：排序下拉选择器 + 紧凑搜索框 -->
+		<!-- Right: Sorting & search -->
 		<div class="flex items-center gap-2">
-			<!-- 极简排序下拉 -->
 			<div class="relative inline-flex items-center">
 				<select
 					value={topicsRes.sortBy}
 					onchange={(e) => topicsRes.setSortBy((e.target as HTMLSelectElement).value as any)}
 					class="appearance-none h-8 pl-3 pr-7 rounded-xl text-xs font-medium bg-zinc-100/80 hover:bg-zinc-200/70 dark:bg-zinc-800/80 dark:hover:bg-zinc-700/80 text-zinc-700 dark:text-zinc-200 focus:outline-hidden cursor-pointer transition-colors"
-					title="选择排序方式"
+					title="Sort by"
 				>
-					<option value="participants">最多同行</option>
-					<option value="recent">最新活跃</option>
-					<option value="completion">完成率</option>
+					<option value="participants">Most Participants</option>
+					<option value="recent">Recently Active</option>
+					<option value="completion">Completion Rate</option>
 				</select>
 				<Icon icon="lucide:chevron-down" class="absolute right-2 top-2.5 h-3 w-3 pointer-events-none text-zinc-400" />
 			</div>
 
-			<!-- 搜索框 -->
+			<!-- Search -->
 			<div class="relative flex-1 sm:w-44">
 				<input
 					type="text"
 					value={searchInput}
 					oninput={handleSearchChange}
-					placeholder="搜索目标内容..."
+					placeholder="Search goals..."
 					class="w-full h-8 pl-8 pr-3 text-xs rounded-xl bg-zinc-100/80 dark:bg-zinc-800/80 text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 focus:outline-hidden focus:ring-1 focus:ring-zinc-400 dark:focus:ring-zinc-500 transition-all"
 				/>
 				<Icon icon="lucide:search" class="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-zinc-400 pointer-events-none" />
@@ -154,7 +153,7 @@
 		</div>
 	</div>
 
-	<!-- 列表内容展示区 -->
+	<!-- List content -->
 	<DataView
 		loading={!topicsRes.loaded || topicsRes.loading}
 		empty={topicsRes.topics.length === 0}
@@ -172,10 +171,10 @@
 					<Icon icon="lucide:sprout" class="h-6 w-6" />
 				</div>
 				<div class="text-sm font-semibold text-zinc-800 dark:text-zinc-200">
-					暂无符合条件的同行目标
+					No matching goals found
 				</div>
 				<p class="text-xs text-zinc-400 max-w-sm mx-auto">
-					尝试切换视角、清除搜索词，或者前往主页发布一条待办，邀请伙伴一起加入吧！
+					Try clearing filters or search terms, or publish a todo from the feed to start a new goal!
 				</p>
 				<div class="pt-2">
 					<Button
@@ -189,7 +188,7 @@
 							searchInput = '';
 						}}
 					>
-						重置所有筛选
+						Reset all filters
 					</Button>
 				</div>
 			</div>
@@ -206,7 +205,7 @@
 					{msg}
 				</div>
 				<Button variant="outline" size="sm" onclick={() => topicsRes.load(true)}>
-					重新加载
+					Reload
 				</Button>
 			</div>
 		{/snippet}
@@ -219,7 +218,7 @@
 				/>
 			{/each}
 
-			<!-- 加载更多 -->
+			<!-- Load more -->
 			{#if topicsRes.hasMore}
 				<div class="pt-4 flex justify-center">
 					<button
@@ -230,9 +229,9 @@
 					>
 						{#if topicsRes.loadingMore}
 							<Spinner size="xs" />
-							<span>加载中...</span>
+							<span>Loading...</span>
 						{:else}
-							<span>加载更多目标</span>
+							<span>Load more goals</span>
 							<svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
 								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
 							</svg>

@@ -11,20 +11,20 @@
 		</div>
 
 		<h1 class="text-lg font-bold text-zinc-900 dark:text-zinc-100">
-			{page.error?.message || '访问出错或页面不存在'}
+			{page.error?.message || 'Error occurred or page not found'}
 		</h1>
 
 		<p class="mt-2 text-xs text-zinc-500 dark:text-zinc-400">
-			抱歉，当前请求未能完成，请尝试刷新重试或返回首页。
+			Sorry, the current request could not be completed. Please try refreshing or return to home.
 		</p>
 
 		<div class="mt-6 flex justify-center gap-3">
 			<Button variant="outline" size="sm" onclick={() => history.back()}>
-				返回上一页
+				Go Back
 			</Button>
 			<a href="/">
 				<Button variant="primary" size="sm">
-					返回首页
+					Back to Home
 				</Button>
 			</a>
 		</div>

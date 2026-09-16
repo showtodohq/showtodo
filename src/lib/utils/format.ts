@@ -20,13 +20,13 @@ export function formatRelativeTime(dateInput: string | Date | number): string {
 	const diffMs = now - d.getTime();
 	const diffSec = Math.floor(diffMs / 1000);
 
-	if (diffSec < 60) return '刚刚';
+	if (diffSec < 60) return 'just now';
 	const diffMin = Math.floor(diffSec / 60);
-	if (diffMin < 60) return `${diffMin}分钟前`;
+	if (diffMin < 60) return `${diffMin}m ago`;
 	const diffHours = Math.floor(diffMin / 60);
-	if (diffHours < 24) return `${diffHours}小时前`;
+	if (diffHours < 24) return `${diffHours}h ago`;
 	const diffDays = Math.floor(diffHours / 24);
-	if (diffDays < 7) return `${diffDays}天前`;
+	if (diffDays < 7) return `${diffDays}d ago`;
 
 	return formatDate(d);
 }
@@ -43,7 +43,7 @@ export function formatShortDate(dateInput: string | Date | number): string {
 }
 
 /**
- * 格式化排期范围 (如 "09-01 ~ 09-03", "截止于 09-03", "09-01 开始")
+ * 格式化排期范围 (如 "09-01 ~ 09-03", "Due 09-03", "09-01")
  */
 export function formatScheduleRange(startDate?: string | null, dueDate?: string | null): string | null {
 	const s = startDate ? formatShortDate(startDate) : null;
@@ -53,7 +53,7 @@ export function formatScheduleRange(startDate?: string | null, dueDate?: string 
 		if (s === d) return `${s}`;
 		return `${s} ~ ${d}`;
 	}
-	if (d) return `截止 ${d}`;
+	if (d) return `Due ${d}`;
 	if (s) return `${s}`;
 	return null;
 }

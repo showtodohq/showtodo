@@ -22,12 +22,12 @@ export interface RequestConfig extends Omit<RequestInit, 'body'> {
 }
 
 const ERROR_MESSAGE_MAP: Record<string, string> = {
-	VALIDATION_ERROR: '输入内容格式有误，请检查后重试',
-	INVALID_STATUS_TRANSITION: '当前状态不可进行该流转变更',
-	FORBIDDEN: '无权操作：只有创建者可以修改此内容',
-	NOT_FOUND: '请求的资源或用户不存在',
-	DUPLICATE_REACTION: '您已经对该条目表态过了',
-	INTERNAL_ERROR: '服务器繁忙，请稍后再试'
+	VALIDATION_ERROR: 'Invalid input format. Please check and try again',
+	INVALID_STATUS_TRANSITION: 'This status transition is not allowed',
+	FORBIDDEN: 'Permission denied: Only the creator can modify this',
+	NOT_FOUND: 'Requested resource or user not found',
+	DUPLICATE_REACTION: 'You have already reacted to this todo',
+	INTERNAL_ERROR: 'Server is busy, please try again later'
 };
 
 /**
@@ -77,7 +77,7 @@ export async function request<T = unknown>(
 			body: isJsonBody ? JSON.stringify(body) : (body as BodyInit | undefined)
 		});
 	} catch (networkError) {
-		const errorMsg = '网络连接异常，请检查您的网络';
+		const errorMsg = 'Network error. Please check your connection';
 		if (!silent) {
 			toast.error(errorMsg);
 		}
@@ -86,7 +86,7 @@ export async function request<T = unknown>(
 
 	if (!response.ok) {
 		let code = 'INTERNAL_ERROR';
-		let message = '请求失败，请稍后重试';
+		let message = 'Request failed, please try again later';
 		let details: unknown;
 
 		try {

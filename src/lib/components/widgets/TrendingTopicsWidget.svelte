@@ -22,7 +22,7 @@
 
 	function handleJoin(card: DailyCard) {
 		if (!userStore.email) {
-			toast.info('请先点击右上角头像绑定邮箱后再加入');
+			toast.info('Please link your email in the top-right menu before joining');
 			return;
 		}
 
@@ -40,32 +40,34 @@
 <div
 	class="rounded-2xl border border-zinc-200/80 dark:border-zinc-800/90 bg-white/60 dark:bg-zinc-950/60 p-4 backdrop-blur-xs space-y-3"
 >
-	<!-- 标题栏 -->
+	<!-- Header bar: unified pattern with icon, full title, badge and action link -->
 	<div class="flex items-center justify-between">
 		<a
 			href="/topics"
-			class="flex items-center gap-1.5 font-semibold text-xs text-zinc-900 dark:text-zinc-100 hover:text-amber-600 dark:hover:text-amber-400 transition-colors group/title"
-			title="前往同行广场"
+			class="flex items-center gap-2 font-semibold text-xs text-zinc-900 dark:text-zinc-100 hover:text-amber-600 dark:hover:text-amber-400 transition-colors group/title"
+			title="Go to topics square"
 		>
-			<Icon icon="lucide:flame" class="h-4 w-4 text-orange-500 shrink-0" />
-			<span>热门同行目标</span>
+			<div class="flex h-6 w-6 items-center justify-center rounded-lg bg-orange-50 dark:bg-orange-950/50 text-orange-600 dark:text-orange-400 shrink-0">
+				<Icon icon="lucide:flame" class="h-3.5 w-3.5" />
+			</div>
+			<span>Today's Trending Goals</span>
 		</a>
 
-		<div class="flex items-center gap-1.5">
-			<span class="text-[10px] text-zinc-400 font-mono">今日 TOP 5</span>
+		<div class="flex items-center gap-1.5 font-mono text-xs">
+			<span class="text-[10px] text-zinc-400">TOP 5</span>
 			<span class="text-[10px] text-zinc-300 dark:text-zinc-700">·</span>
 			<a
 				href="/topics"
-				class="inline-flex items-center gap-0.5 text-[11px] font-medium text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100 transition-colors group/link cursor-pointer"
-				title="前往同行广场查看全部"
+				class="inline-flex items-center gap-0.5 text-[11px] font-medium text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100 transition-colors group/link cursor-pointer font-sans"
+				title="View all trending goals"
 			>
-				<span>查看全部</span>
-				<span class="transition-transform group-hover/link:translate-x-0.5">→</span>
+				<span>View all</span>
+				<Icon icon="lucide:arrow-right" class="h-3 w-3 transition-transform group-hover/link:translate-x-0.5" />
 			</a>
 		</div>
 	</div>
 
-	<!-- 列表内容 -->
+	<!-- List content -->
 	<DataView
 		loading={!trendingStore.loaded || trendingStore.loading}
 		empty={trendingStore.cards.length === 0}
@@ -76,7 +78,7 @@
 
 		{#snippet emptyView()}
 			<div class="py-3 text-center text-xs text-zinc-400">
-				暂无热门同行目标，发布一个待办，等待同频伙伴！
+				No trending goals yet. Post a todo and wait for fellow travelers!
 			</div>
 		{/snippet}
 
@@ -94,12 +96,12 @@
 						? 'border border-amber-300/60 dark:border-amber-500/50 bg-gradient-to-br from-amber-50/80 via-yellow-50/30 to-amber-50/80 dark:from-amber-950/25 dark:via-yellow-950/10 dark:to-amber-950/25 shadow-2xs'
 						: 'hover:bg-zinc-100/70 dark:hover:bg-zinc-900/60'}"
 				>
-					<!-- 目标标题与分类 (点击直达同行详情页) -->
+					<!-- Title & actions -->
 					<div class="flex items-center justify-between gap-2">
 						<a
 							href="/topics/{card.topicHash}?date={getTodayString()}"
 							class="min-w-0 flex-1 group/title focus:outline-hidden"
-							title="查看同行详情"
+							title="View topic details"
 						>
 							<span
 								class="text-xs font-semibold text-zinc-900 dark:text-zinc-100 group-hover/title:underline truncate block leading-snug {isAllDone ? 'text-amber-950 dark:text-amber-100' : ''}"
@@ -110,53 +112,50 @@
 
 						<div class="flex items-center gap-1 shrink-0">
 							{#if isAllDone}
-								<!-- 全员完成专属金色勋章 -->
 								<span
 									class="inline-flex items-center gap-1 text-[10px] font-bold text-amber-900 dark:text-amber-100 bg-gradient-to-r from-amber-300 via-yellow-300 to-amber-400 dark:from-amber-600 dark:via-yellow-600 dark:to-amber-500 px-2 py-0.5 rounded-md shadow-xs animate-in zoom-in-90 duration-150 select-none"
-									title="所有同行伙伴已全部完成"
+									title="All participants have completed this goal"
 								>
 									<Icon icon="lucide:trophy" class="h-3 w-3 shrink-0" />
-									<span>全员完成</span>
+									<span>All Completed</span>
 								</span>
 							{/if}
 
 							{#if hasJoined}
-								<!-- 当前用户已加入：展示已同行状态徽标 -->
 								<span
 									class="text-[10px] font-medium {isAllDone
 										? 'text-amber-700 dark:text-amber-300 bg-amber-100/70 dark:bg-amber-900/40 border border-amber-300/60 dark:border-amber-700/50'
 										: 'text-emerald-600 dark:text-emerald-400 bg-emerald-50/80 dark:bg-emerald-950/40 border border-emerald-200/60 dark:border-emerald-800/40'} px-2 py-0.5 rounded-md select-none"
 								>
-									已同行
+									Joined
 								</span>
 							{:else}
-								<!-- 当前用户未加入：展示可点击的一起做按钮 -->
 								<button
 									type="button"
 									onclick={() => handleJoin(card)}
 									class="text-[11px] font-medium text-zinc-600 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-white px-2 py-0.5 rounded-md hover:bg-zinc-200/70 dark:hover:bg-zinc-800 transition-colors cursor-pointer"
 								>
-									+ 一起做
+									+ Join
 								</button>
 							{/if}
 						</div>
 					</div>
 
-					<!-- 底部：参与人数与头像微堆叠 -->
+					<!-- Bottom: stats & avatars -->
 					<div class="flex items-center justify-between text-[11px] font-mono {isAllDone ? 'text-amber-600/90 dark:text-amber-400/90 font-medium' : 'text-zinc-400'}">
 						<a
 							href="/topics/{card.topicHash}?date={getTodayString()}"
 							class="flex items-center gap-1 hover:underline cursor-pointer"
-							title="查看同行详情"
+							title="View topic details"
 						>
 							{#if isAllDone}
 								<Icon icon="lucide:sparkles" class="h-3.5 w-3.5 text-amber-500 shrink-0" />
-								<span class="font-semibold text-amber-600 dark:text-amber-400">{card.totalParticipants} 人同行全部完成</span>
+								<span class="font-semibold text-amber-600 dark:text-amber-400">All {card.totalParticipants} completed</span>
 							{:else}
 								<span class="text-amber-500 font-semibold">{card.totalParticipants}</span>
-								<span>人同行</span>
+								<span>participants</span>
 								<span>·</span>
-								<span>{card.doneCount} 已完成</span>
+								<span>{card.doneCount} completed</span>
 							{/if}
 						</a>
 

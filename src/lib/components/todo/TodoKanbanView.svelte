@@ -58,13 +58,13 @@
 					</div>
 				</div>
 
-				<!-- 任务卡片列流 (大圆角、悬浮软阴影、零生硬边框) -->
+				<!-- Task cards list -->
 				<div class="space-y-3 flex-1">
 					{#if col.todos.length === 0}
 						<div
 							class="py-16 text-center text-xs text-zinc-400 font-medium"
 						>
-							暂无待办事项
+							No todos
 						</div>
 					{:else}
 						{#each col.todos as todo (todo.id)}
@@ -72,7 +72,7 @@
 							<div
 								class="group/card relative rounded-2xl bg-white dark:bg-zinc-900 p-4 shadow-2xs hover:shadow-xs transition-all duration-150 space-y-3"
 							>
-								<!-- 顶栏：分类徽章与相对时间 -->
+								<!-- Top bar: category & relative time -->
 								<div class="flex items-center justify-between gap-2">
 									<div>
 										{#if todo.category}
@@ -84,7 +84,7 @@
 									</span>
 								</div>
 
-								<!-- 标题正文 (大字号微排印) -->
+								<!-- Todo content link -->
 								<a
 									href="/todos/{todo.shortId || todo.id}"
 									class="block text-xs font-semibold leading-relaxed text-zinc-800 dark:text-zinc-200 hover:text-zinc-950 dark:hover:text-white transition-colors {todo.status === 'done'
@@ -92,12 +92,12 @@
 										: todo.status === 'abandoned'
 											? 'line-through text-zinc-400 dark:text-zinc-500 opacity-60'
 											: ''}"
-									title="查看待办详情"
+									title="View todo details"
 								>
 									{todo.content}
 								</a>
 
-								<!-- 备注舒展预览 (如果存在) -->
+								<!-- Note preview -->
 								{#if todo.note}
 									<div
 										class="text-xs text-zinc-500 dark:text-zinc-400 bg-zinc-50/80 dark:bg-zinc-800/40 rounded-xl p-2.5 leading-normal"
@@ -106,15 +106,14 @@
 									</div>
 								{/if}
 
-								<!-- 底栏：主流设计风格状态选择胶囊 + 单手极简打卡复选框 -->
+								<!-- Bottom bar: status menu & checkbox -->
 								<div class="flex items-center justify-between pt-1">
-									<!-- 主流风格状态流转选择器 (点击弹出状态切换，无粗俗文字按钮) -->
 									<div class="relative">
 										<button
 											type="button"
 											onclick={(e) => toggleMenu(todo.id, e)}
 											class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs font-medium bg-zinc-100/70 dark:bg-zinc-800/70 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200/80 dark:hover:bg-zinc-700/80 transition-colors cursor-pointer"
-											title="更改状态"
+											title="Change status"
 										>
 											<span class="h-1.5 w-1.5 rounded-full {currentStatusConfig.dotClass}"></span>
 											<span>{currentStatusConfig.label}</span>
@@ -128,7 +127,7 @@
 												class="absolute left-0 bottom-full mb-1.5 z-30 w-32 rounded-2xl border border-zinc-200/80 dark:border-zinc-800 bg-white/95 dark:bg-zinc-900/95 backdrop-blur-md p-1.5 shadow-xl text-xs animate-in fade-in zoom-in-95 duration-100 space-y-0.5"
 											>
 												<div class="px-2 py-1 text-[10px] text-zinc-400 font-medium">
-													移至状态
+													Move to
 												</div>
 												{#each TODO_STATUSES as targetSt}
 													<button

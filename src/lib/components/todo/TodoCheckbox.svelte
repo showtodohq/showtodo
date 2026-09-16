@@ -91,15 +91,14 @@
 						? 'border-zinc-300 dark:border-zinc-700 bg-zinc-100 dark:bg-zinc-800 text-zinc-400'
 						: 'border-zinc-600 dark:border-zinc-300 hover:scale-110 hover:border-zinc-900 dark:hover:border-white hover:bg-zinc-100 dark:hover:bg-zinc-800'}"
 			title={currentStatus === 'done'
-				? '已完成 (点击重开，悬停切换状态)'
+				? 'Completed (click to reopen, hover to change)'
 				: currentStatus === 'in_progress'
-					? '进行中 (点击完成，悬停切换状态)'
+					? 'In Progress (click to complete, hover to change)'
 					: currentStatus === 'abandoned'
-						? '已放弃 (点击重开，悬停切换状态)'
-						: '待办 (点击完成，悬停切换状态)'}
+						? 'Abandoned (click to reopen, hover to change)'
+						: 'Pending (click to complete, hover to change)'}
 		>
 			{#if currentStatus === 'done'}
-				<!-- 已完成：加粗打勾 -->
 				<svg
 					class="{sizeClasses[size].icon} stroke-[3] animate-in zoom-in-50 duration-150"
 					fill="none"
@@ -109,18 +108,16 @@
 					<path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
 				</svg>
 			{:else if currentStatus === 'in_progress'}
-				<!-- 进行中：右上角 1/4 扇形完全填满右上象限，严丝合缝无缝隙 -->
 				<svg
-					class="absolute inset-0 h-full w-full"
+					class="absolute inset-0 h-full w-full animate-in zoom-in-50 duration-150"
 					viewBox="0 0 24 24"
 					fill="currentColor"
 				>
 					<path d="M12 12 L12 0 A12 12 0 0 1 24 12 Z" />
 				</svg>
 			{:else if currentStatus === 'abandoned'}
-				<!-- 已放弃：极简斜叉 -->
 				<svg
-					class="{sizeClasses[size].icon} stroke-[2.5]"
+					class="{sizeClasses[size].icon} stroke-[2.5] animate-in zoom-in-50 duration-150"
 					fill="none"
 					viewBox="0 0 24 24"
 					stroke="currentColor"
@@ -130,61 +127,76 @@
 			{/if}
 		</button>
 
-		<!-- 悬停 4 态极简微型选择器 (正上方弹出胶囊条) -->
+		<!-- Hover status menu popup -->
 		{#if isMenuOpen}
 			<div
-				class="absolute bottom-full right-0 mb-2 z-50 flex items-center gap-1 p-1 rounded-xl bg-white dark:bg-zinc-900 shadow-xl border border-zinc-200/90 dark:border-zinc-800 animate-in fade-in zoom-in-95 duration-150 select-none whitespace-nowrap"
+				class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 z-40 flex items-center gap-1.5 p-1 rounded-full bg-zinc-900/95 dark:bg-zinc-100/95 shadow-xl backdrop-blur-sm animate-in fade-in zoom-in-95 duration-100"
 			>
 				{#each TODO_STATUSES as st}
-					{@const isActive = st.id === currentStatus}
 					<button
 						type="button"
 						onclick={(e) => handleSelectStatus(st.id, e)}
-						class="flex items-center gap-1.5 px-2 py-1 rounded-lg text-xs font-medium transition-all duration-100 cursor-pointer {isActive
-							? 'bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900 font-semibold shadow-2xs'
-							: 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-zinc-100'}"
+						class="flex h-6 w-6 items-center justify-center rounded-full transition-transform hover:scale-125 active:scale-95 cursor-pointer {currentStatus ===
+						st.id
+							? 'ring-2 ring-blue-500 bg-zinc-800 dark:bg-zinc-200'
+							: 'hover:bg-zinc-800 dark:hover:bg-zinc-200'}"
 						title="{st.label}: {st.description}"
 					>
 						{#if st.id === 'pending'}
-							<!-- 待办：标准空心正圆矢量 SVG (继承 currentColor) -->
-							<svg class="h-2.5 w-2.5 stroke-[2.2]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+							<svg
+								class="h-3.5 w-3.5 text-zinc-400 dark:text-zinc-600"
+								viewBox="0 0 24 24"
+								fill="none"
+								stroke="currentColor"
+								stroke-width="2"
+							>
 								<circle cx="12" cy="12" r="9" />
 							</svg>
 						{:else if st.id === 'in_progress'}
-							<!-- 进行中：标准 ◔ 四分之一填充圆 (外环 + 右上角 1/4 扇形填充，继承 currentColor) -->
-							<svg class="h-2.5 w-2.5" viewBox="0 0 24 24" fill="none">
-								<circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2.2" />
-								<path d="M12 12 L12 3 A9 9 0 0 1 21 12 Z" fill="currentColor" />
+							<svg
+								class="h-3.5 w-3.5 text-blue-400 dark:text-blue-600"
+								viewBox="0 0 24 24"
+								fill="none"
+								stroke="currentColor"
+								stroke-width="2"
+							>
+								<circle cx="12" cy="12" r="9" />
+								<path d="M12 12 L12 3 A9 9 0 0 1 21 12 Z" fill="currentColor" stroke="none" />
 							</svg>
 						{:else if st.id === 'done'}
-							<!-- 已完成：加粗打勾矢量 SVG -->
-							<svg class="h-2.5 w-2.5 stroke-[3]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+							<svg
+								class="h-3.5 w-3.5 text-emerald-400 dark:text-emerald-600 stroke-[3]"
+								fill="none"
+								viewBox="0 0 24 24"
+								stroke="currentColor"
+							>
 								<path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
 							</svg>
 						{:else if st.id === 'abandoned'}
-							<!-- 已放弃：极简叉号矢量 SVG -->
-							<svg class="h-2.5 w-2.5 stroke-[2.5]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+							<svg
+								class="h-3.5 w-3.5 text-zinc-400 dark:text-zinc-600 stroke-[2.5]"
+								fill="none"
+								viewBox="0 0 24 24"
+								stroke="currentColor"
+							>
 								<path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
 							</svg>
 						{/if}
-						<span class="text-[11px] leading-none">{st.shortActionLabel}</span>
 					</button>
 				{/each}
 
-				<!-- 底部小箭头 -->
 				<div
-					class="absolute -bottom-1 right-2.5 w-2 h-2 rotate-45 bg-white dark:bg-zinc-900 border-r border-b border-zinc-200/90 dark:border-zinc-800"
+					class="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 rotate-45 bg-zinc-900/95 dark:bg-zinc-100/95"
 				></div>
 			</div>
 		{/if}
 	{:else}
-		<!-- 他人待办：只读静态 4 态徽标 (低饱和度中性降噪设计) -->
 		{#if currentStatus === 'done'}
 			<div
 				class="flex shrink-0 items-center justify-center rounded-full border border-zinc-300 dark:border-zinc-600 bg-zinc-200/70 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 cursor-default select-none shadow-2xs {sizeClasses[
 					size
 				].box}"
-				title="作者已完成此待办（他人）"
+				title="Author completed this todo (others)"
 			>
 				<svg
 					class="{sizeClasses[size].icon} stroke-[2.5]"
@@ -196,12 +208,11 @@
 				</svg>
 			</div>
 		{:else if currentStatus === 'in_progress'}
-			<!-- 他人进行中：灰底 + 右上角 1/4 扇形完全填满右上象限，无空缺 -->
 			<div
 				class="relative flex shrink-0 items-center justify-center rounded-full border border-zinc-300 dark:border-zinc-700 bg-zinc-200/50 dark:bg-zinc-800/60 text-zinc-500 dark:text-zinc-400 overflow-hidden cursor-default select-none {sizeClasses[
 					size
 				].box}"
-				title="作者正在推进此待办（他人）"
+				title="Author is working on this todo (others)"
 			>
 				<svg
 					class="absolute inset-0 h-full w-full"
@@ -216,7 +227,7 @@
 				class="flex shrink-0 items-center justify-center rounded-full border border-zinc-200 dark:border-zinc-800 bg-zinc-100 dark:bg-zinc-800 text-zinc-400 cursor-default select-none {sizeClasses[
 					size
 				].box}"
-				title="作者已放弃此待办（他人）"
+				title="Author abandoned this todo (others)"
 			>
 				<svg
 					class="{sizeClasses[size].icon} stroke-[2]"
@@ -232,7 +243,7 @@
 				class="shrink-0 rounded-full border border-dashed border-zinc-300 dark:border-zinc-600 bg-zinc-50/80 dark:bg-zinc-800/40 cursor-default select-none {sizeClasses[
 					size
 				].box}"
-				title="待办（他人待办，只读）"
+				title="Pending (read-only)"
 			></div>
 		{/if}
 	{/if}

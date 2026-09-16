@@ -17,7 +17,7 @@ function buildTopicFromCard(cachedCard: DailyCard): TopicDetail {
 		isMe: p.isMe,
 		user: {
 			id: p.user?.id || `u-${idx}`,
-			nickname: p.user?.nickname || '用户',
+			nickname: p.user?.nickname || 'User',
 			handle: p.user?.handle || 'user',
 			avatar: p.user?.avatar || null,
 			email: '',
@@ -142,7 +142,7 @@ export function createTopicDetailResource(initialHash?: string) {
 							author: {
 								id: p.user?.id || '',
 								handle: p.user?.handle || 'user',
-								nickname: p.user?.nickname || '用户',
+								nickname: p.user?.nickname || 'User',
 								avatar: p.user?.avatar || null
 							},
 							reactions: { '❤️': 0, '👍': 0, '🔥': 0, '💪': 0, '👏': 0, '🚀': 0, '🎉': 0, '👀': 0 },
@@ -154,7 +154,7 @@ export function createTopicDetailResource(initialHash?: string) {
 		} catch (err) {
 			console.error('Failed to load topic detail:', err);
 			if (!topic) {
-				error = (err as Error).message || '该同行目标不存在或已结束';
+				error = (err as Error).message || 'Goal does not exist or has ended';
 			}
 		} finally {
 			loading = false;
@@ -168,7 +168,7 @@ export function createTopicDetailResource(initialHash?: string) {
 	 */
 	async function handleJoin() {
 		if (!userStore.email) {
-			toast.info('请先点击右上角头像设置邮箱再加入');
+			toast.info('Please set your email in the top right avatar before joining');
 			return;
 		}
 		if (!topic || isJoining) return;
@@ -176,7 +176,7 @@ export function createTopicDetailResource(initialHash?: string) {
 		isJoining = true;
 		const currentUser = {
 			id: userStore.id || '',
-			nickname: userStore.nickname || '我',
+			nickname: userStore.nickname || 'You',
 			handle: userStore.handle || 'user',
 			avatar: userStore.avatar || null,
 			email: userStore.email || '',
@@ -214,13 +214,13 @@ export function createTopicDetailResource(initialHash?: string) {
 					p.shortId = realTodo.shortId || realTodo.id;
 				}
 			}
-			toast.success('成功加入该目标！');
+			toast.success('Successfully joined this goal!');
 		} catch (err) {
 			// 回滚
 			topic.participants = topic.participants.filter((p) => p.todoId !== tempTodoId);
 			topic.totalParticipants = Math.max(0, topic.totalParticipants - 1);
 			topic.todayParticipants = Math.max(0, topic.todayParticipants - 1);
-			toast.error(`加入失败: ${(err as Error).message}`);
+			toast.error(`Failed to join: ${(err as Error).message}`);
 		} finally {
 			isJoining = false;
 		}

@@ -27,7 +27,7 @@
 				? getStatusConfig('abandoned').actionLabel
 				: checkInStatus === 'pending'
 					? getStatusConfig('pending').actionLabel
-					: '记录进展'
+					: 'Log Progress'
 	);
 
 	function handleKeydown(e: KeyboardEvent) {
@@ -57,10 +57,10 @@
 	<div class="flex items-center justify-between flex-wrap gap-2">
 		<div class="flex items-center gap-1.5 text-xs font-semibold text-zinc-900 dark:text-zinc-100">
 			<span class="h-1.5 w-1.5 rounded-full bg-blue-500"></span>
-			<span>记录进展</span>
+			<span>Log Progress</span>
 		</div>
 
-		<!-- 状态选择分段胶囊按钮组 -->
+		<!-- Status segment buttons -->
 		<div class="flex items-center bg-zinc-100 dark:bg-zinc-800 p-0.5 rounded-xl text-xs select-none">
 			{#each TODO_STATUSES as st}
 				<button
@@ -90,14 +90,14 @@
 		bind:value={checkInNote}
 		onkeydown={handleKeydown}
 		rows="2"
-		placeholder="写点什么，记录此刻的进展与心得... (支持 ⌘ + Enter 快速提交)"
+		placeholder="Write something to log your progress... (⌘ + Enter to submit)"
 		required
 		class="w-full rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 p-2.5 text-xs text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 focus:outline-hidden focus:ring-2 focus:ring-zinc-400"
 	></textarea>
 
 	<div class="flex items-center justify-between text-xs text-zinc-400">
 		<span class="text-[11px] font-mono text-zinc-400 dark:text-zinc-500">
-			⌘ + Enter 提交
+			⌘ + Enter to submit
 		</span>
 
 		<Button

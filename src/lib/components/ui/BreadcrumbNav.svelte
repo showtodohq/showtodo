@@ -15,7 +15,7 @@
 
 	let {
 		backHref = '/',
-		backLabel = '返回',
+		backLabel = 'Back',
 		crumbs = [],
 		class: className = ''
 	}: Props = $props();

@@ -45,7 +45,7 @@
 
 		const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 		if (!emailRegex.test(clean)) {
-			toast.error('请输入有效的电子邮箱地址');
+			toast.error('Please enter a valid email address');
 			return;
 		}
 
@@ -54,12 +54,12 @@
 			const res = await api.syncUser(clean);
 			if (res.user) {
 				userStore.updateUserFromProfile(res.user);
-				toast.success(`欢迎回来，${res.user.nickname}！`);
+				toast.success(`Welcome back, ${res.user.nickname}!`);
 			}
 			closePopover();
 		} catch (err) {
 			console.error('Failed to sync user with server:', err);
-			toast.error(`同步用户失败: ${(err as Error).message}`);
+			toast.error(`Failed to sync user: ${(err as Error).message}`);
 		} finally {
 			saving = false;
 		}
@@ -67,7 +67,7 @@
 
 	function handleLogout() {
 		userStore.clearSession();
-		toast.info('已退出当前身份');
+		toast.info('Signed out');
 		closePopover();
 	}
 
@@ -75,9 +75,9 @@
 		if (!userStore.handle) return;
 		try {
 			await navigator.clipboard.writeText(`@${userStore.handle}`);
-			toast.success(`已复制用户名 @${userStore.handle}`);
+			toast.success(`Copied handle @${userStore.handle}`);
 		} catch {
-			toast.info(`用户名: @${userStore.handle}`);
+			toast.info(`Handle: @${userStore.handle}`);
 		}
 	}
 </script>
@@ -90,7 +90,7 @@
 		type="button"
 		onclick={toggleOpen}
 		class="flex items-center rounded-full p-0.5 ring-2 transition-all duration-150 cursor-pointer {isOpen ? 'ring-zinc-900 dark:ring-zinc-100 scale-105' : 'ring-transparent hover:ring-zinc-300 dark:hover:ring-zinc-700'}"
-		title={userStore.email ? `${userStore.nickname} (@${userStore.handle})` : '设置个人身份与偏好'}
+		title={userStore.email ? `${userStore.nickname} (@${userStore.handle})` : 'Set identity and preferences'}
 		aria-label="User settings"
 		aria-expanded={isOpen}
 	>
@@ -111,7 +111,7 @@
 				{#if userStore.current}
 					{@const myProfileUrl = `/users/${userStore.handle || userStore.id}`}
 					<div class="flex items-center gap-3">
-						<a href={myProfileUrl} onclick={closePopover} class="shrink-0 hover:opacity-85 transition-opacity" title="前往个人主页">
+						<a href={myProfileUrl} onclick={closePopover} class="shrink-0 hover:opacity-85 transition-opacity" title="Go to profile">
 							<Avatar src={userStore.avatar} name={userStore.nickname} size="md" class="ring-1 ring-zinc-200 dark:ring-zinc-700 cursor-pointer" />
 						</a>
 						<div class="min-w-0 flex-1">
@@ -120,7 +120,7 @@
 									href={myProfileUrl}
 									onclick={closePopover}
 									class="text-xs font-bold text-zinc-900 dark:text-zinc-100 truncate hover:underline"
-									title="前往个人主页"
+									title="Go to profile"
 								>
 									{userStore.nickname}
 								</a>
@@ -128,7 +128,7 @@
 									type="button"
 									onclick={copyHandle}
 									class="text-[10px] text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 font-mono transition-colors cursor-pointer"
-									title="点击复制 @"
+									title="Click to copy @"
 								>
 									@{userStore.handle}
 								</button>
@@ -147,10 +147,10 @@
 						</div>
 						<div>
 							<div class="text-xs font-semibold text-zinc-900 dark:text-zinc-100">
-								访客模式
+								Guest Mode
 							</div>
 							<div class="text-[11px] text-zinc-400">
-								绑定邮箱即可同步多端与打卡
+								Link email to sync across devices & check in
 							</div>
 						</div>
 					</div>
@@ -170,10 +170,10 @@
 							<svg class="h-3.5 w-3.5 text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
 								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
 							</svg>
-							个人主页 (Profile)
+							Profile
 						</span>
 						<span class="text-[11px] text-zinc-400 inline-flex items-center gap-0.5">
-							<span>公开成果与打卡</span>
+							<span>Accomplishments & check-ins</span>
 							<Icon icon="lucide:arrow-right" class="h-3 w-3 transition-transform group-hover/link:translate-x-0.5" />
 						</span>
 					</a>
@@ -188,10 +188,10 @@
 							<svg class="h-3.5 w-3.5 text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
 								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
 							</svg>
-							待办清单 (Todo List)
+							Todo List
 						</span>
 						<span class="text-[11px] text-zinc-400 inline-flex items-center gap-0.5">
-							<span>看板与日历</span>
+							<span>Kanban & Calendar</span>
 							<Icon icon="lucide:arrow-right" class="h-3 w-3 transition-transform group-hover/link:translate-x-0.5" />
 						</span>
 					</a>
@@ -204,7 +204,7 @@
 							<svg class="h-3.5 w-3.5 text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
 								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
 							</svg>
-							快捷发布
+							Quick Post
 						</span>
 						<kbd class="font-mono text-[10px] bg-zinc-100 dark:bg-zinc-800 text-zinc-500 px-1.5 py-0.5 rounded border border-zinc-200 dark:border-zinc-700">Enter</kbd>
 					</div>
@@ -217,7 +217,7 @@
 							<svg class="h-3.5 w-3.5 text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
 								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
 							</svg>
-							取消 / 收起
+							Cancel / Close
 						</span>
 						<kbd class="font-mono text-[10px] bg-zinc-100 dark:bg-zinc-800 text-zinc-500 px-1.5 py-0.5 rounded border border-zinc-200 dark:border-zinc-700">Esc</kbd>
 					</div>
@@ -227,7 +227,7 @@
 						<Input
 							size="sm"
 							type="email"
-							placeholder="输入邮箱 (如 alex@example.com)"
+							placeholder="Enter email (e.g. alex@example.com)"
 							bind:value={emailInput}
 							required
 						/>
@@ -239,7 +239,7 @@
 							loading={saving}
 							disabled={saving || !emailInput.trim()}
 						>
-							确认绑定并登录
+							Confirm & Sign In
 						</Button>
 					</form>
 				{/if}
@@ -249,7 +249,7 @@
 			<div class="p-2">
 				<div class="flex items-center justify-between gap-2">
 					<span class="text-xs font-medium text-zinc-600 dark:text-zinc-400 shrink-0">
-						外观模式
+						Appearance
 					</span>
 					<div class="flex items-center bg-zinc-100 dark:bg-zinc-800/80 p-0.5 rounded-lg text-[11px]">
 						<button
@@ -257,21 +257,21 @@
 							onclick={() => theme.setMode('light')}
 							class="px-2 py-0.5 rounded-md font-medium transition-all cursor-pointer {theme.mode === 'light' ? 'bg-white text-zinc-900 shadow-xs dark:bg-zinc-700 dark:text-zinc-100 font-semibold' : 'text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100'}"
 						>
-							浅色
+							Light
 						</button>
 						<button
 							type="button"
 							onclick={() => theme.setMode('dark')}
 							class="px-2 py-0.5 rounded-md font-medium transition-all cursor-pointer {theme.mode === 'dark' ? 'bg-white text-zinc-900 shadow-xs dark:bg-zinc-700 dark:text-zinc-100 font-semibold' : 'text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100'}"
 						>
-							深色
+							Dark
 						</button>
 						<button
 							type="button"
 							onclick={() => theme.setMode('system')}
 							class="px-2 py-0.5 rounded-md font-medium transition-all cursor-pointer {theme.mode === 'system' ? 'bg-white text-zinc-900 shadow-xs dark:bg-zinc-700 dark:text-zinc-100 font-semibold' : 'text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100'}"
 						>
-							系统
+							System
 						</button>
 					</div>
 				</div>
@@ -288,7 +288,7 @@
 						<svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
 							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
 						</svg>
-						退出当前身份
+						Sign Out
 					</button>
 				</div>
 			{/if}

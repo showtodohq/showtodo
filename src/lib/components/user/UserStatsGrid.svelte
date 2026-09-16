@@ -22,7 +22,7 @@
 		<div class="text-2xl font-bold font-mono text-zinc-900 dark:text-zinc-100">
 			{totalCount}
 		</div>
-		<div class="text-xs text-zinc-400 font-medium">累计待办</div>
+		<div class="text-xs text-zinc-400 font-medium">Total Todos</div>
 	</div>
 	<div class="space-y-0.5">
 		<div class="text-2xl font-bold font-mono text-emerald-600 dark:text-emerald-400">
@@ -40,6 +40,6 @@
 		<div class="text-2xl font-bold font-mono text-amber-600 dark:text-amber-400">
 			{completionRate}%
 		</div>
-		<div class="text-xs text-zinc-400 font-medium">完成率</div>
+		<div class="text-xs text-zinc-400 font-medium">Completion Rate</div>
 	</div>
 </div>

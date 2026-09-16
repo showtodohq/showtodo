@@ -50,18 +50,18 @@
 				<input
 					type="search"
 					bind:value={resource.searchQuery}
-					placeholder="搜索我的待办事项、备注或关键词..."
+					placeholder="Search my todos, notes, or keywords..."
 					class="w-full bg-transparent text-sm font-semibold placeholder:font-normal placeholder:text-zinc-400 dark:placeholder:text-zinc-500 text-zinc-900 dark:text-zinc-100 focus:outline-hidden leading-relaxed py-1"
 				/>
 			</div>
 
-			<!-- 清除按钮与快捷键提示 -->
+			<!-- Clear button -->
 			{#if resource.searchQuery}
 				<button
 					type="button"
 					onclick={() => (resource.searchQuery = '')}
 					class="text-xs text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 p-1.5 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors cursor-pointer"
-					title="清除搜索"
+					title="Clear search"
 				>
 					<Icon icon="lucide:x" class="h-3.5 w-3.5" />
 				</button>
@@ -69,10 +69,10 @@
 		</div>
 	</div>
 
-	<!-- 状态切片与分类胶囊行 (大间距留白，无多余边框) -->
+	<!-- Status tabs & category filter -->
 	<div class="space-y-3">
 		<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
-			<!-- 状态筛选胶囊 (全部 / 待办 / 进行中 / 已完成 / 已放弃) -->
+			<!-- Status filter pills (All / Pending / In Progress / Completed / Abandoned) -->
 			<div class="inline-flex items-center rounded-2xl bg-zinc-100/90 dark:bg-zinc-800/80 p-1 overflow-x-auto max-w-full scrollbar-none">
 				<button
 					type="button"
@@ -81,7 +81,7 @@
 						? 'bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 shadow-2xs font-semibold'
 						: 'text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100'}"
 				>
-					全部 ({resource.totalCount})
+					All ({resource.totalCount})
 				</button>
 
 				{#each TODO_STATUSES as st}
@@ -97,17 +97,17 @@
 				{/each}
 			</div>
 
-			<!-- 分类激活指示条与一键清除 -->
+			<!-- Active category indicator & clear -->
 			{#if resource.activeCategory}
 				{@const catConfig = getCategoryConfig(resource.activeCategory)}
 				<div class="flex items-center gap-1.5 animate-in fade-in duration-150">
-					<span class="text-xs text-zinc-400">筛选分类:</span>
+					<span class="text-xs text-zinc-400">Category:</span>
 					<button
 						type="button"
 						onclick={handleClearCategory}
 						class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-2xs hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-all cursor-pointer group"
 						style="color: {catConfig?.color};"
-						title="点击清除分类筛选"
+						title="Click to clear category filter"
 					>
 						<span
 							class="h-1.5 w-1.5 rounded-full shrink-0"
@@ -121,7 +121,7 @@
 		</div>
 	</div>
 
-	<!-- 待办列表内容区 (通透大间距留白，无外层大盒包裹) -->
+	<!-- Content area -->
 	<DataView
 		loading={resource.loading}
 		empty={resource.streamFilteredTodos.length === 0}
@@ -132,9 +132,9 @@
 			>
 				<div>
 					{#if resource.searchQuery || resource.activeCategory || resource.streamTab !== 'all'}
-						没有找到匹配当前筛选条件的待办事项
+						No todos match the current filters
 					{:else}
-						暂无待办事项，在上方发布第一条吧
+						No todos yet. Create your first one above!
 					{/if}
 				</div>
 				{#if resource.searchQuery || resource.activeCategory || resource.streamTab !== 'all'}
@@ -147,7 +147,7 @@
 						}}
 						class="text-xs text-zinc-600 dark:text-zinc-300 hover:underline cursor-pointer"
 					>
-						重置所有筛选
+						Reset all filters
 					</button>
 				{/if}
 			</div>

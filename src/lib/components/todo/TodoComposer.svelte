@@ -21,7 +21,7 @@
 	let {
 		onsubmit,
 		selectedCategory = $bindable<CategoryId | null>(null),
-		placeholder = '写下今天的一个目标...',
+		placeholder = 'Write down a goal for today...',
 		class: className = ''
 	}: Props = $props();
 
@@ -94,7 +94,7 @@
 		if (!userStore.email) {
 			const cleanEmail = inlineEmail.trim().toLowerCase();
 			if (!cleanEmail || !cleanEmail.includes('@')) {
-				toast.info('请先填写有效邮箱即可一键发布');
+				toast.info('Please enter a valid email to post');
 				return;
 			}
 
@@ -173,7 +173,7 @@
 						bind:value={inlineEmail}
 						onkeydown={handleKeydown}
 						onfocus={() => (isFocused = true)}
-						placeholder="输入你的邮箱一键快捷发布..."
+						placeholder="Enter your email to post quickly..."
 						class="w-full bg-transparent text-sm font-semibold placeholder:font-normal placeholder:text-zinc-400/90 dark:placeholder:text-zinc-500 text-zinc-900 dark:text-zinc-100 focus:outline-hidden leading-relaxed py-1 transition-all"
 					/>
 				</div>
@@ -186,7 +186,7 @@
 						use:autoFocus
 						bind:value={note}
 						onfocus={() => (isFocused = true)}
-						placeholder="添加备注、链接或执行细节..."
+						placeholder="Add notes, links, or execution details..."
 						rows="2"
 						class="w-full resize-none bg-transparent text-xs text-zinc-600 dark:text-zinc-400 placeholder:text-zinc-400/80 dark:placeholder:text-zinc-600 focus:outline-hidden leading-relaxed transition-all py-1"
 					></textarea>
@@ -222,7 +222,7 @@
 									</svg>
 								{/if}
 							</div>
-							<span class="leading-none">{isNotePublic ? '公开此备注到广场' : '仅自己可见 (不公开)'}</span>
+							<span class="leading-none">{isNotePublic ? 'Public note in square' : 'Private (only to you)'}</span>
 						</button>
 					</div>
 				</div>
@@ -233,7 +233,7 @@
 				<div
 					role="toolbar"
 					tabindex="-1"
-					aria-label="待办工具栏"
+					aria-label="Todo toolbar"
 					onpointerdown={(e) => {
 						if ((e.target as HTMLElement).closest('button')) e.preventDefault();
 					}}
@@ -249,7 +249,7 @@
 								class="flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-medium transition-all duration-150 cursor-pointer shrink-0 {isSelected
 									? 'bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900 shadow-xs'
 									: 'text-zinc-500 hover:text-zinc-800 dark:text-zinc-400 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-900'}"
-								title="选择分类: {cat.name}"
+								title="Select category: {cat.name}"
 							>
 								<span
 									class="h-1.5 w-1.5 rounded-full shrink-0"
@@ -269,7 +269,7 @@
 							note.trim()
 								? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 font-semibold'
 								: 'text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 hover:bg-zinc-100/80 dark:hover:bg-zinc-900'}"
-							title={isNoteOpen ? '收起备注' : '添加备注'}
+							title={isNoteOpen ? 'Collapse note' : 'Add note'}
 						>
 							<svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
 								<path
@@ -279,7 +279,7 @@
 									d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
 								/>
 							</svg>
-							<span class="text-[11px]">备注</span>
+							<span class="text-[11px]">Note</span>
 						</button>
 
 						<button
@@ -288,7 +288,7 @@
 							disabled={!content.trim() || submitting || (!userStore.email && !inlineEmail.trim())}
 							class="inline-flex items-center gap-1 rounded-full bg-zinc-900 px-4 py-1.5 text-xs font-semibold text-white dark:bg-zinc-100 dark:text-zinc-900 hover:opacity-90 active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed transition-all cursor-pointer shadow-xs"
 						>
-							<span>{submitting ? '发布中...' : '发布'}</span>
+							<span>{submitting ? 'Posting...' : 'Post'}</span>
 							<span class="text-[10px] opacity-60 font-mono hidden sm:inline">↵</span>
 						</button>
 					</div>

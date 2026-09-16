@@ -3,30 +3,29 @@ import { TODO_STATUSES, getStatusConfig } from '../status';
 import { ACTIVITY_CONFIG } from '../activity';
 
 describe('Constants Domain Ubiquitous Language (TDD)', () => {
-	it('TODO_STATUSES has standard "已完成" for done status', () => {
+	it('TODO_STATUSES has standard "Completed" for done status', () => {
 		const doneConfig = getStatusConfig('done');
-		expect(doneConfig.label).toBe('已完成');
-		expect(doneConfig.actionLabel).toBe('标记完成');
-		expect(doneConfig.shortActionLabel).toBe('已完成');
-		expect(doneConfig.description).not.toContain('达成');
+		expect(doneConfig.label).toBe('Completed');
+		expect(doneConfig.actionLabel).toBe('Mark Completed');
+		expect(doneConfig.shortActionLabel).toBe('Completed');
 	});
 
-	it('ACTIVITY_CONFIG defines standardized action labels and units (次)', () => {
-		expect(ACTIVITY_CONFIG.total.label).toBe('足迹');
-		expect(ACTIVITY_CONFIG.total.actionLabel).toBe('累计足迹');
-		expect(ACTIVITY_CONFIG.total.unit).toBe('次');
+	it('ACTIVITY_CONFIG defines standardized action labels and units (times)', () => {
+		expect(ACTIVITY_CONFIG.total.label).toBe('Activities');
+		expect(ACTIVITY_CONFIG.total.actionLabel).toBe('Total Activities');
+		expect(ACTIVITY_CONFIG.total.unit).toBe('times');
 
-		expect(ACTIVITY_CONFIG.created.label).toBe('新建');
-		expect(ACTIVITY_CONFIG.created.unit).toBe('次');
+		expect(ACTIVITY_CONFIG.created.label).toBe('Created');
+		expect(ACTIVITY_CONFIG.created.unit).toBe('times');
 
-		expect(ACTIVITY_CONFIG.completed.label).toBe('完成');
-		expect(ACTIVITY_CONFIG.completed.unit).toBe('次');
+		expect(ACTIVITY_CONFIG.completed.label).toBe('Completed');
+		expect(ACTIVITY_CONFIG.completed.unit).toBe('times');
 
-		expect(ACTIVITY_CONFIG.notes.label).toBe('进展');
-		expect(ACTIVITY_CONFIG.notes.unit).toBe('次');
+		expect(ACTIVITY_CONFIG.notes.label).toBe('Updates');
+		expect(ACTIVITY_CONFIG.notes.unit).toBe('times');
 	});
 
-	it('strictly forbids "达成" across all activity and status config texts', () => {
+	it('validates all status and activity configs have non-empty english text', () => {
 		const allStatusTexts = Object.values(TODO_STATUSES).flatMap((s) => [
 			s.label,
 			s.description,
@@ -34,7 +33,7 @@ describe('Constants Domain Ubiquitous Language (TDD)', () => {
 			s.shortActionLabel
 		]);
 		for (const text of allStatusTexts) {
-			expect(text).not.toContain('达成');
+			expect(text.length).toBeGreaterThan(0);
 		}
 
 		const allActivityTexts = Object.values(ACTIVITY_CONFIG).flatMap((a) => [
@@ -44,7 +43,7 @@ describe('Constants Domain Ubiquitous Language (TDD)', () => {
 			a.description
 		]);
 		for (const text of allActivityTexts) {
-			expect(text).not.toContain('达成');
+			expect(text.length).toBeGreaterThan(0);
 		}
 	});
 });

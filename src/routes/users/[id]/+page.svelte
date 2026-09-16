@@ -97,7 +97,7 @@
 </script>
 
 <svelte:head>
-	<title>{profileRes.user ? `${profileRes.user.nickname} (@${profileRes.user.handle}) · 个人主页 · ptdl-alpha` : '用户主页 · ptdl-alpha'}</title>
+	<title>{profileRes.user ? `${profileRes.user.nickname} (@${profileRes.user.handle}) · Profile · ShowTodo` : 'User Profile · ShowTodo'}</title>
 </svelte:head>
 
 <div class="w-full space-y-6 sm:space-y-8">
@@ -112,7 +112,7 @@
 
 		{#snippet emptyView()}
 			<div class="space-y-6 sm:space-y-8">
-				<BreadcrumbNav backHref="/" backLabel="返回动态流" />
+				<BreadcrumbNav backHref="/" backLabel="Back to Feed" />
 				<div
 					class="p-8 rounded-3xl border border-dashed border-red-200 dark:border-red-900/50 bg-red-50/50 dark:bg-red-950/20 text-center space-y-3"
 				>
@@ -120,13 +120,13 @@
 						<Icon icon="lucide:user-x" class="h-6 w-6" />
 					</div>
 					<div class="text-sm font-semibold text-zinc-800 dark:text-zinc-200">
-						未找到该用户
+						User Not Found
 					</div>
 					<p class="text-xs text-zinc-500 max-w-sm mx-auto">
-						该用户可能未注册或链接无效，请返回动态流查看活跃用户。
+						This user may not be registered or the link is invalid. Return to the Feed to discover active members.
 					</p>
 					<Button variant="outline" size="sm" onclick={() => goto('/')}>
-						返回动态流
+						Back to Feed
 					</Button>
 				</div>
 			</div>
@@ -134,7 +134,7 @@
 
 		{#snippet errorView(msg)}
 			<div class="space-y-6 sm:space-y-8">
-				<BreadcrumbNav backHref="/" backLabel="返回动态流" />
+				<BreadcrumbNav backHref="/" backLabel="Back to Feed" />
 				<div
 					class="p-8 rounded-3xl border border-dashed border-red-200 dark:border-red-900/50 bg-red-50/50 dark:bg-red-950/20 text-center space-y-3"
 				>
@@ -145,10 +145,10 @@
 						{msg}
 					</div>
 					<p class="text-xs text-zinc-500 max-w-sm mx-auto">
-						该用户可能未注册或链接无效，请返回动态流查看活跃用户。
+						This user may not be registered or the link is invalid. Return to the Feed to discover active members.
 					</p>
 					<Button variant="outline" size="sm" onclick={() => goto('/')}>
-						返回动态流
+						Back to Feed
 					</Button>
 				</div>
 			</div>
@@ -156,17 +156,17 @@
 
 		{#if profileRes.user}
 			<div class="space-y-5 sm:space-y-6">
-				<!-- 极简面包屑与溯源导航 -->
+				<!-- Breadcrumb navigation -->
 				<BreadcrumbNav
 					backHref="/"
-					backLabel="返回动态流"
+					backLabel="Back to Feed"
 					crumbs={[
-						{ label: '动态流', href: '/' },
+						{ label: 'Feed', href: '/' },
 						{ label: `@${profileRes.user.handle}` }
 					]}
 				/>
 
-				<!-- 用户名片与统计指标 -->
+				<!-- Profile Card & Stats -->
 				<UserProfileCard user={profileRes.user} isMe={profileRes.isMe} onsaveprofile={onSaveProfile}>
 					<UserStatsGrid
 						totalCount={profileRes.globalTotalCount}
@@ -175,40 +175,40 @@
 					/>
 				</UserProfileCard>
 
-				<!-- 个人行动打卡热力图 (仅热力图，近 365 天打卡足迹) -->
+				<!-- Personal Activity Heatmap -->
 				<div
 					class="p-5 sm:p-6 rounded-3xl border border-zinc-200/80 dark:border-zinc-800 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-md shadow-xs space-y-4"
 				>
 					<div class="flex items-center justify-between gap-3 flex-wrap">
 						<div class="flex items-center gap-2">
 							<span class="text-base font-bold text-zinc-900 dark:text-zinc-100">
-								个人行动足迹
+								Activity Footprint
 							</span>
 							<span class="text-xs text-zinc-400 font-mono">
-								(近 365 天)
+								(Past 365 Days)
 							</span>
 						</div>
 						<div class="text-xs text-zinc-500 dark:text-zinc-400 font-mono">
-							过去一年累计足迹 <span class="font-bold text-emerald-600 dark:text-emerald-400">{profileRes.heatmap?.totalActivities ?? 0}</span> 次
+							Past year activities: <span class="font-bold text-emerald-600 dark:text-emerald-400">{profileRes.heatmap?.totalActivities ?? 0}</span>
 						</div>
 					</div>
 
 					{#if profileRes.isHeatmapLoading && !profileRes.heatmap}
 						<div class="h-32 rounded-2xl bg-zinc-100/60 dark:bg-zinc-800/40 animate-pulse flex items-center justify-center text-xs text-zinc-400">
-							正在载入行动足迹...
+							Loading activity footprint...
 						</div>
 					{:else}
 						<ActivityHeatmap days={profileRes.heatmap?.days || []} />
 					{/if}
 				</div>
 
-				<!-- 待办清单与分类筛选 -->
+				<!-- Todo List and Category Filter -->
 				<div class="space-y-4">
-					<!-- 状态筛选 Tab 胶囊与激活分类轻量指示 -->
+					<!-- Status tabs and active category indicator -->
 					<div
 						class="flex items-center justify-between gap-2 border-b border-zinc-200/80 dark:border-zinc-800/80 pb-3 flex-wrap"
 					>
-						<!-- 左侧：状态筛选 Tab -->
+						<!-- Left: Status Tabs -->
 						<div class="flex items-center gap-1.5 text-xs font-medium flex-wrap">
 							<button
 								type="button"
@@ -217,7 +217,7 @@
 									? 'bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900 font-semibold'
 									: 'text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800/60'}"
 							>
-								全部 ({profileRes.scopedTotalCount})
+								All ({profileRes.scopedTotalCount})
 							</button>
 
 							{#each TODO_STATUSES as st}
@@ -233,17 +233,17 @@
 							{/each}
 						</div>
 
-						<!-- 右侧：轻量级分类筛选指示条（仅在用户点击分类胶囊激活时出现，零额外常驻分类栏） -->
+						<!-- Right: Category filter indicator -->
 						{#if profileRes.activeCategory}
 							{@const catConfig = getCategoryConfig(profileRes.activeCategory)}
 							<div class="flex items-center gap-1.5 animate-in fade-in duration-150 py-0.5">
-								<span class="text-xs text-zinc-400">正在筛选:</span>
+								<span class="text-xs text-zinc-400">Filtering:</span>
 								<button
 									type="button"
 									onclick={handleClearCategory}
 									class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border border-zinc-200 dark:border-zinc-800 bg-white/90 dark:bg-zinc-900/90 shadow-2xs hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-all cursor-pointer group"
 									style="color: {catConfig?.color};"
-									title="点击清除分类筛选"
+									title="Click to clear category filter"
 								>
 									<span
 										class="h-1.5 w-1.5 rounded-full shrink-0"
@@ -256,7 +256,7 @@
 						{/if}
 					</div>
 
-					<!-- 待办条目列表 -->
+					<!-- Todo items list -->
 					<DataView
 						loading={profileRes.isTodosLoading}
 						empty={profileRes.filteredTodos.length === 0}
@@ -275,16 +275,16 @@
 								<div class="text-xs">
 									{#if profileRes.activeCategory}
 										{@const catConfig = getCategoryConfig(profileRes.activeCategory)}
-										当前「{catConfig?.name || profileRes.activeCategory}」分类下暂无对应待办
+										No todos found under "{catConfig?.name || profileRes.activeCategory}".
 										<button
 											type="button"
 											onclick={handleClearCategory}
 											class="block mx-auto mt-2 text-xs text-indigo-500 hover:text-indigo-600 underline cursor-pointer"
 										>
-											清除分类筛选并显示全部
+											Clear category filter
 										</button>
 									{:else}
-										当前筛选下暂无待办事项
+										No todos match the current filter.
 									{/if}
 								</div>
 							</div>

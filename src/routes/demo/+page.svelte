@@ -14,8 +14,8 @@
 	const PRESET_USERS = [
 		{ email: 'alex@example.com', nickname: 'Alex', handle: 'alex_dev' },
 		{ email: 'sarah@example.com', nickname: 'Sarah', handle: 'sarah_design' },
-		{ email: 'chen@example.com', nickname: '陈晨', handle: 'chen_runner' },
-		{ email: 'lin@example.com', nickname: '林小渔', handle: 'lin_study' }
+		{ email: 'chen@example.com', nickname: 'Chen', handle: 'chen_runner' },
+		{ email: 'lin@example.com', nickname: 'Lin', handle: 'lin_study' }
 	];
 
 	// ---------------------------------------------------------------------------
@@ -97,13 +97,13 @@
 	}
 
 	const CATEGORY_TABS = [
-		{ id: 'all', label: '全部' },
-		{ id: 'study', label: '学习' },
-		{ id: 'fitness', label: '健身' },
-		{ id: 'dev', label: '开发' },
-		{ id: 'finance', label: '理财' },
-		{ id: 'life', label: '生活' },
-		{ id: 'other', label: '其他' }
+		{ id: 'all', label: 'All' },
+		{ id: 'study', label: 'Study' },
+		{ id: 'fitness', label: 'Fitness' },
+		{ id: 'dev', label: 'Dev' },
+		{ id: 'finance', label: 'Finance' },
+		{ id: 'life', label: 'Life' },
+		{ id: 'other', label: 'Other' }
 	];
 
 	// ---------------------------------------------------------------------------
@@ -118,7 +118,7 @@
 			// 从后端注册/获取真实用户资料与真实 UUID
 			const { user } = await api.syncUser(cleanEmail);
 			userStore.updateUserFromProfile(user);
-			showToast(`已切换身份为: ${user.nickname} (@${user.handle})`);
+			showToast(`Switched identity to: ${user.nickname} (@${user.handle})`);
 			await loadData();
 		} catch (e) {
 			console.error('Failed to sync user profile:', e);
@@ -257,10 +257,10 @@
 			newContent = '';
 			newNote = '';
 			showCreateDrawer = false;
-			showToast('发布成功！');
+			showToast('Published successfully!');
 		} catch (err) {
 			console.error('Create todo failed:', err);
-			showToast('发布失败，请检查输入或稍后重试');
+			showToast('Failed to publish, please check your input and try again');
 		} finally {
 			isSubmitting = false;
 		}
@@ -307,10 +307,10 @@
 				}
 			}
 
-			showToast(`已成功加入「${card.content}」！`);
+			showToast(`Successfully joined "${card.content}"!`);
 		} catch (err) {
 			console.error('Join topic failed:', err);
-			showToast('加入失败，请重试');
+			showToast('Failed to join, please try again');
 		}
 	}
 
@@ -340,14 +340,14 @@
 				email,
 				status: targetStatus
 			});
-			showToast(`状态已更新为: ${getStatusConfig(targetStatus).label}`);
+			showToast(`Status updated to: ${getStatusConfig(targetStatus).label}`);
 		} catch (err) {
 			console.error('Failed to transition status:', err);
 			// 回滚
 			participant.status = oldStatus;
 			if (targetStatus === 'done' && oldStatus !== 'done') card.doneCount = Math.max(0, card.doneCount - 1);
 			else if (oldStatus === 'done' && targetStatus !== 'done') card.doneCount += 1;
-			showToast('状态更新失败，请重试');
+			showToast('Failed to update status, please try again');
 		}
 	}
 
@@ -384,7 +384,7 @@
 	async function handleSaveEdit() {
 		if (!activeEditModal || isSavingEdit) return;
 		if (!activeEditModal.content.trim()) {
-			showToast('待办正文不能为空');
+			showToast('Todo content cannot be empty');
 			return;
 		}
 
@@ -450,11 +450,11 @@
 				card.doneCount = doneParticipants;
 			}
 
-			showToast('编辑保存成功！');
+			showToast('Changes saved!');
 			activeEditModal = null;
 		} catch (err) {
 			console.error('Failed to update todo:', err);
-			showToast('保存失败，请检查参数后重试');
+			showToast('Failed to save, please check params and try again');
 		} finally {
 			isSavingEdit = false;
 		}
@@ -474,31 +474,34 @@
 </script>
 
 <div class="min-h-screen bg-zinc-100 text-zinc-900 dark:bg-zinc-950 dark:text-zinc-100 font-sans antialiased selection:bg-zinc-900 selection:text-white dark:selection:bg-white dark:selection:text-zinc-900">
-	<!-- 顶部提示 Toast -->
+	<!-- Toast Message -->
 	{#if toastMessage}
 		<div class="fixed top-4 left-1/2 z-50 -translate-x-1/2 rounded-full border border-zinc-900 bg-zinc-900 px-4 py-2 text-xs font-medium text-white shadow-lg dark:border-zinc-100 dark:bg-white dark:text-zinc-900 animate-in fade-in slide-in-from-top-2 duration-200">
 			{toastMessage}
 		</div>
 	{/if}
 
-	<!-- 顶部导航栏 -->
+	<!-- Header -->
 	<header class="sticky top-0 z-30 border-b border-zinc-200/80 bg-white/95 dark:border-zinc-800/80 dark:bg-zinc-950/95 backdrop-blur-md">
 		<div class="mx-auto flex max-w-3xl flex-col gap-3 px-4 py-3 sm:px-6">
 			<div class="flex items-center justify-between">
 				<div class="flex items-center gap-3">
-					<div class="flex h-8 w-8 items-center justify-center rounded-lg bg-zinc-900 text-white dark:bg-white dark:text-zinc-900 font-mono text-sm font-bold shadow-xs">
-						PT
+					<div class="flex h-8 w-8 items-center justify-center rounded-lg bg-zinc-900 text-white dark:bg-white dark:text-zinc-900 shadow-xs">
+						<svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+							<path d="M9 12l2.5 2.5L18 8" />
+							<path d="M21 12a9 9 0 1 1-9-9c2.5 0 4.75 1 6.4 2.6" />
+						</svg>
 					</div>
 					<div>
 						<div class="flex items-center gap-2">
-							<h1 class="text-sm font-semibold tracking-tight text-zinc-900 dark:text-zinc-100">同行广场</h1>
-							<span class="rounded-full bg-zinc-200/70 px-2 py-0.5 text-[10px] font-medium text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400">测试 DEMO</span>
+							<h1 class="text-sm font-semibold tracking-tight text-zinc-900 dark:text-zinc-100">ShowTodo Demo</h1>
+							<span class="rounded-full bg-zinc-200/70 px-2 py-0.5 text-[10px] font-medium text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400">Interactive Sandbox</span>
 						</div>
-						<p class="text-[11px] text-zinc-500 dark:text-zinc-400">内容寻址聚合 · 状态流转 · 分流编辑 · 独立平权</p>
+						<p class="text-[11px] text-zinc-500 dark:text-zinc-400">Content Addressing · Status Machine · Forking · Collaborative</p>
 					</div>
 				</div>
 
-				<!-- 当前登录身份展示 -->
+				<!-- Identity Display -->
 				<div class="flex items-center gap-2">
 					<Avatar
 						src={userStore.avatar}
@@ -512,10 +515,10 @@
 				</div>
 			</div>
 
-			<!-- 身份切换控制栏 (快速预设 + 自定义邮箱登录) -->
+			<!-- Identity Switcher Controls -->
 			<div class="flex flex-wrap items-center justify-between gap-2 border-t border-zinc-100 pt-2 text-xs dark:border-zinc-800/60">
 				<div class="flex items-center gap-1.5 overflow-x-auto">
-					<span class="text-zinc-400 text-[11px] whitespace-nowrap">预设身份:</span>
+					<span class="text-zinc-400 text-[11px] whitespace-nowrap">Presets:</span>
 					{#each PRESET_USERS as u}
 						<button
 							onclick={() => switchUserByEmail(u.email)}
@@ -527,7 +530,7 @@
 					{/each}
 				</div>
 
-				<!-- 自定义邮箱切换 -->
+				<!-- Custom email switcher -->
 				<form
 					onsubmit={(e) => { e.preventDefault(); if (customEmailInput.trim()) { switchUserByEmail(customEmailInput); customEmailInput = ''; } }}
 					class="flex items-center gap-1"
@@ -535,7 +538,7 @@
 					<input
 						type="email"
 						bind:value={customEmailInput}
-						placeholder="输入任意邮箱切换..."
+						placeholder="Enter any email to switch..."
 						class="h-7 rounded-md border border-zinc-200 bg-zinc-50 px-2 text-xs text-zinc-900 placeholder:text-zinc-400 focus:border-zinc-900 focus:outline-hidden dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100 dark:focus:border-white"
 					/>
 					<button
@@ -543,7 +546,7 @@
 						disabled={!customEmailInput.trim() || isSyncingUser}
 						class="h-7 rounded-md border border-zinc-900 bg-zinc-900 px-2 text-xs font-medium text-white transition hover:bg-zinc-800 disabled:opacity-40 dark:border-white dark:bg-white dark:text-zinc-900"
 					>
-						切换
+						Switch
 					</button>
 				</form>
 			</div>
@@ -551,14 +554,14 @@
 	</header>
 
 	<main class="mx-auto max-w-3xl px-4 py-6 sm:px-6">
-		<!-- 1. 顶部控制栏：日期切换 & 视角筛选 (全网广场 vs 只看我自己) -->
+		<!-- 1. Top Controls: Date and Scope Filters -->
 		<div class="mb-6 flex flex-col gap-4 rounded-xl border border-zinc-200/80 bg-white p-4 shadow-xs dark:border-zinc-800/80 dark:bg-zinc-900 sm:flex-row sm:items-center sm:justify-between">
-			<!-- 日期切换器 -->
+			<!-- Date Switcher -->
 			<div class="flex items-center gap-2">
 				<button
 					onclick={() => shiftDate(-1)}
 					class="flex h-8 w-8 items-center justify-center rounded-lg border border-zinc-200 text-zinc-600 transition hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800"
-					aria-label="前一天"
+					aria-label="Previous day"
 				>
 					<Icon icon="lucide:chevron-left" class="h-4 w-4" />
 				</button>
@@ -567,38 +570,38 @@
 					<Icon icon="lucide:calendar" class="h-4 w-4 text-zinc-400" />
 					<span>{selectedDate}</span>
 					{#if selectedDate === getTodayString()}
-						<span class="rounded bg-zinc-900 px-1.5 py-0.5 text-[10px] text-white dark:bg-white dark:text-zinc-900">今天</span>
+						<span class="rounded bg-zinc-900 px-1.5 py-0.5 text-[10px] text-white dark:bg-white dark:text-zinc-900">Today</span>
 					{/if}
 				</div>
 
 				<button
 					onclick={() => shiftDate(1)}
 					class="flex h-8 w-8 items-center justify-center rounded-lg border border-zinc-200 text-zinc-600 transition hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800"
-					aria-label="后一天"
+					aria-label="Next day"
 				>
 					<Icon icon="lucide:chevron-right" class="h-4 w-4" />
 				</button>
 			</div>
 
-			<!-- 视角切换：全网广场 vs 只看我自己 (onlyMine) -->
+			<!-- Scope Switcher -->
 			<div class="flex items-center gap-2">
 				<button
 					onclick={() => { onlyMine = false; loadData(); }}
 					class="rounded-lg px-3.5 py-1.5 text-xs font-semibold transition {!onlyMine ? 'bg-zinc-900 text-white dark:bg-white dark:text-zinc-900 shadow-xs' : 'bg-zinc-100 text-zinc-600 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-700'}"
 				>
-					全网广场
+					Global Feed
 				</button>
 				<button
 					onclick={() => { onlyMine = true; loadData(); }}
 					class="flex items-center gap-1.5 rounded-lg px-3.5 py-1.5 text-xs font-semibold transition {onlyMine ? 'bg-zinc-900 text-white dark:bg-white dark:text-zinc-900 shadow-xs' : 'bg-zinc-100 text-zinc-600 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-700'}"
 				>
 					<Icon icon="lucide:user" class="h-3.5 w-3.5" />
-					<span>只看我自己</span>
+					<span>Only Mine</span>
 				</button>
 			</div>
 		</div>
 
-		<!-- 2. 分类标签栏 -->
+		<!-- 2. Category Tabs -->
 		<div class="mb-5 flex gap-1.5 overflow-x-auto pb-1 text-xs">
 			{#each CATEGORY_TABS as tab}
 				<button
@@ -610,32 +613,32 @@
 			{/each}
 		</div>
 
-		<!-- 3. 发布新待办入口 -->
+		<!-- 3. Create Todo Entry -->
 		<div class="mb-6 rounded-xl border border-zinc-200 bg-white p-4 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
 			<form onsubmit={handleCreateTodo} class="space-y-3">
 				<div class="flex items-center gap-2">
 					<input
 						type="text"
 						bind:value={newContent}
-						placeholder="写下当天的目标（相同内容自动聚合同步）..."
+						placeholder="Write today's goal (same text automatically groups)..."
 						class="flex-1 border-0 bg-transparent px-2 text-sm text-zinc-900 placeholder:text-zinc-400 focus:outline-hidden dark:text-zinc-100"
 					/>
 					<select
 						bind:value={newCategory}
 						class="rounded-md border border-zinc-200 bg-zinc-50 px-2.5 py-1.5 text-xs text-zinc-700 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300 focus:outline-hidden"
 					>
-						<option value="study">学习</option>
-						<option value="fitness">健身</option>
-						<option value="dev">开发</option>
-						<option value="finance">理财</option>
-						<option value="life">生活</option>
-						<option value="other">其他</option>
+						<option value="study">Study</option>
+						<option value="fitness">Fitness</option>
+						<option value="dev">Dev</option>
+						<option value="finance">Finance</option>
+						<option value="life">Life</option>
+						<option value="other">Other</option>
 					</select>
 					<button
 						type="button"
 						onclick={() => (showCreateDrawer = !showCreateDrawer)}
 						class="flex items-center gap-1 rounded-md border border-zinc-200 px-2 py-1.5 text-xs text-zinc-600 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800"
-						title="展开备注与高级选项"
+						title="Toggle note and advanced options"
 					>
 						<Icon icon={showCreateDrawer ? 'lucide:chevron-up' : 'lucide:file-text'} class="h-3.5 w-3.5" />
 					</button>
@@ -645,16 +648,16 @@
 						class="flex items-center gap-1 rounded-lg bg-zinc-900 px-3.5 py-1.5 text-xs font-semibold text-white transition hover:bg-zinc-800 disabled:opacity-40 dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-200"
 					>
 						<Icon icon="lucide:plus" class="h-3.5 w-3.5" />
-						<span>{isSubmitting ? '发布中...' : '发布'}</span>
+						<span>{isSubmitting ? 'Posting...' : 'Post'}</span>
 					</button>
 				</div>
 
-				<!-- 高级备注抽屉 -->
+				<!-- Advanced options drawer -->
 				{#if showCreateDrawer}
 					<div class="border-t border-zinc-100 pt-3 dark:border-zinc-800/80 space-y-2">
 						<textarea
 							bind:value={newNote}
-							placeholder="添加个人笔记或打卡细节（可选）..."
+							placeholder="Add note or check-in details (optional)..."
 							rows="2"
 							class="w-full rounded-lg border border-zinc-200 bg-zinc-50 p-2.5 text-xs text-zinc-900 placeholder:text-zinc-400 focus:border-zinc-900 focus:outline-hidden dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100"
 						></textarea>
@@ -665,37 +668,37 @@
 									bind:checked={isNotePublic}
 									class="rounded border-zinc-300 text-zinc-900 focus:ring-zinc-900 dark:border-zinc-700"
 								/>
-								<span>笔记对广场公开可见</span>
+								<span>Note publicly visible</span>
 							</label>
-							<span class="text-[11px] text-zinc-400">日期: {selectedDate}</span>
+							<span class="text-[11px] text-zinc-400">Date: {selectedDate}</span>
 						</div>
 					</div>
 				{/if}
 			</form>
 		</div>
 
-		<!-- 4. 信息流列表 -->
+		<!-- 4. Stream List -->
 		<div class="space-y-4">
 			{#if loading && cards.length === 0}
 				<div class="flex h-48 flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-zinc-300 text-zinc-400 dark:border-zinc-800">
 					<Icon icon="lucide:loader-2" class="h-6 w-6 animate-spin" />
-					<span class="text-xs">加载待办信息流中...</span>
+					<span class="text-xs">Loading todos...</span>
 				</div>
 			{:else if cards.length === 0}
 				<div class="flex h-48 flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-zinc-300 p-6 text-center text-zinc-400 dark:border-zinc-800">
 					<Icon icon="lucide:inbox" class="h-8 w-8 stroke-[1.5]" />
 					<div class="text-sm font-semibold text-zinc-700 dark:text-zinc-300">
-						{onlyMine ? '您在当前日期暂无参与的待办' : '当天暂无待办卡片'}
+						{onlyMine ? 'You have no todos for this date' : 'No todo cards for this date'}
 					</div>
 					<p class="text-xs text-zinc-400 max-w-sm">
-						{onlyMine ? '切换至「全网广场」发现大家的待办并一键「一起做」，或直接在上方发布您的目标。' : '在上方写下当天的第一个目标吧！'}
+						{onlyMine ? 'Switch to "Global Feed" to discover others\' goals and join in, or post a new goal above.' : 'Write down the first goal of the day above!'}
 					</p>
 					{#if onlyMine}
 						<button
 							onclick={() => { onlyMine = false; loadData(); }}
 							class="mt-2 rounded-lg border border-zinc-300 bg-white px-3 py-1.5 text-xs font-medium text-zinc-700 transition hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200"
 						>
-							查看全网广场待办
+							View Global Feed
 						</button>
 					{/if}
 				</div>
@@ -713,7 +716,7 @@
 							? 'border-amber-300/90 dark:border-amber-500/70 bg-gradient-to-br from-amber-50/70 via-white to-amber-50/70 dark:from-amber-950/30 dark:via-zinc-900 dark:to-amber-950/30 shadow-[0_0_15px_rgba(245,158,11,0.12)]'
 							: 'border-zinc-200/80 bg-white hover:border-zinc-300 dark:border-zinc-800/80 dark:bg-zinc-900 dark:hover:border-zinc-700'}"
 					>
-						<!-- 卡片顶部：分类、多人同行徽章、进度 -->
+						<!-- Card Top: Category, Multiplayer badge, Progress -->
 						<div class="mb-3 flex items-center justify-between text-xs">
 							<div class="flex items-center gap-2">
 								{#if card.category}
@@ -725,23 +728,23 @@
 								{#if isAllDone}
 									<span class="flex items-center gap-1 rounded bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-500 px-2 py-0.5 text-[11px] font-bold text-amber-950 shadow-xs animate-in zoom-in-90">
 										<Icon icon="lucide:trophy" class="h-3 w-3" />
-										<span>全员完成 ({card.totalParticipants}人)</span>
+										<span>All Completed ({card.totalParticipants})</span>
 									</span>
 								{:else if card.isMultiplayer}
 									<span class="flex items-center gap-1 rounded bg-zinc-900 px-2 py-0.5 text-[11px] font-semibold text-white dark:bg-white dark:text-zinc-900">
 										<Icon icon="lucide:users" class="h-3 w-3" />
-										<span>{card.totalParticipants} 人同行</span>
+										<span>{card.totalParticipants} joined</span>
 									</span>
 								{:else}
 									<span class="rounded border border-zinc-200 px-1.5 py-0.5 text-[10px] text-zinc-400 dark:border-zinc-800">
-										单人
+										Solo
 									</span>
 								{/if}
 							</div>
 
-							<!-- 完成进度 -->
+							<!-- Progress -->
 							<div class="flex items-center gap-2 font-mono text-xs {isAllDone ? 'text-amber-600 dark:text-amber-400 font-semibold' : 'text-zinc-400'}">
-								<span>{card.doneCount}/{card.totalParticipants} 完成</span>
+								<span>{card.doneCount}/{card.totalParticipants} done</span>
 								<div class="h-1.5 w-16 overflow-hidden rounded-full bg-zinc-100 dark:bg-zinc-800">
 									<div
 										class="h-full transition-all duration-300 {isAllDone ? 'bg-gradient-to-r from-amber-400 to-yellow-300' : 'bg-zinc-900 dark:bg-white'}"
@@ -751,17 +754,17 @@
 							</div>
 						</div>
 
-						<!-- 卡片主体：正文内容与快捷操作 -->
+						<!-- Card Content and Action -->
 						<div class="mb-4 flex items-start justify-between gap-4">
 							<h3 class="text-base font-semibold leading-snug text-zinc-900 dark:text-zinc-100 {myParticipant?.status === 'done' ? 'line-through text-zinc-400 dark:text-zinc-500' : ''}">
 								{card.content}
 							</h3>
 
-							<!-- 操作区 -->
+							<!-- Action area -->
 							<div class="flex items-center gap-2 shrink-0">
 								{#if myParticipant}
 									{@const currentConfig = getStatusConfig(myParticipant.status)}
-									<!-- 状态流转选择器 (Status Selector) -->
+									<!-- Status Selector -->
 									<div class="relative">
 										<button
 											onclick={() => (openStatusMenuTodoId = openStatusMenuTodoId === myParticipant.todoId ? null : myParticipant.todoId)}
@@ -772,10 +775,10 @@
 											<Icon icon="lucide:chevron-down" class="h-3 w-3 opacity-60" />
 										</button>
 
-										<!-- 状态流转下拉菜单 -->
+										<!-- Dropdown menu -->
 										{#if openStatusMenuTodoId === myParticipant.todoId}
 											<div class="absolute right-0 top-full mt-1.5 z-40 w-36 rounded-xl border border-zinc-200 bg-white p-1 shadow-lg dark:border-zinc-800 dark:bg-zinc-900 animate-in fade-in zoom-in-95 duration-150">
-												<div class="px-2 py-1 text-[10px] font-semibold text-zinc-400">切换状态流转</div>
+												<div class="px-2 py-1 text-[10px] font-semibold text-zinc-400">Change Status</div>
 												{#each TODO_STATUSES as st}
 													{@const isCurrent = st.id === myParticipant.status}
 													<button
@@ -795,32 +798,32 @@
 										{/if}
 									</div>
 
-									<!-- 全功能编辑按钮 (Edit Todo) -->
+									<!-- Edit Button -->
 									<button
 										onclick={() => openEditDialog(card, myParticipant)}
 										class="flex items-center gap-1 rounded-lg border border-zinc-200 bg-white px-2.5 py-1 text-xs font-medium text-zinc-700 transition hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700"
-										title="编辑待办详情与笔记（修改文字将分流）"
+										title="Edit todo details and note"
 									>
 										<Icon icon="lucide:edit-3" class="h-3.5 w-3.5" />
-										<span>编辑</span>
+										<span>Edit</span>
 									</button>
 								{:else}
-									<!-- 未参与：一键加入一起做 (Join Topic) -->
+									<!-- Join Topic Button -->
 									<button
 										onclick={() => handleJoinTopic(card)}
 										class="flex items-center gap-1 rounded-lg bg-zinc-900 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-zinc-800 dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-200 shadow-xs"
 									>
 										<Icon icon="lucide:user-plus" class="h-3.5 w-3.5" />
-										<span>一起做</span>
+										<span>Join</span>
 									</button>
 								{/if}
 							</div>
 						</div>
 
-						<!-- 卡片底部：参与者列表与折叠详情 -->
+						<!-- Card Bottom: Participants and Details -->
 						<div class="border-t border-zinc-100 pt-3 dark:border-zinc-800/60">
 							<div class="flex items-center justify-between">
-								<!-- 参与者头像标签流 -->
+								<!-- Participant Avatars -->
 								<div class="flex flex-wrap items-center gap-2">
 									{#each card.participants as p (p.todoId)}
 										{@const isMe = isCurrentParticipant(p)}
@@ -833,39 +836,39 @@
 												class="h-4.5 w-4.5"
 											/>
 											<span class="text-xs font-medium text-zinc-800 dark:text-zinc-200">
-												{p.user.nickname}{isMe ? ' (我)' : ''}
+												{p.user.nickname}{isMe ? ' (You)' : ''}
 											</span>
 											{#if p.status === 'done'}
-												<span class="flex h-3.5 w-3.5 items-center justify-center rounded-full bg-zinc-900 text-white dark:bg-white dark:text-zinc-900" title="已完成">
+												<span class="flex h-3.5 w-3.5 items-center justify-center rounded-full bg-zinc-900 text-white dark:bg-white dark:text-zinc-900" title="Completed">
 													<Icon icon="lucide:check" class="h-2.5 w-2.5 stroke-[3]" />
 												</span>
 											{:else if p.status === 'in_progress'}
-												<span class="h-2 w-2 rounded-full bg-zinc-900 dark:bg-zinc-100 animate-pulse" title="进行中"></span>
+												<span class="h-2 w-2 rounded-full bg-zinc-900 dark:bg-zinc-100 animate-pulse" title="In Progress"></span>
 											{:else if p.status === 'abandoned'}
 												<Icon icon="lucide:x" class="h-2.5 w-2.5 text-zinc-400 stroke-[3]" />
 											{:else}
-												<span class="h-1.5 w-1.5 rounded-full bg-zinc-300 dark:bg-zinc-600" title="待办"></span>
+												<span class="h-1.5 w-1.5 rounded-full bg-zinc-300 dark:bg-zinc-600" title="Pending"></span>
 											{/if}
 										</div>
 									{/each}
 								</div>
 
-								<!-- 展开/折叠参与者详细列表 -->
+								<!-- Expand/Collapse Button -->
 								{#if card.participants.length > 0}
 									<button
 										onclick={() => toggleExpandCard(card.topicHash)}
 										class="flex items-center gap-1 text-[11px] font-medium text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 transition"
 									>
-										<span>{isExpanded ? '收起' : '详情'}</span>
+										<span>{isExpanded ? 'Collapse' : 'Details'}</span>
 										<Icon icon={isExpanded ? 'lucide:chevron-up' : 'lucide:chevron-down'} class="h-3 w-3" />
 									</button>
 								{/if}
 							</div>
 
-							<!-- 展开的参与者详细信息 -->
+							<!-- Expanded participant log -->
 							{#if isExpanded}
 								<div class="mt-3 space-y-2 rounded-lg border border-zinc-100 bg-zinc-50/70 p-3 text-xs dark:border-zinc-800 dark:bg-zinc-800/40">
-									<div class="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider">参与者打卡记录</div>
+									<div class="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider">Participant Log</div>
 									{#each card.participants as p (p.todoId)}
 										{@const isMe = isCurrentParticipant(p)}
 										<div class="flex items-center justify-between border-b border-zinc-200/40 pb-2 last:border-0 last:pb-0 dark:border-zinc-700/40">
@@ -879,10 +882,10 @@
 												<div>
 													<div class="font-medium text-zinc-800 dark:text-zinc-200">
 														{p.user.nickname} <span class="font-mono text-[10px] text-zinc-400">@{p.user.handle}</span>
-														{#if isMe}<span class="ml-1 rounded bg-zinc-900 px-1 py-0.2 text-[9px] text-white dark:bg-white dark:text-zinc-900">我</span>{/if}
+														{#if isMe}<span class="ml-1 rounded bg-zinc-900 px-1 py-0.2 text-[9px] text-white dark:bg-white dark:text-zinc-900">You</span>{/if}
 													</div>
 													<div class="text-[10px] text-zinc-400">
-														加入时间: {p.createdAt ? new Date(p.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '-'}
+														Joined: {p.createdAt ? new Date(p.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '-'}
 													</div>
 												</div>
 											</div>
@@ -903,7 +906,7 @@
 		</div>
 	</main>
 
-	<!-- 5. 全功能编辑与分流确认弹窗 (Complete Edit Modal) -->
+	<!-- 5. Edit Modal -->
 	{#if activeEditModal}
 		{@const isContentOrCategoryChanged =
 			activeEditModal.content.trim() !== activeEditModal.card.content.trim() ||
@@ -914,8 +917,8 @@
 			<div class="w-full max-w-lg rounded-2xl border border-zinc-200 bg-white p-6 shadow-2xl dark:border-zinc-800 dark:bg-zinc-900 my-8">
 				<div class="mb-4 flex items-center justify-between border-b border-zinc-100 pb-3 dark:border-zinc-800">
 					<div>
-						<h4 class="text-base font-bold text-zinc-900 dark:text-zinc-100">编辑待办详情</h4>
-						<p class="text-xs text-zinc-400">修改内容、分类、状态流转与打卡笔记</p>
+						<h4 class="text-base font-bold text-zinc-900 dark:text-zinc-100">Edit Todo Details</h4>
+						<p class="text-xs text-zinc-400">Modify content, category, status, and check-in note</p>
 					</div>
 					<button
 						onclick={() => (activeEditModal = null)}
@@ -925,23 +928,23 @@
 					</button>
 				</div>
 
-				<!-- 分流警告提示 (符合设计文档 §4.3 编辑与分流规范) -->
+				<!-- Fork warning notice -->
 				{#if isMultiplayerTopic && isContentOrCategoryChanged}
 					<div class="mb-4 rounded-xl border border-zinc-900/20 bg-zinc-50 p-3.5 text-xs leading-relaxed text-zinc-700 dark:border-white/20 dark:bg-zinc-800/60 dark:text-zinc-300 animate-in fade-in duration-150">
 						<div class="flex items-start gap-2">
 							<Icon icon="lucide:info" class="h-4 w-4 shrink-0 text-zinc-900 dark:text-white mt-0.5" />
 							<div>
-								当前有 <strong class="font-bold text-zinc-900 dark:text-white">{activeEditModal.participantCount}</strong> 位伙伴正在共同推进该待办。
-								修改正文或分类将为您<strong>自动创建专属新待办，并离开当前组</strong>。
+								There are currently <strong class="font-bold text-zinc-900 dark:text-white">{activeEditModal.participantCount}</strong> participants collaborating on this goal.
+								Modifying text or category will <strong>fork into your own independent todo and leave this group</strong>.
 							</div>
 						</div>
 					</div>
 				{/if}
 
 				<div class="space-y-4 text-xs">
-					<!-- 正文 -->
+					<!-- Content -->
 					<div>
-						<label for="edit-content" class="mb-1.5 block font-semibold text-zinc-700 dark:text-zinc-300">待办正文</label>
+						<label for="edit-content" class="mb-1.5 block font-semibold text-zinc-700 dark:text-zinc-300">Content</label>
 						<input
 							id="edit-content"
 							type="text"
@@ -950,43 +953,43 @@
 						/>
 					</div>
 
-					<!-- 分类与状态 -->
+					<!-- Category & Status -->
 					<div class="grid grid-cols-2 gap-3">
 						<div>
-							<label for="edit-cat" class="mb-1.5 block font-semibold text-zinc-700 dark:text-zinc-300">分类</label>
+							<label for="edit-cat" class="mb-1.5 block font-semibold text-zinc-700 dark:text-zinc-300">Category</label>
 							<select
 								id="edit-cat"
 								bind:value={activeEditModal.category}
 								class="w-full rounded-lg border border-zinc-200 bg-zinc-50 p-2 text-xs text-zinc-900 focus:border-zinc-900 focus:outline-hidden dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100"
 							>
-								<option value="study">学习</option>
-								<option value="fitness">健身</option>
-								<option value="dev">开发</option>
-								<option value="finance">理财</option>
-								<option value="life">生活</option>
-								<option value="other">其他</option>
+								<option value="study">Study</option>
+								<option value="fitness">Fitness</option>
+								<option value="dev">Dev</option>
+								<option value="finance">Finance</option>
+								<option value="life">Life</option>
+								<option value="other">Other</option>
 							</select>
 						</div>
 
 						<div>
-							<label for="edit-status" class="mb-1.5 block font-semibold text-zinc-700 dark:text-zinc-300">状态流转</label>
+							<label for="edit-status" class="mb-1.5 block font-semibold text-zinc-700 dark:text-zinc-300">Status</label>
 							<select
 								id="edit-status"
 								bind:value={activeEditModal.status}
 								class="w-full rounded-lg border border-zinc-200 bg-zinc-50 p-2 text-xs text-zinc-900 focus:border-zinc-900 focus:outline-hidden dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100"
 							>
-								<option value="pending">待办 (pending)</option>
-								<option value="in_progress">进行中 (in_progress)</option>
-								<option value="done">已完成 (done)</option>
-								<option value="abandoned">已放弃 (abandoned)</option>
+								<option value="pending">Pending</option>
+								<option value="in_progress">In Progress</option>
+								<option value="done">Completed</option>
+								<option value="abandoned">Abandoned</option>
 							</select>
 						</div>
 					</div>
 
-					<!-- 计划日期与截止日期 -->
+					<!-- Dates -->
 					<div class="grid grid-cols-2 gap-3">
 						<div>
-							<label for="edit-start-date" class="mb-1.5 block font-semibold text-zinc-700 dark:text-zinc-300">计划日期</label>
+							<label for="edit-start-date" class="mb-1.5 block font-semibold text-zinc-700 dark:text-zinc-300">Start Date</label>
 							<input
 								id="edit-start-date"
 								type="date"
@@ -996,7 +999,7 @@
 						</div>
 
 						<div>
-							<label for="edit-due-date" class="mb-1.5 block font-semibold text-zinc-700 dark:text-zinc-300">截止日期 (可选)</label>
+							<label for="edit-due-date" class="mb-1.5 block font-semibold text-zinc-700 dark:text-zinc-300">Due Date (Optional)</label>
 							<input
 								id="edit-due-date"
 								type="date"
@@ -1006,24 +1009,24 @@
 						</div>
 					</div>
 
-					<!-- 打卡笔记 -->
+					<!-- Note -->
 					<div>
 						<div class="mb-1.5 flex items-center justify-between">
-							<label for="edit-note" class="font-semibold text-zinc-700 dark:text-zinc-300">个人笔记 / 进展总结</label>
+							<label for="edit-note" class="font-semibold text-zinc-700 dark:text-zinc-300">Personal Note / Summary</label>
 							<label class="flex items-center gap-1.5 cursor-pointer text-[11px] text-zinc-500">
 								<input
 									type="checkbox"
 									bind:checked={activeEditModal.isNotePublic}
 									class="rounded border-zinc-300 text-zinc-900 focus:ring-zinc-900"
 								/>
-								<span>公开可见</span>
+								<span>Publicly visible</span>
 							</label>
 						</div>
 						<textarea
 							id="edit-note"
 							bind:value={activeEditModal.note}
 							rows="3"
-							placeholder="记录完成心得、链接或下一步计划..."
+							placeholder="Record progress thoughts, links, or next steps..."
 							class="w-full rounded-lg border border-zinc-200 bg-zinc-50 p-2.5 text-xs text-zinc-900 focus:border-zinc-900 focus:outline-hidden dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100"
 						></textarea>
 					</div>
@@ -1034,14 +1037,14 @@
 						onclick={() => (activeEditModal = null)}
 						class="rounded-lg border border-zinc-200 px-4 py-2 font-medium text-zinc-600 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800"
 					>
-						取消
+						Cancel
 					</button>
 					<button
 						onclick={handleSaveEdit}
 						disabled={!activeEditModal.content.trim() || isSavingEdit}
 						class="rounded-lg bg-zinc-900 px-4 py-2 font-semibold text-white hover:bg-zinc-800 disabled:opacity-40 dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-200 shadow-xs"
 					>
-						{isSavingEdit ? '保存中...' : isMultiplayerTopic && isContentOrCategoryChanged ? '确认修改并独立' : '保存修改'}
+						{isSavingEdit ? 'Saving...' : isMultiplayerTopic && isContentOrCategoryChanged ? 'Fork & Save' : 'Save Changes'}
 					</button>
 				</div>
 			</div>

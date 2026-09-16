@@ -80,7 +80,7 @@ class UserStore {
 	}
 
 	get nickname(): string {
-		if (!this.current) return '游客';
+		if (!this.current) return 'Guest';
 		return this.current.nickname || this.current.email.split('@')[0];
 	}
 

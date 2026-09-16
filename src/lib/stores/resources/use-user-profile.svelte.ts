@@ -27,7 +27,7 @@ function getInitialProfileAndTodos(identifier?: string): { user: UserProfile | n
 	if (isMeIdentity) {
 		const user: UserProfile = {
 			id: userStore.id!,
-			nickname: userStore.nickname || '用户',
+			nickname: userStore.nickname || 'User',
 			handle: userStore.handle || 'user',
 			avatar: userStore.avatar || null,
 			email: userStore.email || '',
@@ -221,7 +221,7 @@ export function createUserProfileResource(initialIdentifier?: string) {
 		} catch (err) {
 			console.error('Failed to load user profile:', err);
 			if (!user) {
-				error = (err as Error).message || '用户不存在或加载失败';
+				error = (err as Error).message || 'User does not exist or failed to load';
 			}
 		} finally {
 			loading = false;
@@ -246,7 +246,7 @@ export function createUserProfileResource(initialIdentifier?: string) {
 		if (res.user) {
 			user = res.user;
 			userStore.updateUserFromProfile(res.user);
-			toast.success('资料已更新');
+			toast.success('Profile updated');
 		}
 		return res.user;
 	}

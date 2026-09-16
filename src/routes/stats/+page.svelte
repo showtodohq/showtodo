@@ -27,18 +27,18 @@
 </script>
 
 <svelte:head>
-	<title>全站数据看板 · ptdl-alpha</title>
+	<title>Stats Dashboard · ShowTodo</title>
 </svelte:head>
 
 <div class="w-full space-y-6 sm:space-y-8">
-	<!-- 极简页面标题与控制条 (紧凑单行，高约 40px，首屏即核心数据) -->
+	<!-- Page Title and Controls -->
 	<div class="flex items-center justify-between gap-4 pb-2 border-b border-zinc-100 dark:border-zinc-800/60">
 		<div class="flex items-center gap-2">
 			<span class="text-base sm:text-lg font-bold tracking-tight text-zinc-900 dark:text-zinc-100">
-				全站数据看板
+				Stats Dashboard
 			</span>
 			<span class="text-xs text-zinc-400 font-mono">
-				实时生态
+				Live Ecosystem
 			</span>
 		</div>
 
@@ -48,15 +48,15 @@
 				onclick={refresh}
 				disabled={statsStore.loading}
 				class="px-2.5 py-1 rounded-lg border border-zinc-200/80 dark:border-zinc-800 bg-white/80 dark:bg-zinc-900/80 hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-700 dark:text-zinc-300 transition-all cursor-pointer inline-flex items-center gap-1.5 shadow-2xs disabled:opacity-50"
-				title="重新拉取最新数据"
+				title="Fetch latest data"
 			>
 				<Icon icon="lucide:rotate-cw" class="h-3.5 w-3.5 {statsStore.loading ? 'animate-spin' : ''}" />
-				<span>刷新</span>
+				<span>Refresh</span>
 			</button>
 		</div>
 	</div>
 
-	<!-- 主体内容区 -->
+	<!-- Main Content Area -->
 	{#if !statsStore.loaded && statsStore.loading}
 		<StatsSkeleton />
 	{:else if statsStore.stats}
@@ -67,74 +67,74 @@
 		{@const topTopics = statsStore.stats.topTopics}
 		{@const topUsers = statsStore.stats.topUsers}
 
-		<!-- 1. 核心大指标卡片群 -->
+		<!-- 1. Core Metric Cards -->
 		<div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-			<!-- 累计待办 -->
+			<!-- Total Public Todos -->
 			<div
 				class="p-4 sm:p-5 rounded-2xl border border-zinc-200/80 dark:border-zinc-800/90 bg-white/60 dark:bg-zinc-900/60 backdrop-blur-xs space-y-1"
 			>
 				<div class="flex items-center justify-between text-xs text-zinc-400 font-medium">
-					<span>累计公开待办</span>
+					<span>Public Todos</span>
 					<Icon icon="lucide:list-todo" class="h-4 w-4 text-blue-500 shrink-0" />
 				</div>
 				<div class="text-2xl sm:text-3xl font-black font-mono text-zinc-900 dark:text-zinc-100">
 					{overview.totalTodos.toLocaleString()}
 				</div>
 				<div class="text-[11px] text-zinc-400">
-					今日新建 <strong class="text-zinc-700 dark:text-zinc-300 font-semibold">{overview.todayCreated}</strong> 项
+					Today: <strong class="text-zinc-700 dark:text-zinc-300 font-semibold">{overview.todayCreated}</strong> new
 				</div>
 			</div>
 
-			<!-- 已完成待办 -->
+			<!-- Completed Todos -->
 			<div
 				class="p-4 sm:p-5 rounded-2xl border border-emerald-200/60 dark:border-emerald-900/40 bg-emerald-50/30 dark:bg-emerald-950/20 backdrop-blur-xs space-y-1"
 			>
 				<div class="flex items-center justify-between text-xs text-emerald-600 dark:text-emerald-400 font-medium">
-					<span>已完成待办总数</span>
+					<span>Completed Todos</span>
 					<Icon icon="lucide:check-circle-2" class="h-4 w-4 text-emerald-500 shrink-0" />
 				</div>
 				<div class="text-2xl sm:text-3xl font-black font-mono text-emerald-600 dark:text-emerald-400">
 					{overview.completedTodos.toLocaleString()}
 				</div>
 				<div class="text-[11px] text-emerald-600/80 dark:text-emerald-400/80">
-					今日完成打卡 <strong class="font-bold">{overview.todayCompleted}</strong> 次
+					Today: <strong class="font-bold">{overview.todayCompleted}</strong> check-ins
 				</div>
 			</div>
 
-			<!-- 整体完成率 -->
+			<!-- Completion Rate -->
 			<div
 				class="p-4 sm:p-5 rounded-2xl border border-amber-200/60 dark:border-amber-900/40 bg-amber-50/30 dark:bg-amber-950/20 backdrop-blur-xs space-y-1"
 			>
 				<div class="flex items-center justify-between text-xs text-amber-600 dark:text-amber-400 font-medium">
-					<span>全站待办完成率</span>
+					<span>Overall Completion</span>
 					<Icon icon="lucide:zap" class="h-4 w-4 text-amber-500 shrink-0" />
 				</div>
 				<div class="text-2xl sm:text-3xl font-black font-mono text-amber-600 dark:text-amber-400">
 					{overview.completionRate}%
 				</div>
 				<div class="text-[11px] text-amber-600/80 dark:text-amber-400/80">
-					进行中 {overview.inProgressTodos} 项
+					{overview.inProgressTodos} in progress
 				</div>
 			</div>
 
-			<!-- 公开参与者 -->
+			<!-- Members -->
 			<div
 				class="p-4 sm:p-5 rounded-2xl border border-blue-200/60 dark:border-blue-900/40 bg-blue-50/30 dark:bg-blue-950/20 backdrop-blur-xs space-y-1"
 			>
 				<div class="flex items-center justify-between text-xs text-blue-600 dark:text-blue-400 font-medium">
-					<span>同行探索者</span>
+					<span>Members</span>
 					<Icon icon="lucide:users" class="h-4 w-4 text-blue-500 shrink-0" />
 				</div>
 				<div class="text-2xl sm:text-3xl font-black font-mono text-blue-600 dark:text-blue-400">
 					{overview.totalUsers.toLocaleString()}
 				</div>
 				<div class="text-[11px] text-blue-600/80 dark:text-blue-400/80">
-					今日活跃同行 <strong class="font-bold">{overview.todayActiveUsers}</strong> 人
+					Active today: <strong class="font-bold">{overview.todayActiveUsers}</strong>
 				</div>
 			</div>
 		</div>
 
-		<!-- 2. 全站行动足迹热力图 (GitHub 风格，最近一年 365 天) -->
+		<!-- 2. Activity Heatmap -->
 		<div
 			class="rounded-3xl border border-zinc-200/80 dark:border-zinc-800 bg-white/70 dark:bg-zinc-900/60 p-5 sm:p-7 backdrop-blur-md shadow-xs space-y-4"
 		>
@@ -142,23 +142,23 @@
 				<div class="space-y-0.5">
 					<h2 class="text-sm sm:text-base font-bold text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
 						<Icon icon="lucide:calendar" class="h-4 w-4 text-emerald-500 shrink-0" />
-						<span>全站行动足迹热力图 (Activity Heatmap)</span>
+						<span>Activity Heatmap</span>
 					</h2>
 					<p class="text-xs text-zinc-400">
-						记录每一天的待办新建、进展打卡与推进完成
+						Tracking daily created todos, progress check-ins, and completions
 					</p>
 				</div>
 				<div class="flex items-center gap-3 font-mono text-xs text-zinc-500 dark:text-zinc-400">
-					<span>累计足迹 <strong class="text-zinc-900 dark:text-zinc-100">{heatmap.totalActivities}</strong> 次</span>
+					<span>Total activities: <strong class="text-zinc-900 dark:text-zinc-100">{heatmap.totalActivities}</strong></span>
 					<span>·</span>
-					<span>单日峰值 <strong class="text-emerald-600 dark:text-emerald-400">{heatmap.maxDayCount}</strong> 次</span>
+					<span>Peak daily: <strong class="text-emerald-600 dark:text-emerald-400">{heatmap.maxDayCount}</strong></span>
 				</div>
 			</div>
 
 			<ActivityHeatmap days={heatmap.days} />
 		</div>
 
-		<!-- 3. 近 14 天新建与完成趋势对比 (Activity Trend) -->
+		<!-- 3. 14-Day Trend -->
 		<div
 			class="rounded-3xl border border-zinc-200/80 dark:border-zinc-800 bg-white/70 dark:bg-zinc-900/60 p-5 sm:p-7 backdrop-blur-md shadow-xs space-y-4"
 		>
@@ -166,23 +166,23 @@
 				<div class="space-y-0.5">
 					<h2 class="text-sm sm:text-base font-bold text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
 						<Icon icon="lucide:trending-up" class="h-4 w-4 text-blue-500 shrink-0" />
-						<span>近 14 天新建与完成走势 (14-Day Trend)</span>
+						<span>14-Day Trend</span>
 					</h2>
-					<p class="text-xs text-zinc-400">对比每日公开待办的新建与完成节奏</p>
+					<p class="text-xs text-zinc-400">Comparing daily created vs completed momentum</p>
 				</div>
 				<div class="flex items-center gap-3 text-xs">
 					<div class="flex items-center gap-1.5">
 						<span class="h-2 w-2 rounded-full bg-zinc-400"></span>
-						<span class="text-zinc-500 dark:text-zinc-400">新建</span>
+						<span class="text-zinc-500 dark:text-zinc-400">New</span>
 					</div>
 					<div class="flex items-center gap-1.5">
 						<span class="h-2 w-2 rounded-full bg-emerald-500"></span>
-						<span class="text-zinc-500 dark:text-zinc-400">完成</span>
+						<span class="text-zinc-500 dark:text-zinc-400">Completed</span>
 					</div>
 				</div>
 			</div>
 
-			<!-- 趋势图表区 (原生 SVG 柱状图对比) -->
+			<!-- Trend SVG Bar Chart -->
 			<div class="relative pt-6 pb-2">
 				<div class="grid grid-cols-14 gap-1 sm:gap-2 items-end h-32 w-full">
 					{#each trend as item, i (item.date)}
@@ -196,12 +196,12 @@
 							onmouseleave={() => (hoveredTrendIndex = null)}
 						>
 							<div class="w-full flex items-end justify-center gap-0.5 sm:gap-1 h-full">
-								<!-- 新建条 -->
+								<!-- Created bar -->
 								<div
 									class="w-1.5 sm:w-2 rounded-t-xs bg-zinc-300 dark:bg-zinc-700 group-hover:bg-zinc-400 transition-all"
 									style="height: {createdH}%;"
 								></div>
-								<!-- 完成条 -->
+								<!-- Completed bar -->
 								<div
 									class="w-1.5 sm:w-2 rounded-t-xs bg-emerald-500 dark:bg-emerald-400 group-hover:bg-emerald-400 transition-all shadow-xs"
 									style="height: {completedH}%;"
@@ -214,38 +214,38 @@
 					{/each}
 				</div>
 
-				<!-- 悬浮数据浮层 -->
+				<!-- Hover popover -->
 				{#if hoveredTrendIndex !== null}
 					{@const hItem = trend[hoveredTrendIndex]}
 					<div
 						class="absolute top-0 right-4 px-3 py-1.5 rounded-xl border border-zinc-200/80 dark:border-zinc-800 bg-white/95 dark:bg-zinc-900/95 text-xs shadow-md backdrop-blur-xs flex items-center gap-3 animate-in fade-in duration-100 font-mono"
 					>
 						<span class="font-bold text-zinc-900 dark:text-zinc-100">{hItem.date}</span>
-						<span class="text-zinc-500">新建: <strong class="text-zinc-900 dark:text-zinc-100">{hItem.created} 次</strong></span>
-						<span class="text-emerald-600 dark:text-emerald-400">完成: <strong class="font-bold">{hItem.completed} 次</strong></span>
+						<span class="text-zinc-500">New: <strong class="text-zinc-900 dark:text-zinc-100">{hItem.created}</strong></span>
+						<span class="text-emerald-600 dark:text-emerald-400">Completed: <strong class="font-bold">{hItem.completed}</strong></span>
 					</div>
 				{/if}
 			</div>
 		</div>
 
-		<!-- 4. 领域分类全景 (独立全幅大卡片) -->
+		<!-- 4. Category Insights -->
 		<div
 			class="rounded-3xl border border-zinc-200/80 dark:border-zinc-800 bg-white/70 dark:bg-zinc-900/60 p-5 sm:p-7 backdrop-blur-md shadow-xs space-y-4"
 		>
 			<div class="space-y-0.5">
 				<h2 class="text-sm sm:text-base font-bold text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
 					<Icon icon="lucide:target" class="h-4 w-4 text-indigo-500 shrink-0" />
-					<span>领域分类全景 (Category Insights)</span>
+					<span>Category Insights</span>
 				</h2>
-				<p class="text-xs text-zinc-400">各类别待办总数、占比及目标完成率</p>
+				<p class="text-xs text-zinc-400">Todo volume, share, and completion rate by category</p>
 			</div>
 
 			<CategoryDonutChart {categories} totalTodos={overview.totalTodos} />
 		</div>
 
-		<!-- 5. 社区风云双榜 (热门同行目标 Top 5 与 待办完成先锋榜 Top 5 左右对称并排) -->
+		<!-- 5. Top Leaderboards -->
 		<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 items-start">
-			<!-- 热门同行目标 Top 5 -->
+			<!-- Most Inspiring Goals Top 5 -->
 			<div
 				class="rounded-3xl border border-zinc-200/80 dark:border-zinc-800 bg-white/70 dark:bg-zinc-900/60 p-5 sm:p-7 backdrop-blur-md shadow-xs space-y-4"
 			>
@@ -253,15 +253,15 @@
 						<div class="space-y-0.5">
 							<h2 class="text-sm sm:text-base font-bold text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
 								<Icon icon="lucide:flame" class="h-4 w-4 text-orange-500 shrink-0" />
-								<span>最具号召力同行目标</span>
+								<span>Most Inspiring Goals</span>
 							</h2>
-							<p class="text-xs text-zinc-400">同行人数最多的共同挑战目标</p>
+							<p class="text-xs text-zinc-400">Shared goals with the most participants</p>
 						</div>
 						<a
 							href="/topics"
 							class="text-xs font-semibold text-emerald-600 dark:text-emerald-400 hover:underline"
 						>
-							进入广场 →
+							Explore Topics →
 						</a>
 					</div>
 
@@ -279,10 +279,10 @@
 
 								<div class="flex items-center gap-3 shrink-0 text-xs font-mono">
 									<span class="text-zinc-500 dark:text-zinc-400">
-										<strong class="text-zinc-900 dark:text-zinc-100">{topic.totalParticipants}</strong> 人同行
+										<strong class="text-zinc-900 dark:text-zinc-100">{topic.totalParticipants}</strong> joined
 									</span>
 									<span class="text-emerald-600 dark:text-emerald-400">
-										{topic.doneCount} 已完成
+										{topic.doneCount} completed
 									</span>
 								</div>
 							</a>
@@ -290,16 +290,16 @@
 					</div>
 				</div>
 
-				<!-- 待办完成先锋达人榜 Top 5 -->
+				<!-- Top Achievers Top 5 -->
 				<div
 					class="rounded-3xl border border-zinc-200/80 dark:border-zinc-800 bg-white/70 dark:bg-zinc-900/60 p-5 sm:p-7 backdrop-blur-md shadow-xs space-y-4"
 				>
 					<div class="space-y-0.5">
 						<h2 class="text-sm sm:text-base font-bold text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
 							<Icon icon="lucide:trophy" class="h-4 w-4 text-amber-500 shrink-0" />
-							<span>待办完成先锋榜</span>
+							<span>Top Achievers</span>
 						</h2>
-						<p class="text-xs text-zinc-400">全平台累计完成待办最多的活跃伙伴</p>
+						<p class="text-xs text-zinc-400">Active members with the most completed todos</p>
 					</div>
 
 					<div class="space-y-1.5">
@@ -309,7 +309,7 @@
 								class="flex items-center justify-between py-2 px-3 rounded-xl hover:bg-zinc-100/70 dark:hover:bg-zinc-800/60 transition-all duration-150 group"
 							>
 								<div class="flex items-center gap-3 min-w-0">
-									<!-- 排名徽章 -->
+									<!-- Rank badge -->
 									<div
 										class="w-5 text-center font-mono font-bold text-xs {idx === 0
 											? 'text-amber-500'
@@ -339,7 +339,7 @@
 								</div>
 
 								<div class="flex items-center gap-1 font-mono text-xs text-emerald-600 dark:text-emerald-400 font-bold shrink-0">
-									<span>{user.completedCount} 项已完成</span>
+									<span>{user.completedCount} completed</span>
 								</div>
 							</a>
 						{/each}

@@ -85,11 +85,11 @@
 			? 'text-rose-600 dark:text-rose-400 bg-rose-50/80 dark:bg-rose-950/40 border border-rose-200/80 dark:border-rose-800/60 font-semibold shadow-2xs'
 			: 'text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800/80 border border-transparent'}"
 		title={hasMyReaction
-			? '已表态 (点击一键取消全部表态，悬停选择更多表情)'
-			: '点赞 (悬停选择更多表情)'}
+			? 'Reacted (click to remove, hover for more)'
+			: 'Like (hover for more reactions)'}
 		aria-label="Reaction button"
 	>
-		<!-- 居中爱心与波纹扩散环 -->
+		<!-- Center heart & ripple -->
 		<span class="relative flex items-center justify-center shrink-0">
 			{#if isBouncing}
 				<span
@@ -98,7 +98,7 @@
 			{/if}
 
 			{#if hasMyReaction}
-				<!-- 已点赞：实心高亮爱心 Icon (带果冻回弹微动效) -->
+				<!-- Solid heart -->
 				<svg
 					class="{isMd ? 'h-4 w-4' : 'h-3.5 w-3.5'} text-rose-500 fill-rose-500 transition-transform {isBouncing
 						? 'animate-heart-bounce'
@@ -110,7 +110,7 @@
 					/>
 				</svg>
 			{:else}
-				<!-- 未点赞：极简描边空心爱心 Icon -->
+				<!-- Outline heart -->
 				<svg
 					class="{isMd ? 'h-4 w-4' : 'h-3.5 w-3.5'} stroke-[1.8] text-zinc-400 group-hover/heart:text-rose-500 transition-all duration-150 {isBouncing
 						? 'animate-heart-bounce'
@@ -129,7 +129,6 @@
 		</span>
 
 		{#if totalReactionCount > 0}
-			<!-- 数字跳动微动效 -->
 			<span
 				class="{isMd ? 'text-xs' : 'text-[11px]'} leading-none transition-colors duration-150 {isCountBumping
 					? 'animate-count-bump'
@@ -142,7 +141,7 @@
 		{/if}
 	</button>
 
-	<!-- 悬浮弹出的完整 Emoji POP 浮层 (2 行 4 列网格，正上方居中，带各 Emoji 具体数值分布) -->
+	<!-- Emoji POP popup -->
 	{#if isEmojiPopOpen}
 		<div
 			class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 z-50 w-44 p-1.5 rounded-2xl bg-white dark:bg-zinc-900 shadow-xl border border-zinc-200/90 dark:border-zinc-800 animate-in fade-in zoom-in-95 duration-150 select-none"
@@ -157,7 +156,7 @@
 						class="relative flex flex-col items-center justify-center h-10 w-9 rounded-xl hover:scale-110 active:scale-90 transition-all duration-100 cursor-pointer {isMyReaction
 							? 'bg-rose-50/90 dark:bg-rose-950/60 ring-1.5 ring-rose-400 dark:ring-rose-600 shadow-2xs'
 							: 'hover:bg-zinc-100 dark:hover:bg-zinc-800'}"
-						title="{item.label}: {item.description} ({count} 票){isMyReaction ? ' - 已表态(点击取消)' : ''}"
+						title="{item.label}: {item.description} ({count} votes){isMyReaction ? ' - Reacted (click to remove)' : ''}"
 					>
 						<span class="text-base leading-tight">{item.emoji}</span>
 						<span

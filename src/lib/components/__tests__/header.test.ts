@@ -12,25 +12,25 @@ describe('Header rendering test', () => {
 	it('renders three core navigation tabs with icons, aria-labels, and responsive text', () => {
 		const rendered = render(Header);
 
-		// 1. 动态流 Tab
+		// 1. Feed Tab
 		expect(rendered.body).toContain('href="/"');
-		expect(rendered.body).toContain('aria-label="动态流"');
-		expect(rendered.body).toContain('title="动态流"');
+		expect(rendered.body).toContain('aria-label="Feed"');
+		expect(rendered.body).toContain('title="Feed"');
 
-		// 2. 同行广场 Tab
+		// 2. Topics Tab
 		expect(rendered.body).toContain('href="/topics"');
-		expect(rendered.body).toContain('aria-label="同行广场"');
-		expect(rendered.body).toContain('title="同行广场"');
+		expect(rendered.body).toContain('aria-label="Topics"');
+		expect(rendered.body).toContain('title="Topics"');
 
-		// 3. 全站看板 Tab
+		// 3. Stats Tab
 		expect(rendered.body).toContain('href="/stats"');
-		expect(rendered.body).toContain('aria-label="全站看板"');
-		expect(rendered.body).toContain('title="全站看板"');
+		expect(rendered.body).toContain('aria-label="Stats"');
+		expect(rendered.body).toContain('title="Stats"');
 
-		// 4. 移动端隐藏文字，平板/桌面端显示的响应式类
-		expect(rendered.body).toContain('<span class="hidden sm:inline">动态流</span>');
-		expect(rendered.body).toContain('<span class="hidden sm:inline">同行广场</span>');
-		expect(rendered.body).toContain('<span class="hidden sm:inline">全站看板</span>');
+		// 4. Responsive label text
+		expect(rendered.body).toContain('<span class="hidden sm:inline">Feed</span>');
+		expect(rendered.body).toContain('<span class="hidden sm:inline">Topics</span>');
+		expect(rendered.body).toContain('<span class="hidden sm:inline">Stats</span>');
 	});
 
 	it('uses symmetric 3-column grid layout for absolute centering of tabs', () => {

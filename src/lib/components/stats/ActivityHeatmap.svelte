@@ -121,17 +121,17 @@
 		hoveredDay = null;
 	}
 
-	const weekdayLabels = ['一', '', '三', '', '五', '', '日'];
+	const weekdayLabels = ['M', '', 'W', '', 'F', '', 'S'];
 </script>
 
 <div class="relative w-full" bind:this={rootEl}>
-	<!-- 热力图容器 (支持在窄屏横向平滑滚动，默认滚动条完全隐藏) -->
+	<!-- Heatmap container -->
 	<div
 		bind:this={scrollContainer}
 		class="overflow-x-auto scroll-smooth no-scrollbar pb-1 {compact ? '' : 'sm:px-1'}"
 	>
 		<div class="inline-flex flex-col gap-1.5 min-w-max select-none">
-			<!-- 月份标签行 (对齐每列 16px 步长，禁止换行和截断) -->
+			<!-- Month labels -->
 			<div class="flex text-[10px] text-zinc-400 dark:text-zinc-500 font-medium {compact ? 'pl-0' : 'pl-[22px]'} h-4">
 				{#each weeks as week, idx (idx)}
 					<div class="w-3 shrink-0 relative mr-1">
@@ -144,9 +144,8 @@
 				{/each}
 			</div>
 
-			<!-- 网格主体：左侧星期标签 + 右侧点阵列 -->
+			<!-- Grid: Weekday labels + cells -->
 			<div class="flex gap-1.5 items-start">
-				<!-- 星期指示标签 (周一/三/五/日，非紧凑模式展示) -->
 				{#if !compact}
 					<div class="flex flex-col gap-1 text-[9px] text-zinc-400 dark:text-zinc-500 font-mono pr-1 pt-0.5 shrink-0">
 						{#each weekdayLabels as label, i (i)}
@@ -157,13 +156,12 @@
 					</div>
 				{/if}
 
-				<!-- 点阵列 (按周) -->
+				<!-- Dot columns -->
 				<div class="flex gap-1">
 					{#each weeks as week, wIdx (wIdx)}
 						<div class="flex flex-col gap-1">
 							{#each week.days as day, dIdx (dIdx)}
 								{#if day}
-									<!-- 色阶等级样式：自带细腻边框，保证在任何浅色底和深色底清晰可辨 -->
 									<div
 										role="button"
 										tabindex="0"
@@ -181,7 +179,6 @@
 														: 'bg-emerald-600 dark:bg-emerald-400 border-emerald-700 dark:border-emerald-300 hover:border-emerald-200 shadow-2xs'}"
 									></div>
 								{:else}
-									<!-- 未到来的未来日期或首周空白：纯透明占位，不可悬浮，不可交互 -->
 									<div class="h-3 w-3 rounded-xs opacity-0 pointer-events-none"></div>
 								{/if}
 							{/each}
@@ -190,15 +187,15 @@
 				</div>
 			</div>
 
-			<!-- 底部图例说明 -->
+			<!-- Legend -->
 			<div class="flex items-center justify-between pt-1 text-[10px] text-zinc-400 font-medium {compact ? 'text-[9px]' : ''}">
 				{#if !compact}
 					<div>
-						<span>行动足迹 · 最近一年</span>
+						<span>Activity · Past year</span>
 					</div>
 				{/if}
 				<div class="flex items-center gap-1.5 ml-auto">
-					<span>少</span>
+					<span>Less</span>
 					<div class="flex items-center gap-1">
 						<span class="h-2.5 w-2.5 rounded-xs bg-zinc-100/90 dark:bg-zinc-800/60 border border-zinc-200/70 dark:border-zinc-800/80"></span>
 						<span class="h-2.5 w-2.5 rounded-xs bg-emerald-200 dark:bg-emerald-950 border border-emerald-300 dark:border-emerald-900"></span>
@@ -206,13 +203,13 @@
 						<span class="h-2.5 w-2.5 rounded-xs bg-emerald-500 dark:bg-emerald-600 border border-emerald-600 dark:border-emerald-500"></span>
 						<span class="h-2.5 w-2.5 rounded-xs bg-emerald-600 dark:bg-emerald-400 border border-emerald-700 dark:border-emerald-300"></span>
 					</div>
-					<span>多</span>
+					<span>More</span>
 				</div>
 			</div>
 		</div>
 	</div>
 
-	<!-- 悬浮 Tooltip (基于 rootEl 绝对定位，彻底避开 backdrop-blur 包含块陷阱与边缘截断) -->
+	<!-- Tooltip popup -->
 	{#if hoveredDay}
 		<div
 			class="absolute z-50 pointer-events-none -translate-x-1/2 px-2.5 py-2 rounded-xl bg-zinc-900/95 dark:bg-zinc-100/95 text-white dark:text-zinc-900 text-xs shadow-xl backdrop-blur-md border border-zinc-800/80 dark:border-zinc-200/80 transition-all duration-75 select-none min-w-[124px] {tooltipPos.showBelow ? 'translate-y-0' : '-translate-y-full'}"
@@ -223,7 +220,7 @@
 			</div>
 			{#if hoveredDay.count === 0}
 				<div class="text-[11px] text-zinc-400 dark:text-zinc-500 py-0.5">
-					暂无{ACTIVITY_CONFIG.total.label}
+					No {ACTIVITY_CONFIG.total.label.toLowerCase()}
 				</div>
 			{:else}
 				<div class="space-y-1 text-[11px]">

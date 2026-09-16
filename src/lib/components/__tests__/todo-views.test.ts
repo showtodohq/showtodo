@@ -40,42 +40,42 @@ describe('Todo Views (Stream, Kanban, Calendar) SSR Rendering', () => {
 
 	it('renders TodoStreamView correctly with status tabs and search input', () => {
 		const res = createMyTodosResource();
-		const t = mockTodo('t1', 'pending', '流式待办测试');
+		const t = mockTodo('t1', 'pending', 'Stream Todo Test');
 		todoRegistry.upsert(t);
 		res.setTodoIds(['t1']);
 
 		const rendered = render(TodoStreamView, { props: { resource: res } });
-		expect(rendered.body).toContain('流式待办测试');
-		expect(rendered.body).toContain('搜索我的待办事项');
-		expect(rendered.body).toContain('全部 (1)');
+		expect(rendered.body).toContain('Stream Todo Test');
+		expect(rendered.body).toContain('Search my todos');
+		expect(rendered.body).toContain('All (1)');
 	});
 
 	it('renders TodoKanbanView correctly with 4 status columns', () => {
 		const res = createMyTodosResource();
-		const t1 = mockTodo('t1', 'pending', '待办列任务');
-		const t2 = mockTodo('t2', 'in_progress', '推进列任务');
+		const t1 = mockTodo('t1', 'pending', 'Pending Column Task');
+		const t2 = mockTodo('t2', 'in_progress', 'Progress Column Task');
 		todoRegistry.upsertMany([t1, t2]);
 		res.setTodoIds(['t1', 't2']);
 
 		const rendered = render(TodoKanbanView, { props: { resource: res } });
-		expect(rendered.body).toContain('待办');
-		expect(rendered.body).toContain('进行中');
-		expect(rendered.body).toContain('已完成');
-		expect(rendered.body).toContain('已放弃');
-		expect(rendered.body).toContain('待办列任务');
-		expect(rendered.body).toContain('推进列任务');
+		expect(rendered.body).toContain('Pending');
+		expect(rendered.body).toContain('In Progress');
+		expect(rendered.body).toContain('Completed');
+		expect(rendered.body).toContain('Abandoned');
+		expect(rendered.body).toContain('Pending Column Task');
+		expect(rendered.body).toContain('Progress Column Task');
 	});
 
 	it('renders TodoCalendarView correctly with 7-column matrix and weekday headers', () => {
 		const res = createMyTodosResource();
-		const t = mockTodo('t1', 'done', '日历测试待办');
+		const t = mockTodo('t1', 'done', 'Calendar Test Todo');
 		todoRegistry.upsert(t);
 		res.setTodoIds(['t1']);
 
 		const rendered = render(TodoCalendarView, { props: { resource: res } });
-		expect(rendered.body).toContain('周一');
-		expect(rendered.body).toContain('周日');
-		expect(rendered.body).toContain('今天');
-		expect(rendered.body).toContain('日历测试待办');
+		expect(rendered.body).toContain('Mon');
+		expect(rendered.body).toContain('Sun');
+		expect(rendered.body).toContain('Today');
+		expect(rendered.body).toContain('Calendar Test Todo');
 	});
 });

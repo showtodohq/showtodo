@@ -6,7 +6,7 @@
 	let { count = 3 }: Props = $props();
 </script>
 
-<div class="space-y-1 sm:space-y-1.5" aria-busy="true" aria-label="正在加载待办列表">
+<div class="space-y-1 sm:space-y-1.5" aria-busy="true" aria-label="Loading todos">
 	{#each Array(count) as _, i (i)}
 		<div
 			class="flex items-start gap-3 sm:gap-3.5 py-3 px-3 sm:px-3.5 rounded-2xl animate-pulse"

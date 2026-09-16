@@ -26,5 +26,5 @@
 		className
 	)}
 >
-	<span class="sr-only">加载中...</span>
+	<span class="sr-only">Loading...</span>
 </div>

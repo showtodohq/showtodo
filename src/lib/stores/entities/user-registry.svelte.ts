@@ -29,7 +29,7 @@ class UserProfileRegistry {
 		} else {
 			target = {
 				id: user.id,
-				nickname: user.nickname || '用户',
+				nickname: user.nickname || 'User',
 				handle: user.handle || 'user',
 				avatar: user.avatar || null,
 				...(user.email ? { email: user.email } : {}),

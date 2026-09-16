@@ -155,7 +155,7 @@ describe('use-todo-detail resource (Multiplayer / Join Topic)', () => {
 
 		await detail.handleJoinTopic();
 
-		expect(toastInfoSpy).toHaveBeenCalledWith('请先点击右上角头像绑定邮箱后再加入');
+		expect(toastInfoSpy).toHaveBeenCalledWith('Please set your email in the top right avatar before joining');
 		expect(detail.topicParticipantCount).toBe(1);
 	});
 

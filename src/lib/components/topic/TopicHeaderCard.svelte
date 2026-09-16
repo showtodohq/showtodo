@@ -43,12 +43,12 @@
 					class="inline-flex items-center gap-1 text-xs font-bold text-amber-900 dark:text-amber-100 bg-gradient-to-r from-amber-300 via-yellow-300 to-amber-400 dark:from-amber-600 dark:via-yellow-600 dark:to-amber-500 px-2.5 py-0.5 rounded-full shadow-xs select-none animate-in zoom-in-95 duration-150"
 				>
 					<Icon icon="lucide:trophy" class="h-3.5 w-3.5 shrink-0" />
-					<span>今日全员完成</span>
+					<span>All Completed Today</span>
 				</span>
 			{/if}
 
 			<span class="text-xs text-zinc-400 font-mono">
-				立项于 {topic.firstCreatedAt?.slice(0, 10) || '今日'}
+				Started {topic.firstCreatedAt?.slice(0, 10) || 'Today'}
 			</span>
 		</div>
 
@@ -61,7 +61,7 @@
 		</h1>
 	</div>
 
-	<!-- 数据进度条与同行统计 -->
+	<!-- Stats & progress -->
 	<div class="space-y-2">
 		<div class="flex items-center justify-between text-xs">
 			<div
@@ -69,26 +69,26 @@
 			>
 				<Icon icon="lucide:flame" class="h-4 w-4 text-orange-500 shrink-0" />
 				{#if topic.todayParticipants > 0}
-					<span><strong>{topic.todayParticipants}</strong> 位伙伴今日同行</span>
+					<span><strong>{topic.todayParticipants}</strong> active today</span>
 					<span>·</span>
-					<span><strong>{topic.todayDoneCount}</strong> 位{getStatusConfig('done').label}</span>
+					<span><strong>{topic.todayDoneCount}</strong> {getStatusConfig('done').label.toLowerCase()}</span>
 					{#if topic.totalParticipants > topic.todayParticipants}
 						<span class="text-zinc-400 dark:text-zinc-500 font-normal">
-							(累计 {topic.totalParticipants} 位伙伴曾加入)
+							({topic.totalParticipants} total all-time)
 						</span>
 					{/if}
 				{:else}
-					<span><strong>{topic.totalParticipants}</strong> 位伙伴累计同行</span>
+					<span><strong>{topic.totalParticipants}</strong> total participants</span>
 					<span>·</span>
-					<span><strong>{topic.doneCount}</strong> 位{getStatusConfig('done').label}</span>
+					<span><strong>{topic.doneCount}</strong> {getStatusConfig('done').label.toLowerCase()}</span>
 				{/if}
 			</div>
 			<div class="font-mono font-semibold text-zinc-900 dark:text-zinc-100">
-				{completionRate}% {topic.todayParticipants > 0 ? '今日完成率' : '完成率'}
+				{completionRate}% {topic.todayParticipants > 0 ? 'Today' : 'Total'}
 			</div>
 		</div>
 
-		<!-- 进度条 -->
+		<!-- Progress bar -->
 		<div
 			class="w-full h-2.5 bg-zinc-100 dark:bg-zinc-800 rounded-full overflow-hidden"
 		>
@@ -101,7 +101,7 @@
 		</div>
 	</div>
 
-	<!-- 行动栏：加入一起做 or 我的同行状态 -->
+	<!-- Action bar -->
 	<div
 		class="pt-2 border-t border-zinc-200/60 dark:border-zinc-800/60 flex items-center justify-between flex-wrap gap-4"
 	>
@@ -111,17 +111,17 @@
 					class="inline-flex items-center gap-1 text-xs font-semibold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800/60 px-3 py-1 rounded-full"
 				>
 					<Icon icon="lucide:check" class="h-3.5 w-3.5 shrink-0" />
-					<span>你正在同行该目标</span>
+					<span>You joined this goal</span>
 				</span>
 				<span class="text-xs text-zinc-400">
-					当前状态：<strong class="text-zinc-700 dark:text-zinc-200"
+					Current status: <strong class="text-zinc-700 dark:text-zinc-200"
 						>{getStatusConfig(myStatus).label}</strong
 					>
 				</span>
 			</div>
 
 			<div class="flex items-center gap-2">
-				<span class="text-xs text-zinc-500">快速打卡：</span>
+				<span class="text-xs text-zinc-500">Quick check-in:</span>
 				<TodoCheckbox
 					status={myStatus}
 					isMine={true}
@@ -131,7 +131,7 @@
 			</div>
 		{:else}
 			<div class="text-xs text-zinc-500 dark:text-zinc-400">
-				想和大家一起坚持这个目标吗？无需复杂的群组，点击即可同行打卡！
+				Want to work toward this goal together? Click to join and check in!
 			</div>
 
 			<Button
@@ -141,7 +141,7 @@
 				onclick={onjoin}
 				class="font-medium"
 			>
-				+ 加入一起做
+				+ Join Goal
 			</Button>
 		{/if}
 	</div>

@@ -75,7 +75,7 @@ export function createTopicsResource() {
 			offset = reset ? res.topics.length : offset + res.topics.length;
 			loaded = true;
 		} catch (err) {
-			error = (err as Error).message || '加载同行列表失败';
+			error = (err as Error).message || 'Failed to load goals';
 			console.error('Failed to load topics:', err);
 		} finally {
 			loading = false;
@@ -125,7 +125,7 @@ export function createTopicsResource() {
 
 	async function handleJoin(topic: TopicItem) {
 		if (!userStore.email) {
-			toast.info('请先点击右上角头像绑定邮箱后再加入');
+			toast.info('Please set your email in the top right avatar before joining');
 			return;
 		}
 
@@ -133,7 +133,7 @@ export function createTopicsResource() {
 		const tempId = `temp-${Date.now()}`;
 		const currentUser = {
 			id: userStore.id || '',
-			nickname: userStore.nickname || '我',
+			nickname: userStore.nickname || 'Me',
 			handle: userStore.handle || 'me',
 			avatar: userStore.avatar || null
 		};

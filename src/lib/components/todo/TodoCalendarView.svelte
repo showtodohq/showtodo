@@ -9,10 +9,15 @@
 
 	let { resource }: Props = $props();
 
-	const WEEKDAYS = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
+	const WEEKDAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+
+	const MONTH_NAMES = [
+		'January', 'February', 'March', 'April', 'May', 'June',
+		'July', 'August', 'September', 'October', 'November', 'December'
+	];
 
 	const monthTitle = $derived(
-		`${resource.calendarYear} 年 ${resource.calendarMonth + 1} 月`
+		`${MONTH_NAMES[resource.calendarMonth]} ${resource.calendarYear}`
 	);
 
 	const monthTodos = $derived.by(() => {
@@ -33,28 +38,26 @@
 	}
 </script>
 
-<!-- Google 日历经典开阔布局结构：零外层死板大框，纯净大间距留白与全站中性灰阶美学 -->
 <div class="space-y-6 sm:space-y-8">
-	<!-- 顶部控制栏 (今天快捷键 + 翻页箭头 + 大标题 + 统计) -->
+	<!-- Top controls (Today button + month navigation + stats) -->
 	<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-		<!-- 左侧：今天按钮 + 翻页箭头 + 优雅月份标题 -->
+		<!-- Left: Today + arrows + month title -->
 		<div class="flex items-center gap-3">
-			<!-- 「今天」按钮 (中性软灰，无硬边框) -->
 			<button
 				type="button"
 				onclick={() => resource.resetToCurrentMonth()}
 				class="px-3.5 py-1.5 rounded-xl bg-zinc-100 hover:bg-zinc-200/80 dark:bg-zinc-900 dark:hover:bg-zinc-800 text-xs font-semibold text-zinc-700 dark:text-zinc-300 transition-colors cursor-pointer"
 			>
-				今天
+				Today
 			</button>
 
-			<!-- 翻页箭头 -->
+			<!-- Navigation arrows -->
 			<div class="flex items-center gap-0.5">
 				<button
 					type="button"
 					onclick={() => resource.prevMonth()}
 					class="h-8 w-8 rounded-full flex items-center justify-center text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-900 transition-colors cursor-pointer"
-					title="上个月"
+					title="Previous month"
 					aria-label="Previous month"
 				>
 					<svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -65,7 +68,7 @@
 					type="button"
 					onclick={() => resource.nextMonth()}
 					class="h-8 w-8 rounded-full flex items-center justify-center text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-900 transition-colors cursor-pointer"
-					title="下个月"
+					title="Next month"
 					aria-label="Next month"
 				>
 					<svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -79,25 +82,25 @@
 			</h2>
 		</div>
 
-		<!-- 右侧：当月数据概览 -->
+		<!-- Right: Month overview -->
 		<div class="text-xs font-mono text-zinc-400">
-			本月共 <strong class="text-zinc-800 dark:text-zinc-200 font-semibold">{monthTotal}</strong> 项待办
+			{monthTotal} todos this month
 			{#if monthTotal > 0}
-				<span> · 已完成 <strong class="text-zinc-800 dark:text-zinc-200 font-semibold">{monthDone}</strong> 项</span>
+				<span> · <strong class="text-zinc-800 dark:text-zinc-200 font-semibold">{monthDone}</strong> completed</span>
 			{/if}
 		</div>
 	</div>
 
-	<!-- Google 日历结构：完全开放的画布式日历网格 (彻底剔除外层卡片框与硬边框) -->
+	<!-- Calendar grid -->
 	<div class="space-y-2">
-		<!-- 星期表头 (轻盈通透、无任何线条割裂) -->
+		<!-- Weekday headers -->
 		<div class="grid grid-cols-7 text-center py-1 text-xs font-semibold text-zinc-400 dark:text-zinc-500 uppercase tracking-wider">
 			{#each WEEKDAYS as wd}
 				<div>{wd}</div>
 			{/each}
 		</div>
 
-		<!-- 42 天矩阵单元格：独立开阔的圆角软背景网格 (gap 排布，无厚重表格线) -->
+		<!-- 42-day matrix cells -->
 		<div class="grid grid-cols-7 gap-1.5 sm:gap-2">
 			{#each resource.monthCalendarDays as cell (cell.dateStr)}
 				{@const isSelected = cell.dateStr === resource.selectedCalendarDate}
@@ -110,12 +113,11 @@
 						? ''
 						: 'opacity-35'}"
 				>
-					<!-- 日期标号：左上方自然排列 (今天采用全站统一的中性黑白圆徽章，拒绝突兀刺眼的亮蓝) -->
 					<div class="flex items-center justify-between mb-1.5 w-full">
 						{#if cell.isToday}
 							<div
 								class="h-5 w-5 rounded-full bg-zinc-900 text-white dark:bg-white dark:text-zinc-900 flex items-center justify-center text-[11px] font-bold shadow-xs"
-								title="今天"
+								title="Today"
 							>
 								{cell.dayNum}
 							</div>
@@ -136,7 +138,7 @@
 						{/if}
 					</div>
 
-					<!-- Google 日历条带状事件流 (使用全站极简中性微卡片，绝无高饱和杂色) -->
+					<!-- Todo items list -->
 					<div class="space-y-1 flex-1 w-full overflow-hidden">
 						{#each cell.todos.slice(0, 3) as todo (todo.id)}
 							{@const stConfig = getStatusConfig(todo.status)}
@@ -153,7 +155,7 @@
 
 						{#if cell.todos.length > 3}
 							<div class="text-[10px] font-mono text-zinc-400 pl-1">
-								+{cell.todos.length - 3} 更多
+								+{cell.todos.length - 3} more
 							</div>
 						{/if}
 					</div>
@@ -162,12 +164,12 @@
 		</div>
 	</div>
 
-	<!-- 底部所选日期待办详细透视 (彻底去边框、纯大间距留白排布) -->
+	<!-- Selected date details view -->
 	{#if resource.selectedCalendarDate}
 		<div class="space-y-4 pt-4 sm:pt-6">
 			<div class="flex items-center justify-between px-1">
 				<h3 class="text-xs font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">
-					{resource.selectedCalendarDate} 待办事项 ({resource.selectedDateTodos.length})
+					{resource.selectedCalendarDate} Todos ({resource.selectedDateTodos.length})
 				</h3>
 			</div>
 
@@ -175,7 +177,7 @@
 				<div
 					class="py-16 text-center text-xs text-zinc-400"
 				>
-					该日期暂无待办事项
+					No todos for this date
 				</div>
 			{:else}
 				<div class="space-y-1.5 sm:space-y-2">

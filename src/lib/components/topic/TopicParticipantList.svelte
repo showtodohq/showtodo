@@ -78,7 +78,7 @@
 			<h2
 				class="text-xs font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-500"
 			>
-				同行伙伴
+				Participants
 			</h2>
 
 			{#if hasHistoryDiff}
@@ -88,14 +88,14 @@
 						class="px-2 py-0.5 rounded-md transition-colors cursor-pointer {activeTab === 'today' ? 'bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 shadow-2xs font-semibold' : 'hover:text-zinc-700 dark:hover:text-zinc-200'}"
 						onclick={() => (activeTab = 'today')}
 					>
-						今日同行 ({todayCount})
+						Active Today ({todayCount})
 					</button>
 					<button
 						type="button"
 						class="px-2 py-0.5 rounded-md transition-colors cursor-pointer {activeTab === 'all' ? 'bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 shadow-2xs font-semibold' : 'hover:text-zinc-700 dark:hover:text-zinc-200'}"
 						onclick={() => (activeTab = 'all')}
 					>
-						全部同行 ({totalCount})
+						All ({totalCount})
 					</button>
 				</div>
 			{:else}
@@ -110,12 +110,12 @@
 				<Icon icon="lucide:users" class="h-5 w-5" />
 			</div>
 			<div class="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
-				{activeTab === 'today' ? '今日暂无伙伴同行打卡' : '暂无伙伴同行'}
+				{activeTab === 'today' ? 'No check-ins today yet' : 'No participants yet'}
 			</div>
 			<p class="text-[11px] text-zinc-400 max-w-xs mx-auto">
 				{activeTab === 'today' && totalCount > 0
-					? `累计已有 ${totalCount} 位伙伴曾加入，点击上方【+ 一起做】成为今日首位同行者！`
-					: '点击上方【+ 一起做】成为第一位同行伙伴！'}
+					? `${totalCount} participants joined previously. Click "+ Join Goal" above to be the first today!`
+					: 'Click "+ Join Goal" above to be the first participant!'}
 			</p>
 		</div>
 	{:else}
@@ -146,7 +146,7 @@
 								href="/users/{p.user?.handle || p.user?.id || ''}"
 								class="text-sm font-semibold text-zinc-900 dark:text-zinc-100 hover:text-blue-600 transition-colors"
 							>
-								{p.user?.nickname || '用户'}
+								{p.user?.nickname || 'User'}
 							</a>
 
 							{#if p.user?.handle}
@@ -159,18 +159,18 @@
 								<span
 									class="text-[10px] px-1.5 py-0.5 rounded-full bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 font-medium"
 								>
-									我
+									You
 								</span>
 							{/if}
 
 							{#if p.createdAt}
 								<span class="text-[11px] text-zinc-400">
-									· 加入于 {formatRelativeTime(p.createdAt)}
+									· Joined {formatRelativeTime(p.createdAt)}
 								</span>
 							{/if}
 						</div>
 
-						<!-- 个人公开备注 -->
+						<!-- Personal note -->
 						{#if p.note}
 							<p
 								class="text-xs text-zinc-600 dark:text-zinc-300 bg-zinc-100/70 dark:bg-zinc-800/50 rounded-lg p-2 leading-relaxed break-words"
@@ -179,13 +179,13 @@
 							</p>
 						{/if}
 
-						<!-- 查看此条待办详情直达链接 -->
+						<!-- View todo details link -->
 						<div class="pt-1">
 							<a
 								href="/todos/{p.shortId || p.todoId}"
 								class="text-[11px] text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 hover:underline"
 							>
-								查看打卡动态时间线 →
+								View activity timeline →
 							</a>
 						</div>
 					</div>

@@ -86,7 +86,7 @@ class FeedStore {
 		} catch (error) {
 			if (!isCurrent()) return;
 			console.error('Failed to load feed todos:', error);
-			toast.error('加载待办流失败，请重试');
+			toast.error('Failed to load feed todos, please try again');
 		} finally {
 			if (version === this.requestVersion) {
 				this.loading = false;

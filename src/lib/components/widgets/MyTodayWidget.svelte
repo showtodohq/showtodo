@@ -21,34 +21,39 @@
 	<div
 		class="rounded-2xl border border-zinc-200/80 dark:border-zinc-800/90 bg-white/60 dark:bg-zinc-950/60 p-4 backdrop-blur-xs space-y-3"
 	>
-		<!-- 头部标题与今日进度 + 全部入口 -->
+		<!-- Header bar: unified pattern with icon, full title, badge and action link -->
 		<div class="flex items-center justify-between">
-			<div class="flex items-center gap-1.5 font-semibold text-xs text-zinc-900 dark:text-zinc-100">
-				<Icon icon="lucide:pin" class="h-3.5 w-3.5 text-blue-500 shrink-0" />
-				<span>我的今日待办</span>
-			</div>
+			<a
+				href="/todos"
+				class="flex items-center gap-2 font-semibold text-xs text-zinc-900 dark:text-zinc-100 hover:text-blue-600 dark:hover:text-blue-400 transition-colors group/title"
+				title="Open My Todos workbench"
+			>
+				<div class="flex h-6 w-6 items-center justify-center rounded-lg bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400 shrink-0">
+					<Icon icon="lucide:check-circle-2" class="h-3.5 w-3.5" />
+				</div>
+				<span>My Today's Todos</span>
+			</a>
 
-			<div class="flex items-center gap-2">
+			<div class="flex items-center gap-1.5 font-mono text-xs">
 				{#if todayStore.totalCount > 0}
-					<div class="font-mono text-xs text-zinc-400">
+					<span class="text-[10px] text-zinc-400">
 						<strong class="font-semibold text-zinc-800 dark:text-zinc-200">{todayStore.doneCount}</strong>/{todayStore.totalCount}
-					</div>
+					</span>
+					<span class="text-[10px] text-zinc-300 dark:text-zinc-700">·</span>
 				{/if}
 
 				<a
 					href="/todos"
-					class="inline-flex items-center gap-0.5 text-xs text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100 transition-colors font-medium group/all cursor-pointer"
-					title="进入我的待办清单工作台"
+					class="inline-flex items-center gap-0.5 text-[11px] font-medium text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100 transition-colors group/link cursor-pointer font-sans"
+					title="Go to My Todos workbench"
 				>
-					<span>全部</span>
-					<svg class="h-3 w-3 transition-transform duration-150 group-hover/all:translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-					</svg>
+					<span>View all</span>
+					<Icon icon="lucide:arrow-right" class="h-3 w-3 transition-transform group-hover/link:translate-x-0.5" />
 				</a>
 			</div>
 		</div>
 
-		<!-- 待办清单内容 -->
+		<!-- Todos content -->
 		<DataView
 			loading={!todayStore.loaded || todayStore.loading}
 			empty={todayStore.todos.length === 0}
@@ -59,7 +64,7 @@
 
 			{#snippet emptyView()}
 				<div class="py-3 text-center text-xs text-zinc-400">
-					今天还没有发布待办，在上方写一个吧
+					No todos for today yet. Write one above!
 				</div>
 			{/snippet}
 
@@ -72,7 +77,7 @@
 						<a
 							href="/todos/{todo.shortId || todo.id}"
 							class="flex-1 min-w-0 group/link focus:outline-hidden"
-							title="查看待办详情"
+							title="View todo details"
 						>
 							<TodoContent
 								content={todo.content}

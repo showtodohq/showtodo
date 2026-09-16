@@ -33,19 +33,19 @@
 			{#if isAllDone}
 				<span
 					class="inline-flex items-center gap-1 text-[11px] font-bold text-amber-900 dark:text-amber-100 bg-gradient-to-r from-amber-300 via-yellow-300 to-amber-400 dark:from-amber-600 dark:via-yellow-600 dark:to-amber-500 px-2 py-0.5 rounded-md shadow-xs animate-in zoom-in-95 duration-150 select-none"
-					title="所有同行伙伴已全部完成"
+					title="All participants have completed this goal"
 				>
 					<Icon icon="lucide:trophy" class="h-3 w-3 shrink-0" />
-					<span>全员完成</span>
+					<span>All Completed</span>
 				</span>
 			{/if}
 
 			<span class="text-[11px] text-zinc-400 font-mono">
-				立项于 {topic.firstCreatedAt?.slice(0, 10) || '近期'}
+				Started {topic.firstCreatedAt?.slice(0, 10) || 'Recently'}
 			</span>
 		</div>
 
-		<!-- 协同加入状态按钮 -->
+		<!-- Join status button -->
 		<div class="shrink-0">
 			{#if hasJoined}
 				<span
@@ -54,7 +54,7 @@
 						: 'text-emerald-600 dark:text-emerald-400 bg-emerald-50/80 dark:bg-emerald-950/40 border border-emerald-200/60 dark:border-emerald-800/40'} px-2.5 py-1 rounded-lg select-none"
 				>
 					<Icon icon="lucide:check" class="h-3 w-3 shrink-0" />
-					<span>已同行</span>
+					<span>Joined</span>
 				</span>
 			{:else}
 				<button
@@ -63,18 +63,18 @@
 					class="inline-flex items-center gap-1 text-xs font-semibold text-zinc-700 dark:text-zinc-200 bg-white hover:bg-zinc-100 dark:bg-zinc-800 dark:hover:bg-zinc-700 hover:text-zinc-900 dark:hover:text-white px-2.5 py-1 rounded-lg transition-colors cursor-pointer shadow-2xs"
 				>
 					<span>+</span>
-					<span>一起做</span>
+					<span>Join</span>
 				</button>
 			{/if}
 		</div>
 	</div>
 
-	<!-- 待办正文标题 (点击直达 Topic 详情页) -->
+	<!-- Topic title link -->
 	<div>
 		<a
 			href="/topics/{topic.topicHash}"
 			class="group/title block focus:outline-hidden"
-			title="点击查看同行详情与历史打卡"
+			title="View topic details and history"
 		>
 			<h3
 				class="text-base sm:text-lg font-bold tracking-tight text-zinc-900 dark:text-zinc-100 group-hover/title:text-zinc-600 dark:group-hover/title:text-zinc-300 transition-colors leading-snug {isAllDone ? 'text-amber-950 dark:text-amber-100' : ''}"
@@ -84,22 +84,22 @@
 		</a>
 	</div>
 
-	<!-- 进度条 -->
+	<!-- Progress bar -->
 	<div class="space-y-1.5">
 		<div class="flex items-center justify-between text-xs font-mono">
 			<div class="flex items-center gap-1.5 text-zinc-500 dark:text-zinc-400">
 				{#if isAllDone}
 					<Icon icon="lucide:sparkles" class="h-3.5 w-3.5 text-amber-500 shrink-0" />
-					<span class="font-medium text-amber-600 dark:text-amber-400">全员 {topic.totalParticipants} 人共同冲线</span>
+					<span class="font-medium text-amber-600 dark:text-amber-400">All {topic.totalParticipants} participants completed!</span>
 				{:else if topic.totalParticipants > 1}
 					<span class="text-amber-500 font-semibold">{topic.totalParticipants}</span>
-					<span>人同行</span>
+					<span>participants</span>
 					<span>·</span>
-					<span>{topic.doneCount} 已完成</span>
+					<span>{topic.doneCount} completed</span>
 				{:else}
-					<span class="text-zinc-600 dark:text-zinc-300 font-medium">1 人发起</span>
+					<span class="text-zinc-600 dark:text-zinc-300 font-medium">1 starter</span>
 					<span>·</span>
-					<span>等待伙伴同行</span>
+					<span>Waiting for others</span>
 				{/if}
 			</div>
 
@@ -118,10 +118,9 @@
 		</div>
 	</div>
 
-	<!-- 底部：参与者头像堆叠与详情入口链接 -->
+	<!-- Footer: participants & link -->
 	<div class="flex items-center justify-between pt-1 text-xs">
 		<div class="flex items-center gap-2">
-			<!-- 头像堆叠 -->
 			<div class="flex -space-x-1 hover:space-x-0.5 transition-all duration-200 items-center">
 				{#each topic.participants.slice(0, 5) as p (p.todoId)}
 					<UserAvatarTooltip
@@ -146,7 +145,7 @@
 			href="/topics/{topic.topicHash}"
 			class="inline-flex items-center gap-1 text-xs text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 transition-colors group/more"
 		>
-			<span>查看详情</span>
+			<span>Details</span>
 			<span class="transition-transform group-hover/more:translate-x-0.5">→</span>
 		</a>
 	</div>

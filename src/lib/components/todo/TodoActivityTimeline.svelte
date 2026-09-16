@@ -22,7 +22,7 @@
 	<div class="flex items-center justify-between px-1">
 		<h2 class="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">
 			<Icon icon="lucide:activity" class="h-3.5 w-3.5" />
-			<span>成长动态与打卡记录 ({isLoading && sortedActivities.length === 0 ? '...' : sortedActivities.length})</span>
+			<span>Activity & Check-in History ({isLoading && sortedActivities.length === 0 ? '...' : sortedActivities.length})</span>
 		</h2>
 	</div>
 
@@ -47,7 +47,7 @@
 		<div
 			class="rounded-2xl border border-dashed border-zinc-200 dark:border-zinc-800/80 py-10 text-center text-xs text-zinc-400"
 		>
-			暂无动态记录
+			No activity records yet
 		</div>
 	{:else}
 		<div
@@ -55,7 +55,7 @@
 		>
 			{#each sortedActivities as act (act.id)}
 				<div class="relative group/act">
-					<!-- 轴点图标 -->
+					<!-- Dot icon -->
 					<div
 						class="absolute -left-6 top-1 h-5 w-5 rounded-full bg-white dark:bg-zinc-900 border-2 border-zinc-300 dark:border-zinc-700 flex items-center justify-center text-zinc-500"
 					>
@@ -68,21 +68,21 @@
 						{/if}
 					</div>
 
-					<!-- 动态内容项 (对齐 Stream 无边框轻量流) -->
+					<!-- Activity content -->
 					<div
 						class="py-2 px-3 rounded-xl transition-colors hover:bg-zinc-50/80 dark:hover:bg-zinc-900/60 space-y-1"
 					>
 						<div class="flex items-center justify-between text-[11px]">
 							<span class="font-semibold text-zinc-800 dark:text-zinc-200">
 								{#if act.type === 'created'}
-									创建待办
+									Created todo
 								{:else if act.type === 'status_change'}
-									状态变更为
+									Status changed to
 									<span class="font-medium text-zinc-900 dark:text-zinc-100">
-										「{getStatusConfig(act.toStatus || 'pending').label}」
+										"{getStatusConfig(act.toStatus || 'pending').label}"
 									</span>
 								{:else}
-									记录进展
+									Logged progress
 								{/if}
 							</span>
 							<span class="font-mono text-zinc-400">

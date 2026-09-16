@@ -69,9 +69,9 @@
 		const url = window.location.href;
 		try {
 			await navigator.clipboard.writeText(url);
-			toast.success('已复制待办链接');
+			toast.success('Todo link copied');
 		} catch {
-			toast.info(`链接: ${url}`);
+			toast.info(`Link: ${url}`);
 		}
 	}
 </script>
@@ -79,7 +79,7 @@
 <div
 	class="p-6 sm:p-8 rounded-3xl border border-zinc-200/80 dark:border-zinc-800 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-md shadow-xs space-y-6"
 >
-	<!-- 顶部：作者信息与状态机打勾 -->
+	<!-- Author header & checkbox -->
 	<div class="flex items-start justify-between gap-4">
 		<a
 			href="/users/{todo.author?.handle || todo.authorId}"
@@ -96,13 +96,13 @@
 					<span
 						class="text-sm font-semibold text-zinc-900 dark:text-zinc-100 group-hover/author:text-blue-600 transition-colors"
 					>
-						{todo.author?.nickname || '未知用户'}
+						{todo.author?.nickname || 'Unknown'}
 					</span>
 					{#if isMine}
 						<span
 							class="text-[10px] px-1.5 py-0.5 rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-500 font-medium"
 						>
-							本人
+							You
 						</span>
 					{/if}
 				</div>
@@ -112,7 +112,7 @@
 			</div>
 		</a>
 
-		<!-- 右侧状态徽章与交互复选框 -->
+		<!-- Right status badge & interactive checkbox -->
 		<div class="flex items-center gap-2">
 			<span
 				class="px-2.5 py-1 rounded-full text-xs font-medium {currentStatusCfg.bgClass} {currentStatusCfg.textClass} border {currentStatusCfg.borderClass}"
@@ -129,7 +129,7 @@
 		</div>
 	</div>
 
-	<!-- 待办正文与行内编辑 -->
+	<!-- Content & inline edit -->
 	{#if isEditing}
 		<form onsubmit={handleSave} class="space-y-3 pt-2">
 			<div class="space-y-1">
@@ -137,7 +137,7 @@
 					for="edit-content"
 					class="text-xs font-medium text-zinc-600 dark:text-zinc-400"
 				>
-					待办内容
+					Todo Content
 				</label>
 				<textarea
 					id="edit-content"
@@ -153,13 +153,13 @@
 					for="edit-note"
 					class="text-xs font-medium text-zinc-600 dark:text-zinc-400"
 				>
-					公开备注 (选填)
+					Public Note (optional)
 				</label>
 				<textarea
 					id="edit-note"
 					bind:value={editNote}
 					rows="2"
-					placeholder="添加一些背景或补充说明..."
+					placeholder="Add background or notes..."
 					class="w-full rounded-xl border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 p-3 text-xs text-zinc-900 dark:text-zinc-100 focus:outline-hidden focus:ring-2 focus:ring-zinc-400"
 				></textarea>
 			</div>
@@ -171,10 +171,10 @@
 					size="xs"
 					onclick={() => (isEditing = false)}
 				>
-					取消
+					Cancel
 				</Button>
 				<Button type="submit" variant="primary" size="xs" loading={isSaving}>
-					保存
+					Save
 				</Button>
 			</div>
 		</form>
@@ -199,7 +199,7 @@
 		</div>
 	{/if}
 
-	<!-- 元数据栏：分类、时间范围、链接复制 -->
+	<!-- Metadata bar: category, schedule, link copy -->
 	<div
 		class="flex items-center justify-between flex-wrap gap-3 pt-2 text-xs text-zinc-500 dark:text-zinc-400"
 	>
@@ -226,7 +226,7 @@
 		</button>
 	</div>
 
-	<!-- 底部互动区：平铺表情胶囊与右侧操作栏（表态入口 + 图标化编辑） -->
+	<!-- Reaction bar & actions -->
 	<div class="pt-4 border-t border-zinc-200/60 dark:border-zinc-800/60">
 		<TodoReactionsBar
 			todoId={todo.id}
@@ -238,7 +238,7 @@
 		/>
 	</div>
 
-	<!-- 多人同行互动区域 -->
+	<!-- Multiplayer / Goal section -->
 	{#if todo.topicHash}
 		<div
 			class="p-4 rounded-2xl border transition-all space-y-3 {hasJoined
@@ -248,16 +248,16 @@
 					: 'bg-zinc-50/80 dark:bg-zinc-800/40 border-zinc-200/80 dark:border-zinc-800'}"
 		>
 			<div class="flex items-center justify-between flex-wrap gap-3">
-				<!-- 左侧：同行信息与榜单入口 -->
+				<!-- Left: Goal info & link -->
 				<div class="flex items-center gap-2.5 text-xs flex-wrap">
 					{#if hasJoined}
 						<span class="flex items-center gap-1.5 font-semibold text-emerald-800 dark:text-emerald-200">
 							<Icon icon="lucide:check" class="h-4 w-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
-							<span>你正在并肩同行该目标</span>
+							<span>You are pursuing this goal together</span>
 						</span>
 						{#if topicParticipantCount > 1}
 							<span class="text-emerald-600/80 dark:text-emerald-400/80">
-								(全网共 <strong>{topicParticipantCount}</strong> 人同行)
+								({topicParticipantCount} people together)
 							</span>
 						{/if}
 					{:else if isMine}
@@ -269,14 +269,13 @@
 							{/if}
 							<span>
 								{#if topicParticipantCount > 1}
-									全网共 <strong>{topicParticipantCount}</strong> 人正在与你并肩同行该目标！
+									<strong>{topicParticipantCount}</strong> people are pursuing this goal with you!
 								{:else}
-									尚未有其他伙伴同行该目标，期待有人与你并肩！
+									No one else has joined this goal yet. Looking forward to others joining!
 								{/if}
 							</span>
 						</div>
 					{:else}
-						<!-- 访客未加入 -->
 						<div class="flex items-center gap-2 text-zinc-700 dark:text-zinc-300">
 							{#if topicParticipantCount > 1}
 								<Icon icon="lucide:flame" class="h-4 w-4 text-orange-500 shrink-0" />
@@ -285,15 +284,14 @@
 							{/if}
 							<span>
 								{#if topicParticipantCount > 1}
-									已有 <strong>{topicParticipantCount}</strong> 位伙伴正在并肩同行该目标！
+									<strong>{topicParticipantCount}</strong> people are pursuing this goal together!
 								{:else}
-									暂无其他同路人，想和 TA 一起坚持这个目标吗？
+									No one else yet. Want to pursue this goal together?
 								{/if}
 							</span>
 						</div>
 					{/if}
 
-					<!-- 查看同行榜链接 (当有超过1人或已加入时显示) -->
 					{#if topicParticipantCount > 1 || hasJoined}
 						<a
 							href="/topics/{todo.topicHash}"
@@ -301,16 +299,16 @@
 								? 'text-emerald-700 dark:text-emerald-300'
 								: 'text-amber-700 dark:text-amber-300'}"
 						>
-							查看同行榜 →
+							View Goal Board →
 						</a>
 					{/if}
 				</div>
 
-				<!-- 右侧：行动按钮 / 打卡控制器 -->
+				<!-- Right: Action button / Check-in -->
 				<div class="flex items-center gap-3">
 					{#if hasJoined && myJoinedStatus}
 						<div class="flex items-center gap-2 bg-white/80 dark:bg-zinc-900/80 py-1 px-2.5 rounded-xl border border-emerald-200/60 dark:border-emerald-800/40 shadow-2xs">
-							<span class="text-xs text-zinc-500 dark:text-zinc-400">我的打卡：</span>
+							<span class="text-xs text-zinc-500 dark:text-zinc-400">My Check-in:</span>
 							<TodoCheckbox
 								status={myJoinedStatus}
 								isMine={true}
@@ -326,7 +324,7 @@
 							onclick={onjoin}
 							class="font-medium px-3 py-1.5 shadow-xs"
 						>
-							+ 一起做
+							+ Join Goal
 						</Button>
 					{/if}
 				</div>

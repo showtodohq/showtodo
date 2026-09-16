@@ -25,7 +25,7 @@ test('inspect home page aside widgets and console errors', async ({ page }) => {
 	console.log('--- CONSOLE ERRORS ---');
 	console.log(consoleErrors);
 
-	// 验证 SiteStatsWidget 标题存在
-	const statsWidgetTitle = page.locator('text=全站数据脉搏');
+	// Verify SiteStatsWidget title exists
+	const statsWidgetTitle = page.locator('text=Site Pulse');
 	await expect(statsWidgetTitle).toBeVisible();
 });

@@ -68,11 +68,11 @@
 		const group = reactionDetails.find((r) => r.emoji === emoji);
 		if (!group || !group.users || group.users.length === 0) return null;
 
-		const names = group.users.slice(0, 3).map((u) => u.nickname || '用户');
+		const names = group.users.slice(0, 3).map((u) => u.nickname || 'User');
 		if (group.users.length > 3) {
-			return `${names.join('、')} 等 ${group.count} 人`;
+			return `${names.join(', ')} and ${group.count - names.length} others`;
 		}
-		return `${names.join('、')} (${group.count} 人)`;
+		return `${names.join(', ')} (${group.count})`;
 	}
 
 	function triggerReact(emoji?: ReactionEmoji) {
@@ -89,7 +89,7 @@
 </script>
 
 <div class="flex items-center justify-between flex-wrap gap-3 {className}">
-	<!-- 左侧：已投表情胶囊展示区 (Active Reactions Area) -->
+	<!-- Active Reactions Area -->
 	<div class="flex items-center flex-wrap gap-1.5 min-w-0">
 		{#if activeReactions.length > 0}
 			{#each activeReactions as item (item.emoji)}
@@ -103,8 +103,8 @@
 						class="group/pill inline-flex items-center gap-1.5 px-3 py-1 min-h-[32px] rounded-full text-xs sm:text-sm font-mono transition-all duration-150 cursor-pointer select-none active:scale-90 {item.isMyReaction
 							? 'bg-rose-50/90 dark:bg-rose-950/50 text-rose-700 dark:text-rose-300 border border-rose-300/90 dark:border-rose-700/80 font-semibold shadow-2xs ring-1 ring-rose-400/20'
 							: 'bg-zinc-100/90 hover:bg-zinc-200/80 dark:bg-zinc-800/70 dark:hover:bg-zinc-700/70 text-zinc-700 dark:text-zinc-300 border border-zinc-200/80 dark:border-zinc-700/60'}"
-						title="{item.label}: {item.description} ({item.count} 票){item.isMyReaction ? ' · 已表态(点击撤回)' : ' · 点击跟投'}"
-						aria-label="{item.label} 表态"
+						title="{item.label}: {item.description} ({item.count} votes){item.isMyReaction ? ' · Reacted (click to undo)' : ' · Click to react'}"
+						aria-label="{item.label} reaction"
 					>
 						<span
 							class="text-sm sm:text-base leading-none transition-transform duration-150 {bouncingEmoji === item.emoji
@@ -118,7 +118,7 @@
 						</span>
 					</button>
 
-					<!-- 表态用户名单悬浮气泡 -->
+					<!-- Reaction user list popup -->
 					{#if hoveredEmoji === item.emoji && userTooltip}
 						<div
 							class="absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 z-40 px-2.5 py-1 rounded-lg bg-zinc-900/95 dark:bg-zinc-100/95 text-zinc-100 dark:text-zinc-900 text-[11px] shadow-lg whitespace-nowrap pointer-events-none animate-in fade-in zoom-in-95 duration-100"
@@ -132,17 +132,15 @@
 				</div>
 			{/each}
 		{:else}
-			<!-- 零表态引导：优雅提示 -->
 			<div class="flex items-center gap-1.5 text-xs sm:text-sm text-zinc-400 dark:text-zinc-500 py-1 select-none">
 				<Icon icon="lucide:sparkles" class="h-3.5 w-3.5 text-zinc-400" />
-				<span>期待第一份鼓励</span>
+				<span>Be the first to cheer!</span>
 			</div>
 		{/if}
 	</div>
 
-	<!-- 右侧：统一操作按钮区 (Actions Area: 经典原版 ReactionButton + 图标化编辑按钮) -->
+	<!-- Actions Area -->
 	<div class="flex items-center gap-2 shrink-0">
-		<!-- 原版熟悉的经典爱心 Reaction 按钮 (传入 size="md" 适合详情页大尺寸) -->
 		<ReactionButton
 			{reactions}
 			{myReactions}
@@ -150,14 +148,13 @@
 			onreact={onreact}
 		/>
 
-		<!-- 图标化编辑按钮 (仅本人且传入 onedit 时展示，尺寸与 ReactionButton 对齐为 32px) -->
 		{#if isMine && onedit}
 			<button
 				type="button"
 				onclick={onedit}
 				class="inline-flex items-center justify-center h-8 w-8 rounded-full text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 border border-transparent hover:border-zinc-200 dark:hover:border-zinc-700 transition-all duration-150 cursor-pointer select-none active:scale-90"
-				title="编辑待办正文"
-				aria-label="编辑待办正文"
+				title="Edit todo content"
+				aria-label="Edit todo content"
 			>
 				<svg
 					class="h-4 w-4"

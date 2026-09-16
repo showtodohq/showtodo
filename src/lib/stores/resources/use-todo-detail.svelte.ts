@@ -122,7 +122,7 @@ export function createTodoDetailResource(initialIdentifier?: string) {
 		} catch (err) {
 			console.error('Failed to load todo detail:', err);
 			if (!todo) {
-				error = (err as Error).message || '待办不存在或已被删除';
+				error = (err as Error).message || 'Todo does not exist or has been deleted';
 			}
 		} finally {
 			loading = false;
@@ -133,7 +133,7 @@ export function createTodoDetailResource(initialIdentifier?: string) {
 
 	async function handleStatusChange(nextStatus: TodoStatus, e?: MouseEvent) {
 		if (!todo || !userStore.email) {
-			toast.info('请先绑定邮箱');
+			toast.info('Please set your email in the top right avatar first');
 			return;
 		}
 
@@ -205,13 +205,13 @@ export function createTodoDetailResource(initialIdentifier?: string) {
 			if (todo) {
 				todo.activities = updated.todo.activities;
 			}
-			toast.success('已记录最新进展！');
+			toast.success('Progress logged!');
 		} catch (err) {
 			if (todo) {
 				todo.activities = prevActivities;
 			}
 			console.error('Failed to submit check-in:', err);
-			toast.error(`记录进展失败: ${(err as Error).message}`);
+			toast.error(`Failed to log progress: ${(err as Error).message}`);
 		} finally {
 			isSubmittingCheckIn = false;
 		}
@@ -229,16 +229,16 @@ export function createTodoDetailResource(initialIdentifier?: string) {
 
 			if (res.todo) {
 				todo = todoRegistry.upsert(res.todo);
-				toast.success('待办已更新');
+				toast.success('Todo updated');
 			}
 		} catch (err) {
-			toast.error(`更新失败: ${(err as Error).message}`);
+			toast.error(`Failed to update: ${(err as Error).message}`);
 		}
 	}
 
 	async function handleJoinTopic() {
 		if (!userStore.email) {
-			toast.info('请先点击右上角头像绑定邮箱后再加入');
+			toast.info('Please set your email in the top right avatar before joining');
 			return;
 		}
 		if (!todo || isJoining) return;
@@ -257,12 +257,12 @@ export function createTodoDetailResource(initialIdentifier?: string) {
 					shortId: joined.shortId,
 					status: joined.status
 				};
-				toast.success('成功加入该目标！');
+				toast.success('Successfully joined this goal!');
 			}
 		} catch (err) {
 			topicParticipantCount = Math.max(0, topicParticipantCount - 1);
 			console.error('Failed to join topic:', err);
-			toast.error(`加入失败: ${(err as Error).message}`);
+			toast.error(`Failed to join: ${(err as Error).message}`);
 		} finally {
 			isJoining = false;
 		}

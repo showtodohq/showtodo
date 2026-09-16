@@ -23,7 +23,7 @@ class TodoMutations {
 	}): Promise<Todo | undefined> {
 		const email = userStore.email;
 		if (!email) {
-			toast.info('请先点击右上角头像绑定邮箱');
+			toast.info('Please set your email in the top right avatar first');
 			return undefined;
 		}
 
@@ -121,10 +121,10 @@ class TodoMutations {
 					return res;
 				},
 				onError: (err) => {
-					toast.error(`发布失败: ${(err as Error).message}`);
+					toast.error(`Failed to publish: ${(err as Error).message}`);
 				}
 			});
-			toast.success('已发布公开待办！');
+			toast.success('Public todo published!');
 			return createdTodo;
 		} catch {
 			// handled in optimisticAction
@@ -138,7 +138,7 @@ class TodoMutations {
 	async joinTopic(data: { content: string; category?: CategoryId | string | null }): Promise<Todo | undefined> {
 		const email = userStore.email;
 		if (!email) {
-			toast.info('请先点击右上角头像绑定邮箱后再加入');
+			toast.info('Please set your email in the top right avatar before joining');
 			return undefined;
 		}
 
@@ -159,11 +159,11 @@ class TodoMutations {
 		options?: { activityNote?: string }
 	) {
 		if (!userStore.email) {
-			toast.info('请先点击右上角头像设置邮箱');
+			toast.info('Please set your email in the top right avatar first');
 			return;
 		}
 		if (todoId.startsWith('temp-')) {
-			toast.info('正在发布中，请稍候...');
+			toast.info('Publishing in progress, please wait...');
 			return;
 		}
 
@@ -183,7 +183,7 @@ class TodoMutations {
 
 			if (isAllDone) {
 				confetti.tripleCelebration();
-				toast.success('太棒了！今日全部待办已全部完成！');
+				toast.success('Awesome! All todos for today are completed!');
 			} else {
 				confetti.burst(event?.clientX, event?.clientY, 300);
 			}
@@ -214,7 +214,7 @@ class TodoMutations {
 					if (res?.todo) todoRegistry.upsert(res.todo);
 				},
 				onError: (err) => {
-					toast.error(`状态更新失败: ${(err as Error).message}`);
+					toast.error(`Failed to update status: ${(err as Error).message}`);
 				}
 			});
 		} catch {
@@ -227,11 +227,11 @@ class TodoMutations {
 	 */
 	async toggleReaction(todoId: string, emoji?: ReactionEmoji, fallbackTodo?: Todo) {
 		if (!userStore.email) {
-			toast.info('请先点击右上角头像绑定邮箱再表态');
+			toast.info('Please set your email in the top right avatar before reacting');
 			return;
 		}
 		if (todoId.startsWith('temp-')) {
-			toast.info('正在发布中，请稍候...');
+			toast.info('Publishing in progress, please wait...');
 			return;
 		}
 
@@ -299,7 +299,7 @@ class TodoMutations {
 					}
 				},
 				onError: (err) => {
-					toast.error(`表态操作失败: ${(err as Error).message}`);
+					toast.error(`Reaction failed: ${(err as Error).message}`);
 				}
 			});
 		} catch {

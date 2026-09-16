@@ -8,7 +8,7 @@
 
 	let {
 		backHref = '/',
-		backLabel = '返回动态流'
+		backLabel = 'Back to Feed'
 	}: Props = $props();
 </script>
 

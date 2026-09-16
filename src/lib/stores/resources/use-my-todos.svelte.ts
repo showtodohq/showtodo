@@ -255,7 +255,7 @@ export function createMyTodosResource() {
 			todoIds = [...new Set(fetched.map((t) => t.id))];
 		} catch (err) {
 			console.error('Failed to load my todos:', err);
-			error = (err as Error).message || '加载待办失败';
+			error = (err as Error).message || 'Failed to load todos';
 		} finally {
 			loading = false;
 		}

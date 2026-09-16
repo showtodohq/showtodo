@@ -45,13 +45,13 @@
 		];
 		const randomSeed = `${seeds[Math.floor(Math.random() * seeds.length)]}-${Math.floor(Math.random() * 1000)}`;
 		editAvatar = `https://api.dicebear.com/7.x/notionists/svg?seed=${randomSeed}&backgroundColor=f4f4f5,e4e4e7,d4d4d8`;
-		toast.info('已随机生成个性头像');
+		toast.info('Random avatar generated');
 	}
 
 	function resetAvatar() {
 		editAvatar = '';
 		showAvatarUrlInput = false;
-		toast.info('已恢复默认头像');
+		toast.info('Default avatar restored');
 	}
 
 	function handleKeydown(e: KeyboardEvent) {
@@ -69,19 +69,19 @@
 		let cleanHandle = editHandle.trim().toLowerCase().replace(/^@+/, '');
 
 		if (!cleanNickname) {
-			toast.error('昵称不能为空');
+			toast.error('Nickname cannot be empty');
 			return;
 		}
 
 		if (!cleanHandle) {
-			toast.error('用户名不能为空');
+			toast.error('Handle cannot be empty');
 			return;
 		}
 
-		// 项目权威规则 (docs/api.md & src/lib/server/validation.ts)
+		// Validation rules (docs/api.md & src/lib/server/validation.ts)
 		const HANDLE_REGEX = /^[a-z0-9][a-z0-9_-]{0,48}[a-z0-9]$|^[a-z0-9]$/;
 		if (cleanHandle.length < 1 || cleanHandle.length > 50 || !HANDLE_REGEX.test(cleanHandle)) {
-			toast.error('用户名需为 1~50 位英文字母、数字、下划线或连字符');
+			toast.error('Handle must be 1-50 alphanumeric characters, underscores, or hyphens');
 			return;
 		}
 
@@ -102,9 +102,9 @@
 		const text = `@${user.handle}`;
 		try {
 			await navigator.clipboard.writeText(text);
-			toast.success('已复制用户名');
+			toast.success('Handle copied');
 		} catch {
-			toast.info(`用户名: ${text}`);
+			toast.info(`Handle: ${text}`);
 		}
 	}
 </script>
@@ -115,7 +115,7 @@
 	class="p-6 sm:p-8 rounded-3xl border border-zinc-200/80 dark:border-zinc-800 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-md shadow-xs transition-all duration-200"
 >
 	{#if !isEditing}
-		<!-- 正常浏览模式 -->
+		<!-- Profile view mode -->
 		<div class="flex items-start justify-between gap-4 flex-wrap">
 			<div class="flex items-center gap-4.5">
 				<Avatar
@@ -136,7 +136,7 @@
 							<span
 								class="text-[10px] px-2 py-0.5 rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 font-medium select-none"
 							>
-								本人主页
+								Your Profile
 							</span>
 						{/if}
 					</div>
@@ -148,12 +148,12 @@
 							type="button"
 							onclick={copyHandle}
 							class="font-mono font-medium text-zinc-600 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-zinc-100 hover:underline cursor-pointer"
-							title="点击复制用户名"
+							title="Click to copy handle"
 						>
 							@{user.handle}
 						</button>
 						<span>·</span>
-						<span>加入于 {user.createdAt ? user.createdAt.slice(0, 10) : '近期'}</span>
+						<span>Joined {user.createdAt ? user.createdAt.slice(0, 10) : 'Recently'}</span>
 					</div>
 				</div>
 			</div>
@@ -165,12 +165,12 @@
 					onclick={() => (isEditing = true)}
 					class="font-medium"
 				>
-					编辑资料
+					Edit Profile
 				</Button>
 			{/if}
 		</div>
 	{:else}
-		<!-- 高质感沉浸式编辑模式 (In-place Studio) -->
+		<!-- Edit studio mode -->
 		<form
 			onsubmit={(e) => {
 				e.preventDefault();
@@ -178,15 +178,15 @@
 			}}
 			class="space-y-6 animate-in fade-in zoom-in-95 duration-150"
 		>
-			<!-- 顶部状态栏：操作与标题 -->
+			<!-- Status bar -->
 			<div class="flex items-center justify-between pb-3 border-b border-zinc-200/60 dark:border-zinc-800/60">
 				<div class="flex items-center gap-2">
 					<span class="h-2 w-2 rounded-full bg-blue-500 animate-pulse"></span>
 					<span class="text-xs font-semibold uppercase tracking-wider text-zinc-900 dark:text-zinc-100">
-						编辑个人名片
+						Edit Profile
 					</span>
 					<span class="text-[11px] text-zinc-400 font-mono hidden sm:inline">
-						(⌘ + Enter 保存 / Esc 取消)
+						(⌘ + Enter to save / Esc to cancel)
 					</span>
 				</div>
 
@@ -198,7 +198,7 @@
 						onclick={() => (isEditing = false)}
 						disabled={isSaving}
 					>
-						取消
+						Cancel
 					</Button>
 					<Button
 						type="submit"
@@ -207,14 +207,14 @@
 						loading={isSaving}
 						disabled={isSaving || !editNickname.trim() || !editHandle.trim()}
 					>
-						保存修改
+						Save
 					</Button>
 				</div>
 			</div>
 
-			<!-- 主体双栏：左侧头像工坊 + 右侧精致字段输入 -->
+			<!-- Main edit fields -->
 			<div class="flex flex-col sm:flex-row items-start gap-6">
-				<!-- 左侧：头像实时工坊 -->
+				<!-- Left: Avatar studio -->
 				<div class="flex flex-col items-center gap-2.5 sm:w-32 shrink-0">
 					<div class="relative group/avatar cursor-pointer" onclick={generateRandomAvatar} role="button" tabindex="0" onkeydown={(e) => e.key === 'Enter' && generateRandomAvatar()}>
 						<Avatar
@@ -228,7 +228,7 @@
 							class="absolute inset-0 rounded-full bg-black/40 text-white text-[10px] font-medium flex flex-col items-center justify-center opacity-0 group-hover/avatar:opacity-100 transition-opacity backdrop-blur-xs select-none gap-0.5"
 						>
 							<Icon icon="lucide:dices" class="h-3.5 w-3.5" />
-							<span>换一个</span>
+							<span>Randomize</span>
 						</div>
 					</div>
 
@@ -237,17 +237,17 @@
 							type="button"
 							onclick={generateRandomAvatar}
 							class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-medium text-zinc-600 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-zinc-100 bg-zinc-100 dark:bg-zinc-800/80 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors cursor-pointer"
-							title="随机生成 Notionist 风格头像"
+							title="Random avatar"
 						>
 							<Icon icon="lucide:dices" class="h-3 w-3 shrink-0" />
-							<span>随机</span>
+							<span>Random</span>
 						</button>
 
 						<button
 							type="button"
 							onclick={() => (showAvatarUrlInput = !showAvatarUrlInput)}
 							class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-medium text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200 bg-zinc-50 dark:bg-zinc-800/40 hover:bg-zinc-100 transition-colors cursor-pointer"
-							title="自定义图片外链"
+							title="Custom image URL"
 						>
 							<Icon icon="lucide:link-2" class="h-3 w-3 shrink-0" />
 							<span>URL</span>
@@ -258,44 +258,44 @@
 								type="button"
 								onclick={resetAvatar}
 								class="px-1.5 py-0.5 rounded-md text-[11px] text-zinc-400 hover:text-red-500 transition-colors cursor-pointer"
-								title="恢复为默认头像"
+								title="Reset to default avatar"
 							>
-								重置
+								Reset
 							</button>
 						{/if}
 					</div>
 				</div>
 
-				<!-- 右侧：字段输入区 -->
+				<!-- Right: Form inputs -->
 				<div class="flex-1 w-full space-y-4">
-					<!-- 昵称 -->
+					<!-- Nickname -->
 					<div class="space-y-1.5">
 						<label
 							for="profile-edit-nickname"
 							class="text-xs font-semibold text-zinc-700 dark:text-zinc-300 flex items-center justify-between"
 						>
-							<span>展示昵称</span>
-							<span class="text-[10px] font-mono text-zinc-400">公开展示在待办与动态流中</span>
+							<span>Display Name</span>
+							<span class="text-[10px] font-mono text-zinc-400">Shown on public todos and feeds</span>
 						</label>
 						<input
 							id="profile-edit-nickname"
 							type="text"
 							bind:value={editNickname}
-							placeholder="输入展示昵称"
+							placeholder="Enter display name"
 							maxlength="30"
 							required
 							class="w-full text-base sm:text-lg font-semibold rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50/80 dark:bg-zinc-800/50 px-3.5 py-2 text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 focus:outline-hidden focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 focus:bg-white dark:focus:bg-zinc-800 transition-all"
 						/>
 					</div>
 
-					<!-- 用户名 (@handle) -->
+					<!-- Handle (@handle) -->
 					<div class="space-y-1.5">
 						<label
 							for="profile-edit-handle"
 							class="text-xs font-semibold text-zinc-700 dark:text-zinc-300 flex items-center justify-between"
 						>
-							<span>用户名 (@handle)</span>
-							<span class="text-[10px] font-mono text-zinc-400">唯一身份与主页网址</span>
+							<span>Handle (@handle)</span>
+							<span class="text-[10px] font-mono text-zinc-400">Unique profile identifier</span>
 						</label>
 						<div
 							class="flex items-center rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50/80 dark:bg-zinc-800/50 focus-within:ring-2 focus-within:ring-blue-500/50 focus-within:border-blue-500 focus-within:bg-white dark:focus-within:bg-zinc-800 transition-all overflow-hidden"
@@ -317,21 +317,21 @@
 						</div>
 					</div>
 
-					<!-- 展开的头像 URL 自定义输入框 -->
+					<!-- Custom avatar URL -->
 					{#if showAvatarUrlInput}
 						<div class="space-y-1.5 animate-in fade-in duration-150">
 							<label
 								for="profile-edit-avatar-url"
 								class="text-xs font-medium text-zinc-600 dark:text-zinc-400 flex items-center justify-between"
 							>
-								<span>自定义头像图片 URL</span>
-								<span class="text-[10px] text-zinc-400">支持 https 开头的任意图片链接</span>
+								<span>Custom Avatar URL</span>
+								<span class="text-[10px] text-zinc-400">Any valid https:// image URL</span>
 							</label>
 							<input
 								id="profile-edit-avatar-url"
 								type="url"
 								bind:value={editAvatar}
-								placeholder="https://images.unsplash.com/... 或任意图片"
+								placeholder="https://images.unsplash.com/... or image URL"
 								class="w-full text-xs font-mono rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50/80 dark:bg-zinc-800/50 px-3 py-2 text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 focus:outline-hidden focus:ring-2 focus:ring-blue-500/50 focus:bg-white dark:focus:bg-zinc-800 transition-all"
 							/>
 						</div>

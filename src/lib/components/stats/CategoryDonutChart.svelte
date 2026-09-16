@@ -95,7 +95,7 @@
 							style="outline: none; -webkit-tap-highlight-color: transparent;"
 							role="button"
 							tabindex="0"
-							aria-label={`${catConfig?.name || slice.data.category}: ${slice.data.total} 条 (${slice.percentage}%)`}
+							aria-label={`${catConfig?.name || slice.data.category}: ${slice.data.total} (${slice.percentage}%)`}
 							onpointerenter={(e) => handlePointerEnter(slice.data.category, e)}
 							onpointerleave={handlePointerLeave}
 							onclick={() => handleToggle(slice.data.category)}
@@ -107,8 +107,7 @@
 							}}
 						/>
 
-						<!-- 2. 上层：纯动效表现层 (Visual Presentation Layer) -->
-						<!-- 负责平移动效与光晕阴影，pointer-events: none 穿透，绝不拦截与干扰指针命中 -->
+						<!-- Visual Presentation Layer -->
 						<path
 							d={slice.pathData}
 							fill={color}
@@ -126,13 +125,13 @@
 			{/each}
 		</svg>
 
-		<!-- 环心核心指示器 (Center HUD)：限制在环心空白圆圈范围 (w-[110px] h-[110px])，绝不覆盖外部扇区 -->
+		<!-- Center HUD -->
 		<div class="absolute inset-0 flex items-center justify-center pointer-events-none">
 			<button
 				type="button"
 				tabindex={activeCategory ? 0 : -1}
 				onclick={handleReset}
-				title={activeCategory ? '点击恢复全站总览' : undefined}
+				title={activeCategory ? 'Click to reset to overall view' : undefined}
 				class="w-[112px] h-[112px] rounded-full flex flex-col items-center justify-center p-2 text-center transition-all duration-200 outline-none focus:outline-none select-none {activeCategory
 					? 'cursor-pointer pointer-events-auto hover:bg-zinc-100/60 dark:hover:bg-zinc-800/50'
 					: 'pointer-events-none'}"
@@ -155,23 +154,21 @@
 							style="color: {activeConfig?.color || '#6B7280'};"
 						>
 							{activeCategoryData.total.toLocaleString()}
-							<span class="text-xs font-normal text-zinc-400">项</span>
 						</div>
 						<div class="text-[10px] font-mono text-zinc-500 dark:text-zinc-400">
-							<span class="font-bold">{activeCategoryData.percentage}% 占比</span>
+							<span class="font-bold">{activeCategoryData.percentage}% share</span>
 							<span class="opacity-60">·</span>
-							<span class="text-emerald-600 dark:text-emerald-400 font-semibold">完成率 {activeCategoryData.completionRate}%</span>
+							<span class="text-emerald-600 dark:text-emerald-400 font-semibold">{activeCategoryData.completionRate}% done</span>
 						</div>
 					</div>
 				{:else}
 					<div class="space-y-0.5 animate-in fade-in zoom-in-95 duration-150">
-						<div class="text-[10px] text-zinc-400 font-medium">全站公开待办</div>
+						<div class="text-[10px] text-zinc-400 font-medium">Public Todos</div>
 						<div class="text-2xl sm:text-3xl font-black font-mono text-zinc-900 dark:text-zinc-100 tracking-tight">
 							{totalSum.toLocaleString()}
-							<span class="text-xs font-normal text-zinc-400">项</span>
 						</div>
 						<div class="text-[10px] font-mono text-zinc-400">
-							{categories.length} 个领域分类
+							{categories.length} categories
 						</div>
 					</div>
 				{/if}
@@ -179,7 +176,7 @@
 		</div>
 	</div>
 
-	<!-- 右侧：3 列自适应分类卡片网格 (双向联动图例与完成率进度) -->
+	<!-- Right grid of categories -->
 	<div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3 flex-1 w-full min-w-0">
 		{#each categories as cat (cat.category)}
 			{@const catConfig = getCategoryConfig(cat.category)}
@@ -204,19 +201,17 @@
 					: 'bg-zinc-50/50 dark:bg-zinc-900/40 border-zinc-200/50 dark:border-zinc-800/60 hover:border-zinc-300/80'}"
 				style="opacity: {isMuted ? 0.35 : 1}; outline: none; -webkit-tap-highlight-color: transparent;"
 			>
-				<!-- 第一行：分类徽章与条数占比 -->
 				<div class="flex items-center justify-between text-xs">
 					<CategoryBadge category={cat.category} mode="pill" />
 					<div class="font-mono text-right">
 						<span class="font-bold text-zinc-800 dark:text-zinc-200 text-xs">
 							{cat.completed}
 						</span>
-						<span class="text-zinc-400 text-[11px]"> / {cat.total} 项</span>
+						<span class="text-zinc-400 text-[11px]"> / {cat.total}</span>
 						<span class="text-zinc-400 text-[10px] ml-0.5">({cat.percentage}%)</span>
 					</div>
 				</div>
 
-				<!-- 第二行：完成率进度条 -->
 				<div class="h-1.5 w-full bg-zinc-200/70 dark:bg-zinc-800 rounded-full overflow-hidden flex">
 					<div
 						class="h-full rounded-full transition-all duration-300"
@@ -224,9 +219,8 @@
 					></div>
 				</div>
 
-				<!-- 第三行：微型完成率标签 -->
 				<div class="flex items-center justify-between text-[10px] text-zinc-400 font-mono">
-					<span>完成率</span>
+					<span>Completion</span>
 					<span class="font-semibold text-emerald-600 dark:text-emerald-400">{cat.completionRate}%</span>
 				</div>
 			</div>

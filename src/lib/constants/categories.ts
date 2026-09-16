@@ -15,7 +15,7 @@ export interface CategoryConfig {
 export const CATEGORIES: CategoryConfig[] = [
 	{
 		id: 'study',
-		name: '学习',
+		name: 'Study',
 		color: '#3B82F6',
 		bgClass: 'bg-blue-50 dark:bg-blue-950/40',
 		textClass: 'text-blue-700 dark:text-blue-300',
@@ -26,7 +26,7 @@ export const CATEGORIES: CategoryConfig[] = [
 	},
 	{
 		id: 'fitness',
-		name: '健身',
+		name: 'Fitness',
 		color: '#22C55E',
 		bgClass: 'bg-emerald-50 dark:bg-emerald-950/40',
 		textClass: 'text-emerald-700 dark:text-emerald-300',
@@ -37,7 +37,7 @@ export const CATEGORIES: CategoryConfig[] = [
 	},
 	{
 		id: 'finance',
-		name: '理财',
+		name: 'Finance',
 		color: '#F59E0B',
 		bgClass: 'bg-amber-50 dark:bg-amber-950/40',
 		textClass: 'text-amber-700 dark:text-amber-300',
@@ -48,7 +48,7 @@ export const CATEGORIES: CategoryConfig[] = [
 	},
 	{
 		id: 'dev',
-		name: '开发',
+		name: 'Dev',
 		color: '#8B5CF6',
 		bgClass: 'bg-purple-50 dark:bg-purple-950/40',
 		textClass: 'text-purple-700 dark:text-purple-300',
@@ -59,7 +59,7 @@ export const CATEGORIES: CategoryConfig[] = [
 	},
 	{
 		id: 'life',
-		name: '生活',
+		name: 'Life',
 		color: '#EC4899',
 		bgClass: 'bg-pink-50 dark:bg-pink-950/40',
 		textClass: 'text-pink-700 dark:text-pink-300',
@@ -70,7 +70,7 @@ export const CATEGORIES: CategoryConfig[] = [
 	},
 	{
 		id: 'other',
-		name: '其他',
+		name: 'Other',
 		color: '#6B7280',
 		bgClass: 'bg-zinc-100 dark:bg-zinc-800/60',
 		textClass: 'text-zinc-700 dark:text-zinc-300',

@@ -15,27 +15,27 @@ export interface ActivityDimensionConfig {
 
 export const ACTIVITY_CONFIG = {
 	total: {
-		label: '足迹',
-		actionLabel: '累计足迹',
-		unit: '次',
-		description: '全量行动足迹总数'
+		label: 'Activities',
+		actionLabel: 'Total Activities',
+		unit: 'times',
+		description: 'Total action footprint count'
 	},
 	created: {
-		label: '新建',
-		actionLabel: '新建待办',
-		unit: '次',
-		description: '创建并发布新待办'
+		label: 'Created',
+		actionLabel: 'Create Todo',
+		unit: 'times',
+		description: 'Create and post new todo'
 	},
 	completed: {
-		label: '完成',
-		actionLabel: '标记完成',
-		unit: '次',
-		description: '将待办流转标记为已完成'
+		label: 'Completed',
+		actionLabel: 'Mark Completed',
+		unit: 'times',
+		description: 'Mark todo as completed'
 	},
 	notes: {
-		label: '进展',
-		actionLabel: '进展打卡',
-		unit: '次',
-		description: '记录待办推进过程的进度笔记'
+		label: 'Updates',
+		actionLabel: 'Log Note',
+		unit: 'times',
+		description: 'Progress note recorded'
 	}
 } as const;
