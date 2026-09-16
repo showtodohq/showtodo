@@ -72,9 +72,9 @@
 	<!-- Topic title link -->
 	<div>
 		<a
-			href="/topics/{topic.topicHash}"
+			href="/goals/{topic.topicHash}"
 			class="group/title block focus:outline-hidden"
-			title="View topic details and history"
+			title="View goal details and history"
 		>
 			<h3
 				class="text-base sm:text-lg font-bold tracking-tight text-zinc-900 dark:text-zinc-100 group-hover/title:text-zinc-600 dark:group-hover/title:text-zinc-300 transition-colors leading-snug {isAllDone ? 'text-amber-950 dark:text-amber-100' : ''}"
@@ -142,7 +142,7 @@
 		</div>
 
 		<a
-			href="/topics/{topic.topicHash}"
+			href="/goals/{topic.topicHash}"
 			class="inline-flex items-center gap-1 text-xs text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 transition-colors group/more"
 		>
 			<span>Details</span>

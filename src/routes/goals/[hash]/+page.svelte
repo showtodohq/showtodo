@@ -43,7 +43,7 @@
 
 		{#snippet emptyView()}
 			<div class="space-y-6 sm:space-y-8">
-				<BreadcrumbNav backHref="/topics" backLabel="Back to Topics" />
+				<BreadcrumbNav backHref="/goals" backLabel="Back to Goals" />
 				<div
 					class="p-8 rounded-3xl border border-dashed border-red-200 dark:border-red-900/50 bg-red-50/50 dark:bg-red-950/20 text-center space-y-3"
 				>
@@ -54,10 +54,10 @@
 						Goal not found
 					</div>
 					<p class="text-xs text-zinc-500 max-w-sm mx-auto">
-						This goal may not have any participants yet. Return to topics to explore trending goals.
+						This goal may not have any participants yet. Return to explore trending goals.
 					</p>
-					<Button variant="outline" size="sm" onclick={() => goto('/topics')}>
-						Back to Topics
+					<Button variant="outline" size="sm" onclick={() => goto('/goals')}>
+						Back to Goals
 					</Button>
 				</div>
 			</div>
@@ -65,7 +65,7 @@
 
 		{#snippet errorView(msg)}
 			<div class="space-y-6 sm:space-y-8">
-				<BreadcrumbNav backHref="/topics" backLabel="Back to Topics" />
+				<BreadcrumbNav backHref="/goals" backLabel="Back to Goals" />
 				<div
 					class="p-8 rounded-3xl border border-dashed border-red-200 dark:border-red-900/50 bg-red-50/50 dark:bg-red-950/20 text-center space-y-3"
 				>
@@ -76,10 +76,10 @@
 						{msg}
 					</div>
 					<p class="text-xs text-zinc-500 max-w-sm mx-auto">
-						This goal may not have any participants yet. Return to topics to explore trending goals.
+						This goal may not have any participants yet. Return to explore trending goals.
 					</p>
-					<Button variant="outline" size="sm" onclick={() => goto('/topics')}>
-						Back to Topics
+					<Button variant="outline" size="sm" onclick={() => goto('/goals')}>
+						Back to Goals
 					</Button>
 				</div>
 			</div>
@@ -89,10 +89,10 @@
 			<div class="space-y-5 sm:space-y-6">
 				<!-- Breadcrumb navigation -->
 				<BreadcrumbNav
-					backHref="/topics"
-					backLabel="Back to Topics"
+					backHref="/goals"
+					backLabel="Back to Goals"
 					crumbs={[
-						{ label: 'Topics', href: '/topics' },
+						{ label: 'Goals', href: '/goals' },
 						{ label: `#${topicRes.topic.content}` }
 					]}
 				/>

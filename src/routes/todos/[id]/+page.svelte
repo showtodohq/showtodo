@@ -97,7 +97,7 @@
 					crumbs={[
 						{ label: 'Feed', href: '/' },
 						...(detailRes.todo.topicHash
-							? [{ label: `#${detailRes.todo.content.slice(0, 16)}`, href: `/topics/${detailRes.todo.topicHash}` }]
+							? [{ label: `#${detailRes.todo.content.slice(0, 16)}`, href: `/goals/${detailRes.todo.topicHash}` }]
 							: []),
 						{ label: 'Todo Details' }
 					]}

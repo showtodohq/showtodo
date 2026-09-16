@@ -43,9 +43,9 @@
 	<!-- Header bar: unified pattern with icon, full title, badge and action link -->
 	<div class="flex items-center justify-between">
 		<a
-			href="/topics"
+			href="/goals"
 			class="flex items-center gap-2 font-semibold text-xs text-zinc-900 dark:text-zinc-100 hover:text-amber-600 dark:hover:text-amber-400 transition-colors group/title"
-			title="Go to topics square"
+			title="Go to shared goals"
 		>
 			<div class="flex h-6 w-6 items-center justify-center rounded-lg bg-orange-50 dark:bg-orange-950/50 text-orange-600 dark:text-orange-400 shrink-0">
 				<Icon icon="lucide:flame" class="h-3.5 w-3.5" />
@@ -57,7 +57,7 @@
 			<span class="text-[10px] text-zinc-400">TOP 5</span>
 			<span class="text-[10px] text-zinc-300 dark:text-zinc-700">·</span>
 			<a
-				href="/topics"
+				href="/goals"
 				class="inline-flex items-center gap-0.5 text-[11px] font-medium text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100 transition-colors group/link cursor-pointer font-sans"
 				title="View all trending goals"
 			>
@@ -99,9 +99,9 @@
 					<!-- Title & actions -->
 					<div class="flex items-center justify-between gap-2">
 						<a
-							href="/topics/{card.topicHash}?date={getTodayString()}"
+							href="/goals/{card.topicHash}?date={getTodayString()}"
 							class="min-w-0 flex-1 group/title focus:outline-hidden"
-							title="View topic details"
+							title="View goal details"
 						>
 							<span
 								class="text-xs font-semibold text-zinc-900 dark:text-zinc-100 group-hover/title:underline truncate block leading-snug {isAllDone ? 'text-amber-950 dark:text-amber-100' : ''}"
@@ -144,9 +144,9 @@
 					<!-- Bottom: stats & avatars -->
 					<div class="flex items-center justify-between text-[11px] font-mono {isAllDone ? 'text-amber-600/90 dark:text-amber-400/90 font-medium' : 'text-zinc-400'}">
 						<a
-							href="/topics/{card.topicHash}?date={getTodayString()}"
+							href="/goals/{card.topicHash}?date={getTodayString()}"
 							class="flex items-center gap-1 hover:underline cursor-pointer"
-							title="View topic details"
+							title="View goal details"
 						>
 							{#if isAllDone}
 								<Icon icon="lucide:sparkles" class="h-3.5 w-3.5 text-amber-500 shrink-0" />

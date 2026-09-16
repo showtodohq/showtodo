@@ -6,12 +6,12 @@ describe('BreadcrumbNav rendering test', () => {
 	it('renders back label text when no crumbs are provided', () => {
 		const rendered = render(BreadcrumbNav, {
 			props: {
-				backHref: '/topics',
-				backLabel: 'Back to Topics'
+				backHref: '/goals',
+				backLabel: 'Back to Goals'
 			}
 		});
 
-		expect(rendered.body).toContain('Back to Topics');
+		expect(rendered.body).toContain('Back to Goals');
 	});
 
 	it('renders crumbs and hides redundant back label text when crumbs are provided', () => {

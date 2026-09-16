@@ -258,17 +258,17 @@
 							<p class="text-xs text-zinc-400">Shared goals with the most participants</p>
 						</div>
 						<a
-							href="/topics"
+							href="/goals"
 							class="text-xs font-semibold text-emerald-600 dark:text-emerald-400 hover:underline"
 						>
-							Explore Topics →
+							Explore Goals →
 						</a>
 					</div>
 
 					<div class="space-y-1.5">
 						{#each topTopics as topic (topic.topicHash)}
 							<a
-								href="/topics/{topic.topicHash}"
+								href="/goals/{topic.topicHash}"
 								class="flex items-center justify-between py-2.5 px-3 rounded-xl hover:bg-zinc-100/70 dark:hover:bg-zinc-800/60 transition-all duration-150 group"
 							>
 								<div class="min-w-0 flex-1">

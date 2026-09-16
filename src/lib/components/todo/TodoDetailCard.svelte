@@ -294,7 +294,7 @@
 
 					{#if topicParticipantCount > 1 || hasJoined}
 						<a
-							href="/topics/{todo.topicHash}"
+							href="/goals/{todo.topicHash}"
 							class="font-semibold text-xs transition-colors hover:underline shrink-0 {hasJoined
 								? 'text-emerald-700 dark:text-emerald-300'
 								: 'text-amber-700 dark:text-amber-300'}"

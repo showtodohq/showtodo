@@ -56,7 +56,7 @@
 </script>
 
 <svelte:head>
-	<title>Topics · ShowTodo</title>
+	<title>Goals · ShowTodo</title>
 </svelte:head>
 
 <div class="w-full space-y-5 sm:space-y-6">
@@ -64,7 +64,7 @@
 	<div class="flex items-center justify-between pb-2 border-b border-zinc-100 dark:border-zinc-800/60">
 		<div class="flex items-center gap-2">
 			<span class="text-base sm:text-lg font-bold tracking-tight text-zinc-900 dark:text-zinc-100">
-				Topics
+				Goals
 			</span>
 			{#if topicsRes.loaded}
 				<span class="px-2 py-0.5 rounded-full text-xs font-mono font-medium bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400">

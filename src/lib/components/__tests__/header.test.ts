@@ -17,10 +17,10 @@ describe('Header rendering test', () => {
 		expect(rendered.body).toContain('aria-label="Feed"');
 		expect(rendered.body).toContain('title="Feed"');
 
-		// 2. Topics Tab
-		expect(rendered.body).toContain('href="/topics"');
-		expect(rendered.body).toContain('aria-label="Topics"');
-		expect(rendered.body).toContain('title="Topics"');
+		// 2. Goals Tab
+		expect(rendered.body).toContain('href="/goals"');
+		expect(rendered.body).toContain('aria-label="Goals"');
+		expect(rendered.body).toContain('title="Goals"');
 
 		// 3. Stats Tab
 		expect(rendered.body).toContain('href="/stats"');
@@ -29,7 +29,7 @@ describe('Header rendering test', () => {
 
 		// 4. Responsive label text
 		expect(rendered.body).toContain('<span class="hidden sm:inline">Feed</span>');
-		expect(rendered.body).toContain('<span class="hidden sm:inline">Topics</span>');
+		expect(rendered.body).toContain('<span class="hidden sm:inline">Goals</span>');
 		expect(rendered.body).toContain('<span class="hidden sm:inline">Stats</span>');
 	});
 
