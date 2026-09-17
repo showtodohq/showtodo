@@ -180,7 +180,7 @@
 
 					<!-- 扩展槽位 0.5：我的待办清单工作台 -->
 					<a
-						href="/my"
+						href={`/@${userStore.handle || userStore.id}/todolist`}
 						onclick={closePopover}
 						class="flex items-center justify-between px-2.5 py-1.5 rounded-xl text-xs text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800/80 transition-colors cursor-pointer group/link"
 					>

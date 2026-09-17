@@ -142,4 +142,72 @@ describe('createMyTodosResource (TDD)', () => {
 		expect(day15).toBeDefined();
 		expect(day15?.todos.length).toBe(1);
 	});
+
+	it('loads public todos for a specific targetHandle and sets isMe to false for spectators', async () => {
+		// 访问者登录为 user-viewer
+		userStore.setSession({
+			id: 'user-viewer',
+			email: 'viewer@example.com',
+			nickname: '访客',
+			handle: 'viewer'
+		});
+
+		// 模拟目标用户 alex
+		vi.spyOn(api, 'getUserById').mockResolvedValueOnce({
+			user: {
+				id: 'user-alex',
+				handle: 'alex_dev',
+				nickname: 'Alex',
+				avatar: null,
+				createdAt: '2026-01-01',
+				updatedAt: '2026-01-01'
+			}
+		});
+
+		const alexTodo = mockTodo('alex-1', 'in_progress', 'Alex 的公开待办');
+		alexTodo.authorId = 'user-alex';
+		vi.spyOn(api, 'getTodos').mockResolvedValueOnce({
+			todos: [alexTodo],
+			nextCursor: null
+		});
+
+		const resource = createMyTodosResource('alex_dev');
+		await resource.load();
+
+		expect(resource.targetUser?.handle).toBe('alex_dev');
+		expect(resource.isMe).toBe(false);
+		expect(resource.todos.length).toBe(1);
+		expect(resource.todos[0].content).toBe('Alex 的公开待办');
+	});
+
+	it('sets isMe to true when targetHandle matches current logged-in user', async () => {
+		userStore.setSession({
+			id: 'user-alex',
+			email: 'alex@example.com',
+			nickname: 'Alex',
+			handle: 'alex_dev'
+		});
+
+		vi.spyOn(api, 'getUserById').mockResolvedValueOnce({
+			user: {
+				id: 'user-alex',
+				handle: 'alex_dev',
+				nickname: 'Alex',
+				avatar: null,
+				createdAt: '2026-01-01',
+				updatedAt: '2026-01-01'
+			}
+		});
+
+		vi.spyOn(api, 'getTodos').mockResolvedValueOnce({
+			todos: [],
+			nextCursor: null
+		});
+
+		const resource = createMyTodosResource('alex_dev');
+		await resource.load();
+
+		expect(resource.targetUser?.handle).toBe('alex_dev');
+		expect(resource.isMe).toBe(true);
+	});
 });

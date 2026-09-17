@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { page } from '$app/state';
+	import { goto } from '$app/navigation';
 	import { untrack } from 'svelte';
 	import type { CategoryId } from '$lib/types/todo';
 	import { userStore } from '$lib/stores/user.svelte';
@@ -7,15 +8,14 @@
 	import { createMyTodosResource } from '$lib/stores/resources/use-my-todos.svelte';
 	import BreadcrumbNav from '$lib/components/ui/BreadcrumbNav.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
-	import Input from '$lib/components/ui/Input.svelte';
+	import Avatar from '$lib/components/ui/Avatar.svelte';
 	import TodoComposer from '$lib/components/todo/TodoComposer.svelte';
 	import TodoStreamView from '$lib/components/todo/TodoStreamView.svelte';
 	import TodoKanbanView from '$lib/components/todo/TodoKanbanView.svelte';
 	import TodoCalendarView from '$lib/components/todo/TodoCalendarView.svelte';
 	import Icon from '@iconify/svelte';
-	import { api } from '$lib/services/api';
-	import { toast } from '$lib/stores/toast.svelte';
 
+	const handleParam = $derived(page.params.handle);
 	const resource = createMyTodosResource();
 
 	let composerCategory = $state<CategoryId | null>(null);
@@ -45,51 +45,27 @@
 		window.history.replaceState(window.history.state, '', url.pathname + url.search);
 	}
 
-	// 监听当前登录用户，拉取数据
+	// 监听当前路由 handle 与登录用户变化拉取数据
+	let currentLoadedKey = $state<string | null>(null);
+
 	$effect(() => {
+		const targetHandle = handleParam;
 		const viewerId = userStore.id;
-		untrack(() => {
-			if (viewerId) {
-				void resource.load();
-				void todayStore.load();
-			}
-		});
+		const key = `${targetHandle}:${viewerId}`;
+		if (targetHandle && key !== currentLoadedKey) {
+			currentLoadedKey = key;
+			untrack(() => {
+				void resource.load(targetHandle);
+				if (userStore.isAuthor(targetHandle)) {
+					void todayStore.load();
+				}
+			});
+		}
 	});
-
-	// 未登录访客绑定邮箱
-	let guestEmail = $state('');
-	let loggingIn = $state(false);
-
-	async function handleGuestLogin(e: SubmitEvent) {
-		e.preventDefault();
-		const clean = guestEmail.trim().toLowerCase();
-		if (!clean) return;
-
-		const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-		if (!emailRegex.test(clean)) {
-			toast.error('Please enter a valid email address');
-			return;
-		}
-
-		loggingIn = true;
-		try {
-			const res = await api.syncUser(clean);
-			if (res.user) {
-				userStore.updateUserFromProfile(res.user);
-				toast.success(`Welcome back, ${res.user.nickname}!`);
-				void resource.load(true);
-			}
-		} catch (err) {
-			console.error('Failed to login:', err);
-			toast.error(`Sign in failed: ${(err as Error).message}`);
-		} finally {
-			loggingIn = false;
-		}
-	}
 </script>
 
 <svelte:head>
-	<title>My Todos · ShowTodo</title>
+	<title>{resource.targetUser ? `${resource.targetUser.nickname}'s Todolist · ShowTodo` : 'Todolist · ShowTodo'}</title>
 </svelte:head>
 
 <div class="w-full space-y-6 sm:space-y-8">
@@ -99,55 +75,74 @@
 		backLabel="Back to Feed"
 		crumbs={[
 			{ label: 'Feed', href: '/' },
-			{ label: 'My Todos' }
+			{ label: `@${handleParam}`, href: `/@${handleParam}` },
+			{ label: 'Todolist' }
 		]}
 	/>
 
-	<!-- Guest sign-in card -->
-	{#if !userStore.email}
+	{#if resource.error === 'User not found'}
+		<!-- User not found 404 state -->
 		<div
-			class="rounded-3xl border border-dashed border-zinc-200 dark:border-zinc-800/80 py-20 text-center text-xs text-zinc-400 space-y-4 max-w-md mx-auto"
+			class="p-8 rounded-3xl border border-dashed border-red-200 dark:border-red-900/50 bg-red-50/50 dark:bg-red-950/20 text-center space-y-3"
 		>
-			<div class="inline-flex p-3 rounded-2xl bg-zinc-100 dark:bg-zinc-800 text-zinc-400">
-				<Icon icon="lucide:inbox" class="h-8 w-8" />
+			<div class="inline-flex p-3 rounded-2xl bg-red-100/80 dark:bg-red-950/60 text-red-500">
+				<Icon icon="lucide:user-x" class="h-6 w-6" />
 			</div>
-			<div class="space-y-1.5">
-				<div class="text-sm font-semibold text-zinc-800 dark:text-zinc-200">
-					Unlock your personal workbench
-				</div>
-				<p class="text-xs text-zinc-500 dark:text-zinc-400 max-w-xs mx-auto leading-relaxed">
-					Enter your email to sync your todos across Stream, Kanban, and Calendar views.
-				</p>
+			<div class="text-sm font-semibold text-zinc-800 dark:text-zinc-200">
+				User not found
 			</div>
-
-			<form onsubmit={handleGuestLogin} class="space-y-2.5 pt-2 px-6">
-				<Input
-					type="email"
-					size="sm"
-					placeholder="Enter your email (e.g. alex@example.com)"
-					bind:value={guestEmail}
-					required
-					class="w-full text-center text-xs"
-				/>
-				<Button
-					type="submit"
-					variant="primary"
-					size="sm"
-					class="w-full text-xs font-medium"
-					loading={loggingIn}
-					disabled={loggingIn || !guestEmail.trim()}
-				>
-					Sign In & Continue
-				</Button>
-			</form>
+			<p class="text-xs text-zinc-500 max-w-sm mx-auto">
+				The requested user "@{handleParam}" does not exist or may have changed handle.
+			</p>
+			<Button variant="outline" size="sm" onclick={() => goto('/')}>
+				Back to Feed
+			</Button>
 		</div>
 	{:else}
-		<!-- Composer -->
-		<TodoComposer
-			bind:selectedCategory={composerCategory}
-			placeholder="Write down a goal, press Enter to plan..."
-			onsubmit={(data) => resource.createTodo(data)}
-		/>
+		<!-- Header Banner: 作者模式展示发布框，访客模式展示公开看板标牌 -->
+		{#if resource.isMe}
+			<TodoComposer
+				bind:selectedCategory={composerCategory}
+				placeholder="Write down a goal, press Enter to plan..."
+				onsubmit={(data) => resource.createTodo(data)}
+			/>
+		{:else if resource.targetUser}
+			<div
+				class="rounded-3xl border border-zinc-200/80 dark:border-zinc-800 bg-white/70 dark:bg-zinc-900/60 p-4 sm:p-5 backdrop-blur-md shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-3"
+			>
+				<div class="flex items-center gap-3">
+					<a href={`/@${resource.targetUser.handle}`} class="shrink-0 hover:opacity-90 transition-opacity">
+						<Avatar src={resource.targetUser.avatar} name={resource.targetUser.nickname} size="md" />
+					</a>
+					<div class="space-y-0.5">
+						<div class="flex items-center gap-2">
+							<a href={`/@${resource.targetUser.handle}`} class="text-sm font-bold text-zinc-900 dark:text-zinc-100 hover:underline">
+								{resource.targetUser.nickname}
+							</a>
+							<span class="text-xs text-zinc-400 font-mono">@{resource.targetUser.handle}</span>
+						</div>
+						<div class="text-xs text-zinc-500 dark:text-zinc-400 flex items-center gap-1.5">
+							<span class="inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 font-medium">
+								<Icon icon="lucide:globe" class="h-3 w-3 text-emerald-500" />
+								<span>Public Workbench</span>
+							</span>
+							<span class="text-zinc-300 dark:text-zinc-700">·</span>
+							<span class="text-[11px] text-zinc-400">Spectator Mode</span>
+						</div>
+					</div>
+				</div>
+
+				<div class="flex items-center gap-2">
+					<a
+						href={`/@${resource.targetUser.handle}`}
+						class="px-3 py-1.5 rounded-xl border border-zinc-200/80 dark:border-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-800 text-xs font-medium text-zinc-700 dark:text-zinc-300 transition-colors inline-flex items-center gap-1"
+					>
+						<span>View Profile</span>
+						<Icon icon="lucide:arrow-right" class="h-3.5 w-3.5" />
+					</a>
+				</div>
+			</div>
+		{/if}
 
 		<!-- Sticky view switcher bar -->
 		<div

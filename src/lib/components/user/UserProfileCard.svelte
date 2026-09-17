@@ -158,16 +158,28 @@
 				</div>
 			</div>
 
-			{#if isMe}
-				<Button
-					variant="outline"
-					size="xs"
-					onclick={() => (isEditing = true)}
-					class="font-medium"
+			<div class="flex items-center gap-2">
+				<a
+					href={`/@${user.handle}/todolist`}
+					class="px-3 py-1.5 rounded-xl border border-zinc-200/80 dark:border-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-800 text-xs font-medium text-zinc-700 dark:text-zinc-300 transition-colors inline-flex items-center gap-1.5 shadow-2xs cursor-pointer"
+					title="View Todolist (Kanban & Calendar)"
 				>
-					Edit Profile
-				</Button>
-			{/if}
+					<Icon icon="lucide:kanban" class="h-3.5 w-3.5 text-zinc-500" />
+					<span class="hidden sm:inline">Todolist</span>
+					<Icon icon="lucide:arrow-right" class="h-3 w-3 text-zinc-400" />
+				</a>
+
+				{#if isMe}
+					<Button
+						variant="outline"
+						size="xs"
+						onclick={() => (isEditing = true)}
+						class="font-medium"
+					>
+						Edit Profile
+					</Button>
+				{/if}
+			</div>
 		</div>
 	{:else}
 		<!-- Edit studio mode -->

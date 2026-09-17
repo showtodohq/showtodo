@@ -24,9 +24,9 @@
 		<!-- Header bar: unified pattern with icon, full title, badge and action link -->
 		<div class="flex items-center justify-between">
 			<a
-				href="/my"
+				href={`/@${userStore.handle || userStore.id}/todolist`}
 				class="flex items-center gap-2 font-semibold text-xs text-zinc-900 dark:text-zinc-100 hover:text-blue-600 dark:hover:text-blue-400 transition-colors group/title"
-				title="Open My Todos workbench"
+				title="Open My Todolist workbench"
 			>
 				<div class="flex h-6 w-6 items-center justify-center rounded-lg bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400 shrink-0">
 					<Icon icon="lucide:check-circle-2" class="h-3.5 w-3.5" />
@@ -43,9 +43,9 @@
 				{/if}
 
 				<a
-					href="/my"
+					href={`/@${userStore.handle || userStore.id}/todolist`}
 					class="inline-flex items-center gap-0.5 text-[11px] font-medium text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100 transition-colors group/link cursor-pointer font-sans"
-					title="Go to My Todos workbench"
+					title="Go to My Todolist workbench"
 				>
 					<span>View all</span>
 					<Icon icon="lucide:arrow-right" class="h-3 w-3 transition-transform group-hover/link:translate-x-0.5" />

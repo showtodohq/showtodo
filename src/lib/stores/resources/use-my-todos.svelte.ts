@@ -4,6 +4,7 @@ import { todoRegistry } from '$lib/stores/entities/todo-registry.svelte';
 import { todoMutations } from '$lib/stores/mutations.svelte';
 import { formatDateISO, isSameDay } from '$lib/utils/calendar';
 import type { Todo, TodoStatus, CategoryId } from '$lib/types/todo';
+import type { UserProfile, CurrentUserSession } from '$lib/types/user';
 
 export interface CalendarDayCell {
 	date: Date;
@@ -14,10 +15,20 @@ export interface CalendarDayCell {
 	todos: Todo[];
 }
 
-export function createMyTodosResource() {
+export function createMyTodosResource(initialTargetHandle?: string) {
 	let loading = $state(false);
 	let error = $state<string | null>(null);
 	let todoIds = $state<string[]>([]);
+	let targetUser = $state<UserProfile | CurrentUserSession | null>(null);
+	let targetHandle = $state<string | null>(initialTargetHandle || null);
+
+	const isMe = $derived.by(() => {
+		if (targetUser) {
+			return userStore.isAuthor(targetUser.id, targetUser.email, targetUser.handle);
+		}
+		if (!targetHandle && userStore.id) return true;
+		return false;
+	});
 
 	// 视图切换状态：'stream' | 'kanban' | 'calendar'
 	let activeView = $state<'stream' | 'kanban' | 'calendar'>('stream');
@@ -194,10 +205,12 @@ export function createMyTodosResource() {
 
 	// 状态变更动作
 	function handleToggle(todo: Todo, nextStatus?: TodoStatus, e?: MouseEvent) {
+		if (!isMe) return;
 		todoMutations.toggleStatus(todo.id, nextStatus, e, todo);
 	}
 
 	function changeStatus(todoId: string, nextStatus: TodoStatus, e?: MouseEvent) {
+		if (!isMe) return;
 		const t = todoRegistry.get(todoId);
 		todoMutations.toggleStatus(todoId, nextStatus, e, t);
 	}
@@ -214,6 +227,7 @@ export function createMyTodosResource() {
 		isNotePublic?: boolean;
 		category?: CategoryId | string | null;
 	}) {
+		if (!isMe) return null;
 		const created = await todoMutations.createTodo(data);
 		if (created && !todoIds.includes(created.id)) {
 			todoIds = [created.id, ...todoIds];
@@ -227,22 +241,49 @@ export function createMyTodosResource() {
 	}
 
 	// 远程拉取数据
-	async function load(force = false) {
-		const viewerId = userStore.id;
-		if (!viewerId) {
-			todoIds = [];
-			loading = false;
-			return;
+	async function load(handleOrForce?: string | boolean) {
+		let handleToLoad = targetHandle;
+		if (typeof handleOrForce === 'string') {
+			handleToLoad = handleOrForce;
+			targetHandle = handleOrForce;
 		}
 
+		const viewerId = userStore.id;
 		loading = true;
 		error = null;
+
 		try {
+			let targetAuthorId = viewerId;
+
+			if (handleToLoad) {
+				try {
+					const res = await api.getUserById(
+						handleToLoad,
+						viewerId ? { currentUserId: viewerId } : undefined
+					);
+					targetUser = res.user;
+					targetAuthorId = res.user.id;
+				} catch (uErr) {
+					console.error('Failed to load user profile for todolist:', uErr);
+					error = 'User not found';
+					todoIds = [];
+					targetUser = null;
+					return;
+				}
+			} else {
+				if (!viewerId) {
+					todoIds = [];
+					targetUser = null;
+					return;
+				}
+				targetUser = userStore.current;
+			}
+
 			const fetched: Todo[] = [];
 			let cursor: string | undefined;
 			do {
 				const res = await api.getTodos({
-					authorId: viewerId,
+					authorId: targetAuthorId,
 					currentUserId: viewerId,
 					limit: 100,
 					cursor
@@ -254,7 +295,7 @@ export function createMyTodosResource() {
 			todoRegistry.upsertMany(fetched);
 			todoIds = [...new Set(fetched.map((t) => t.id))];
 		} catch (err) {
-			console.error('Failed to load my todos:', err);
+			console.error('Failed to load todos for workbench:', err);
 			error = (err as Error).message || 'Failed to load todos';
 		} finally {
 			loading = false;
@@ -267,6 +308,12 @@ export function createMyTodosResource() {
 		},
 		get error() {
 			return error;
+		},
+		get targetUser() {
+			return targetUser;
+		},
+		get isMe() {
+			return isMe;
 		},
 		get todos() {
 			return todos;
