@@ -129,7 +129,7 @@
 			>
 				<div class="flex items-start gap-3.5 min-w-0 flex-1">
 					<a
-						href="/users/{p.user?.handle || p.user?.id || ''}"
+						href="/@{p.user?.handle || p.user?.id || ''}"
 						class="shrink-0 group/avatar"
 					>
 						<Avatar
@@ -143,7 +143,7 @@
 					<div class="space-y-1.5 min-w-0 flex-1">
 						<div class="flex items-center gap-2 flex-wrap">
 							<a
-								href="/users/{p.user?.handle || p.user?.id || ''}"
+								href="/@{p.user?.handle || p.user?.id || ''}"
 								class="text-sm font-semibold text-zinc-900 dark:text-zinc-100 hover:text-blue-600 transition-colors"
 							>
 								{p.user?.nickname || 'User'}
@@ -182,7 +182,7 @@
 						<!-- View todo details link -->
 						<div class="pt-1">
 							<a
-								href="/todos/{p.shortId || p.todoId}"
+								href="/t/{p.shortId || p.todoId}"
 								class="text-[11px] text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 hover:underline"
 							>
 								View activity timeline →

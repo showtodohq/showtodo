@@ -109,7 +109,7 @@
 			<!-- 【第 1 段：身份识别区 (Identity Header)】 -->
 			<div class="p-3 bg-zinc-50/50 dark:bg-zinc-900/30 border-b border-zinc-100 dark:border-zinc-800">
 				{#if userStore.current}
-					{@const myProfileUrl = `/users/${userStore.handle || userStore.id}`}
+					{@const myProfileUrl = `/@${userStore.handle || userStore.id}`}
 					<div class="flex items-center gap-3">
 						<a href={myProfileUrl} onclick={closePopover} class="shrink-0 hover:opacity-85 transition-opacity" title="Go to profile">
 							<Avatar src={userStore.avatar} name={userStore.nickname} size="md" class="ring-1 ring-zinc-200 dark:ring-zinc-700 cursor-pointer" />
@@ -162,7 +162,7 @@
 				{#if userStore.current}
 					<!-- 扩展槽位 0：个人主页 -->
 					<a
-						href={`/users/${userStore.handle || userStore.id}`}
+						href={`/@${userStore.handle || userStore.id}`}
 						onclick={closePopover}
 						class="flex items-center justify-between px-2.5 py-1.5 rounded-xl text-xs text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800/80 transition-colors cursor-pointer group/link"
 					>
@@ -180,7 +180,7 @@
 
 					<!-- 扩展槽位 0.5：我的待办清单工作台 -->
 					<a
-						href="/todos"
+						href="/my"
 						onclick={closePopover}
 						class="flex items-center justify-between px-2.5 py-1.5 rounded-xl text-xs text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800/80 transition-colors cursor-pointer group/link"
 					>

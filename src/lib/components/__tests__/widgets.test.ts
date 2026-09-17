@@ -81,7 +81,7 @@ describe('ActivityHeatmap & SiteStatsWidget rendering test', () => {
 
 		const rendered = render(MyTodayWidget);
 		expect(rendered.body).toContain("My Today's Todos");
-		expect(rendered.body).toContain('href="/todos"');
+		expect(rendered.body).toContain('href="/my"');
 		expect(rendered.body).toContain('View all');
 	});
 });

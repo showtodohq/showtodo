@@ -82,7 +82,7 @@
 	<!-- Author header & checkbox -->
 	<div class="flex items-start justify-between gap-4">
 		<a
-			href="/users/{todo.author?.handle || todo.authorId}"
+			href="/@{todo.author?.handle || todo.authorId}"
 			class="flex items-center gap-3 group/author"
 		>
 			<Avatar

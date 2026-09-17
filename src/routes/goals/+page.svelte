@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import { page } from '$app/state';
 	import { userStore } from '$lib/stores/user.svelte';
 	import { toast } from '$lib/stores/toast.svelte';
 	import { createTopicsResource } from '$lib/stores/resources/use-topics.svelte';
@@ -24,6 +25,17 @@
 				: 'all'
 	);
 
+	function updateTabQuery(tab: ViewTab) {
+		if (typeof window === 'undefined') return;
+		const url = new URL(window.location.href);
+		if (tab === 'all') {
+			url.searchParams.delete('tab');
+		} else {
+			url.searchParams.set('tab', tab);
+		}
+		window.history.replaceState(window.history.state, '', url.pathname + url.search);
+	}
+
 	function handleTabSwitch(tab: ViewTab) {
 		if (tab === 'mine') {
 			if (!userStore.email) {
@@ -39,7 +51,25 @@
 			topicsRes.setScope('all');
 			topicsRes.setTimeRange('all');
 		}
+		updateTabQuery(tab);
 	}
+
+	let isUrlInitialized = false;
+	$effect(() => {
+		if (!isUrlInitialized) {
+			const tabParam = page.url.searchParams.get('tab') as ViewTab | null;
+			if (tabParam === 'today') {
+				topicsRes.setScope('all');
+				topicsRes.setTimeRange('today');
+			} else if (tabParam === 'mine') {
+				if (userStore.email) {
+					topicsRes.setTimeRange('all');
+					topicsRes.setScope('mine');
+				}
+			}
+			isUrlInitialized = true;
+		}
+	});
 
 	function handleSearchChange(e: Event) {
 		const val = (e.target as HTMLInputElement).value;
@@ -186,6 +216,7 @@
 							topicsRes.setSearch('');
 							topicsRes.setMinParticipants(1);
 							searchInput = '';
+							updateTabQuery('all');
 						}}
 					>
 						Reset all filters

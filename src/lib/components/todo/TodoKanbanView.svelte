@@ -86,7 +86,7 @@
 
 								<!-- Todo content link -->
 								<a
-									href="/todos/{todo.shortId || todo.id}"
+									href="/t/{todo.shortId || todo.id}"
 									class="block text-xs font-semibold leading-relaxed text-zinc-800 dark:text-zinc-200 hover:text-zinc-950 dark:hover:text-white transition-colors {todo.status === 'done'
 										? 'line-through text-zinc-400 dark:text-zinc-500'
 										: todo.status === 'abandoned'

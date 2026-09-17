@@ -305,7 +305,7 @@
 					<div class="space-y-1.5">
 						{#each topUsers as user, idx (user.id)}
 							<a
-								href="/users/{user.id}"
+								href="/@{user.handle || user.id}"
 								class="flex items-center justify-between py-2 px-3 rounded-xl hover:bg-zinc-100/70 dark:hover:bg-zinc-800/60 transition-all duration-150 group"
 							>
 								<div class="flex items-center gap-3 min-w-0">

@@ -16,7 +16,7 @@
 	import ActivityHeatmap from '$lib/components/stats/ActivityHeatmap.svelte';
 	import Icon from '@iconify/svelte';
 
-	const profileRes = createUserProfileResource(page.params.id);
+	const profileRes = createUserProfileResource(page.params.handle);
 
 	let isUrlInitialized = false;
 
@@ -76,10 +76,10 @@
 	let currentLoadedId = $state<string | null>(null);
 
 	$effect(() => {
-		const paramId = page.params.id;
-		if (paramId && paramId !== currentLoadedId) {
-			currentLoadedId = paramId;
-			profileRes.load(paramId);
+		const paramHandle = page.params.handle;
+		if (paramHandle && paramHandle !== currentLoadedId) {
+			currentLoadedId = paramHandle;
+			profileRes.load(paramHandle);
 		}
 	});
 
@@ -90,8 +90,8 @@
 	}) {
 		const updatedUser = await profileRes.handleSaveProfile(data);
 		// 若 handle 发生变更，无感替换浏览器地址栏路由，防止刷新 404 或分享旧失效链接
-		if (updatedUser && page.params.id && page.params.id !== updatedUser.handle) {
-			goto(`/users/${updatedUser.handle}`, { replaceState: true, noScroll: true });
+		if (updatedUser && page.params.handle && page.params.handle !== updatedUser.handle) {
+			goto(`/@${updatedUser.handle}`, { replaceState: true, noScroll: true });
 		}
 	}
 </script>

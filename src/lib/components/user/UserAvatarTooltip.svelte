@@ -45,7 +45,7 @@
 	const avatar = $derived(user?.avatar ?? (isMe && userStore.email ? userStore.avatar : null));
 
 	const profileUrl = $derived(
-		handle ? `/users/${handle}` : (user?.id || (isMe ? userStore.id : null)) ? `/users/${user?.id || userStore.id}` : null
+		handle ? `/@${handle}` : (user?.id || (isMe ? userStore.id : null)) ? `/@${user?.id || userStore.id}` : null
 	);
 
 	const alignClasses = {

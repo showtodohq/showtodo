@@ -9,7 +9,7 @@ vi.mock('$app/state', () => ({
 }));
 
 describe('Header rendering test', () => {
-	it('renders three core navigation tabs with icons, aria-labels, and responsive text', () => {
+	it('renders four core navigation tabs with icons, aria-labels, and responsive text', () => {
 		const rendered = render(Header);
 
 		// 1. Feed Tab
@@ -22,14 +22,20 @@ describe('Header rendering test', () => {
 		expect(rendered.body).toContain('aria-label="Goals"');
 		expect(rendered.body).toContain('title="Goals"');
 
-		// 3. Stats Tab
+		// 3. My Tab
+		expect(rendered.body).toContain('href="/my"');
+		expect(rendered.body).toContain('aria-label="My"');
+		expect(rendered.body).toContain('title="My"');
+
+		// 4. Stats Tab
 		expect(rendered.body).toContain('href="/stats"');
 		expect(rendered.body).toContain('aria-label="Stats"');
 		expect(rendered.body).toContain('title="Stats"');
 
-		// 4. Responsive label text
+		// 5. Responsive label text
 		expect(rendered.body).toContain('<span class="hidden sm:inline">Feed</span>');
 		expect(rendered.body).toContain('<span class="hidden sm:inline">Goals</span>');
+		expect(rendered.body).toContain('<span class="hidden sm:inline">My</span>');
 		expect(rendered.body).toContain('<span class="hidden sm:inline">Stats</span>');
 	});
 

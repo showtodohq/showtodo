@@ -24,7 +24,7 @@
 		<!-- Header bar: unified pattern with icon, full title, badge and action link -->
 		<div class="flex items-center justify-between">
 			<a
-				href="/todos"
+				href="/my"
 				class="flex items-center gap-2 font-semibold text-xs text-zinc-900 dark:text-zinc-100 hover:text-blue-600 dark:hover:text-blue-400 transition-colors group/title"
 				title="Open My Todos workbench"
 			>
@@ -43,7 +43,7 @@
 				{/if}
 
 				<a
-					href="/todos"
+					href="/my"
 					class="inline-flex items-center gap-0.5 text-[11px] font-medium text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100 transition-colors group/link cursor-pointer font-sans"
 					title="Go to My Todos workbench"
 				>
@@ -75,7 +75,7 @@
 					>
 						<!-- 统一 TodoContent 组件 (紧凑截断模式，点击进入详情) -->
 						<a
-							href="/todos/{todo.shortId || todo.id}"
+							href="/t/{todo.shortId || todo.id}"
 							class="flex-1 min-w-0 group/link focus:outline-hidden"
 							title="View todo details"
 						>

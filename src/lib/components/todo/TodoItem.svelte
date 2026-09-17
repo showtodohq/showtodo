@@ -39,12 +39,12 @@
 	const relativeTime = $derived(formatRelativeTime(todo.createdAt));
 	const authorProfileUrl = $derived(
 		effectiveAuthor?.handle
-			? `/users/${effectiveAuthor.handle}`
+			? `/@${effectiveAuthor.handle}`
 			: effectiveAuthor?.id
-				? `/users/${effectiveAuthor.id}`
+				? `/@${effectiveAuthor.id}`
 				: null
 	);
-	const todoDetailUrl = $derived(`/todos/${todo.shortId || todo.id}`);
+	const todoDetailUrl = $derived(`/t/${todo.shortId || todo.id}`);
 </script>
 
 <div
