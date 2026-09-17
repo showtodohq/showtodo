@@ -6,6 +6,7 @@
 		status?: TodoStatus | string;
 		isMine?: boolean;
 		size?: 'sm' | 'md';
+		defaultOpen?: boolean;
 		ontoggle?: (nextStatus: TodoStatus, e?: MouseEvent) => void;
 		class?: string;
 	}
@@ -14,6 +15,7 @@
 		status = 'pending',
 		isMine = true,
 		size = 'md',
+		defaultOpen = false,
 		ontoggle,
 		class: className = ''
 	}: Props = $props();
@@ -31,7 +33,8 @@
 		}
 	};
 
-	let isMenuOpen = $state(false);
+	// svelte-ignore state_referenced_locally
+	let isMenuOpen = $state(defaultOpen);
 	let menuCloseTimeout: ReturnType<typeof setTimeout> | null = null;
 
 	function handleMouseEnter() {
@@ -127,66 +130,50 @@
 			{/if}
 		</button>
 
-		<!-- Hover status menu popup -->
+		<!-- 悬停 4 态极简微型选择器 (正上方弹出胶囊条) -->
 		{#if isMenuOpen}
 			<div
-				class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 z-40 flex items-center gap-1.5 p-1 rounded-full bg-zinc-900/95 dark:bg-zinc-100/95 shadow-xl backdrop-blur-sm animate-in fade-in zoom-in-95 duration-100"
+				class="absolute bottom-full right-0 mb-2 z-50 flex items-center gap-1 p-1 rounded-xl bg-white dark:bg-zinc-900 shadow-xl border border-zinc-200/90 dark:border-zinc-800 animate-in fade-in zoom-in-95 duration-150 select-none whitespace-nowrap"
 			>
 				{#each TODO_STATUSES as st}
+					{@const isActive = st.id === currentStatus}
 					<button
 						type="button"
 						onclick={(e) => handleSelectStatus(st.id, e)}
-						class="flex h-6 w-6 items-center justify-center rounded-full transition-transform hover:scale-125 active:scale-95 cursor-pointer {currentStatus ===
-						st.id
-							? 'ring-2 ring-blue-500 bg-zinc-800 dark:bg-zinc-200'
-							: 'hover:bg-zinc-800 dark:hover:bg-zinc-200'}"
+						class="flex items-center gap-1.5 px-2 py-1 rounded-lg text-xs font-medium transition-all duration-100 cursor-pointer {isActive
+							? 'bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900 font-semibold shadow-2xs'
+							: 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-zinc-100'}"
 						title="{st.label}: {st.description}"
 					>
 						{#if st.id === 'pending'}
-							<svg
-								class="h-3.5 w-3.5 text-zinc-400 dark:text-zinc-600"
-								viewBox="0 0 24 24"
-								fill="none"
-								stroke="currentColor"
-								stroke-width="2"
-							>
+							<!-- 待办：标准空心正圆矢量 SVG (继承 currentColor) -->
+							<svg class="h-2.5 w-2.5 stroke-[2.2]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
 								<circle cx="12" cy="12" r="9" />
 							</svg>
 						{:else if st.id === 'in_progress'}
-							<svg
-								class="h-3.5 w-3.5 text-blue-400 dark:text-blue-600"
-								viewBox="0 0 24 24"
-								fill="none"
-								stroke="currentColor"
-								stroke-width="2"
-							>
-								<circle cx="12" cy="12" r="9" />
-								<path d="M12 12 L12 3 A9 9 0 0 1 21 12 Z" fill="currentColor" stroke="none" />
+							<!-- 进行中：标准 ◔ 四分之一填充圆 (外环 + 右上角 1/4 扇形填充，继承 currentColor) -->
+							<svg class="h-2.5 w-2.5" viewBox="0 0 24 24" fill="none">
+								<circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2.2" />
+								<path d="M12 12 L12 3 A9 9 0 0 1 21 12 Z" fill="currentColor" />
 							</svg>
 						{:else if st.id === 'done'}
-							<svg
-								class="h-3.5 w-3.5 text-emerald-400 dark:text-emerald-600 stroke-[3]"
-								fill="none"
-								viewBox="0 0 24 24"
-								stroke="currentColor"
-							>
+							<!-- 已完成：加粗打勾矢量 SVG -->
+							<svg class="h-2.5 w-2.5 stroke-[3]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
 								<path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
 							</svg>
 						{:else if st.id === 'abandoned'}
-							<svg
-								class="h-3.5 w-3.5 text-zinc-400 dark:text-zinc-600 stroke-[2.5]"
-								fill="none"
-								viewBox="0 0 24 24"
-								stroke="currentColor"
-							>
+							<!-- 已放弃：极简叉号矢量 SVG -->
+							<svg class="h-2.5 w-2.5 stroke-[2.5]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
 								<path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
 							</svg>
 						{/if}
+						<span class="text-[11px] leading-none">{st.shortActionLabel}</span>
 					</button>
 				{/each}
 
+				<!-- 底部小箭头 -->
 				<div
-					class="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 rotate-45 bg-zinc-900/95 dark:bg-zinc-100/95"
+					class="absolute -bottom-1 right-2.5 w-2 h-2 rotate-45 bg-white dark:bg-zinc-900 border-r border-b border-zinc-200/90 dark:border-zinc-800"
 				></div>
 			</div>
 		{/if}
