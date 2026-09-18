@@ -190,31 +190,7 @@
 						<Icon icon="lucide:arrow-right" class="h-3 w-3 text-zinc-400 transition-transform group-hover/link:translate-x-0.5" />
 					</a>
 
-					<!-- 扩展槽位 1：快捷键指南 -->
-					<div
-						class="flex items-center justify-between px-2.5 py-1.5 rounded-xl text-xs text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800/80 transition-colors cursor-default"
-					>
-						<span class="flex items-center gap-2">
-							<svg class="h-3.5 w-3.5 text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
-							</svg>
-							Quick Post
-						</span>
-						<kbd class="font-mono text-[10px] bg-zinc-100 dark:bg-zinc-800 text-zinc-500 px-1.5 py-0.5 rounded border border-zinc-200 dark:border-zinc-700">Enter</kbd>
-					</div>
 
-					<!-- 扩展槽位 2：收起输入框 -->
-					<div
-						class="flex items-center justify-between px-2.5 py-1.5 rounded-xl text-xs text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800/80 transition-colors cursor-default"
-					>
-						<span class="flex items-center gap-2">
-							<svg class="h-3.5 w-3.5 text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-							</svg>
-							Cancel / Close
-						</span>
-						<kbd class="font-mono text-[10px] bg-zinc-100 dark:bg-zinc-800 text-zinc-500 px-1.5 py-0.5 rounded border border-zinc-200 dark:border-zinc-700">Esc</kbd>
-					</div>
 				{:else}
 					<!-- 未登录状态：紧凑的邮箱绑定表单 -->
 					<form onsubmit={handleSaveUser} class="p-2 space-y-2">
