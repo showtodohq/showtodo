@@ -69,7 +69,7 @@
 			>
 				<Icon icon="lucide:flame" class="h-4 w-4 text-orange-500 shrink-0" />
 				{#if topic.todayParticipants > 0}
-					<span><strong>{topic.todayParticipants}</strong> active today</span>
+					<span><strong>{topic.todayParticipants}</strong> today</span>
 					<span>·</span>
 					<span><strong>{topic.todayDoneCount}</strong> {getStatusConfig('done').label.toLowerCase()}</span>
 					{#if topic.totalParticipants > topic.todayParticipants}
@@ -78,7 +78,7 @@
 						</span>
 					{/if}
 				{:else}
-					<span><strong>{topic.totalParticipants}</strong> total participants</span>
+					<span><strong>{topic.totalParticipants}</strong> total all-time</span>
 					<span>·</span>
 					<span><strong>{topic.doneCount}</strong> {getStatusConfig('done').label.toLowerCase()}</span>
 				{/if}
@@ -111,7 +111,7 @@
 					class="inline-flex items-center gap-1 text-xs font-semibold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800/60 px-3 py-1 rounded-full"
 				>
 					<Icon icon="lucide:check" class="h-3.5 w-3.5 shrink-0" />
-					<span>You joined this goal</span>
+					<span>In my list</span>
 				</span>
 				<span class="text-xs text-zinc-400">
 					Current status: <strong class="text-zinc-700 dark:text-zinc-200"
@@ -131,7 +131,7 @@
 			</div>
 		{:else}
 			<div class="text-xs text-zinc-500 dark:text-zinc-400">
-				Want to work toward this goal together? Click to join and check in!
+				Not in your list yet.
 			</div>
 
 			<Button
@@ -141,7 +141,7 @@
 				onclick={onjoin}
 				class="font-medium"
 			>
-				+ Join Goal
+				Add to my list
 			</Button>
 		{/if}
 	</div>

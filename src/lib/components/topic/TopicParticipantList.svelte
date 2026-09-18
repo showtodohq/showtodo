@@ -78,7 +78,7 @@
 			<h2
 				class="text-xs font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-500"
 			>
-				Participants
+				People Doing This
 			</h2>
 
 			{#if hasHistoryDiff}
@@ -88,7 +88,7 @@
 						class="px-2 py-0.5 rounded-md transition-colors cursor-pointer {activeTab === 'today' ? 'bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 shadow-2xs font-semibold' : 'hover:text-zinc-700 dark:hover:text-zinc-200'}"
 						onclick={() => (activeTab = 'today')}
 					>
-						Active Today ({todayCount})
+						Today ({todayCount})
 					</button>
 					<button
 						type="button"
@@ -110,13 +110,13 @@
 				<Icon icon="lucide:users" class="h-5 w-5" />
 			</div>
 			<div class="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
-				{activeTab === 'today' ? 'No check-ins today yet' : 'No participants yet'}
+				{activeTab === 'today' ? 'No check-ins today yet.' : 'No one yet.'}
 			</div>
-			<p class="text-[11px] text-zinc-400 max-w-xs mx-auto">
-				{activeTab === 'today' && totalCount > 0
-					? `${totalCount} participants joined previously. Click "+ Join Goal" above to be the first today!`
-					: 'Click "+ Join Goal" above to be the first participant!'}
-			</p>
+			{#if activeTab === 'today' && totalCount > 0}
+				<p class="text-[11px] text-zinc-400 max-w-xs mx-auto">
+					{totalCount} people did this previously.
+				</p>
+			{/if}
 		</div>
 	{:else}
 		<div class="space-y-1 sm:space-y-1.5">
@@ -165,7 +165,7 @@
 
 							{#if p.createdAt}
 								<span class="text-[11px] text-zinc-400">
-									· Joined {formatRelativeTime(p.createdAt)}
+									· Added {formatRelativeTime(p.createdAt)}
 								</span>
 							{/if}
 						</div>

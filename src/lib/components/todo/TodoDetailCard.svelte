@@ -238,7 +238,7 @@
 		/>
 	</div>
 
-	<!-- Multiplayer / Goal section -->
+	<!-- Multiplayer / Trending section -->
 	{#if todo.topicHash}
 		<div
 			class="p-4 rounded-2xl border transition-all space-y-3 {hasJoined
@@ -248,58 +248,52 @@
 					: 'bg-zinc-50/80 dark:bg-zinc-800/40 border-zinc-200/80 dark:border-zinc-800'}"
 		>
 			<div class="flex items-center justify-between flex-wrap gap-3">
-				<!-- Left: Goal info & link -->
+				<!-- Left: Trending info & link -->
 				<div class="flex items-center gap-2.5 text-xs flex-wrap">
 					{#if hasJoined}
 						<span class="flex items-center gap-1.5 font-semibold text-emerald-800 dark:text-emerald-200">
 							<Icon icon="lucide:check" class="h-4 w-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
-							<span>You are pursuing this goal together</span>
+							<span>In my list</span>
 						</span>
 						{#if topicParticipantCount > 1}
 							<span class="text-emerald-600/80 dark:text-emerald-400/80">
-								({topicParticipantCount} people together)
+								({topicParticipantCount} people doing this)
 							</span>
 						{/if}
 					{:else if isMine}
 						<div class="flex items-center gap-2 text-zinc-700 dark:text-zinc-300">
 							{#if topicParticipantCount > 1}
 								<Icon icon="lucide:flame" class="h-4 w-4 text-orange-500 shrink-0" />
+								<span>
+									<strong>{topicParticipantCount}</strong> other people are also doing this todo!
+								</span>
 							{:else}
 								<Icon icon="lucide:sprout" class="h-4 w-4 text-emerald-500 shrink-0" />
+								<span>No one else yet.</span>
 							{/if}
-							<span>
-								{#if topicParticipantCount > 1}
-									<strong>{topicParticipantCount}</strong> people are pursuing this goal with you!
-								{:else}
-									No one else has joined this goal yet. Looking forward to others joining!
-								{/if}
-							</span>
 						</div>
 					{:else}
 						<div class="flex items-center gap-2 text-zinc-700 dark:text-zinc-300">
 							{#if topicParticipantCount > 1}
 								<Icon icon="lucide:flame" class="h-4 w-4 text-orange-500 shrink-0" />
+								<span>
+									<strong>{topicParticipantCount}</strong> people are doing this todo
+								</span>
 							{:else}
 								<Icon icon="lucide:sprout" class="h-4 w-4 text-emerald-500 shrink-0" />
+								<span>No one else yet.</span>
 							{/if}
-							<span>
-								{#if topicParticipantCount > 1}
-									<strong>{topicParticipantCount}</strong> people are pursuing this goal together!
-								{:else}
-									No one else yet. Want to pursue this goal together?
-								{/if}
-							</span>
 						</div>
 					{/if}
 
 					{#if topicParticipantCount > 1 || hasJoined}
 						<a
-							href="/goals/{todo.topicHash}"
+							href="/trending/{todo.topicHash}"
 							class="font-semibold text-xs transition-colors hover:underline shrink-0 {hasJoined
 								? 'text-emerald-700 dark:text-emerald-300'
 								: 'text-amber-700 dark:text-amber-300'}"
 						>
-							View Goal Board →
+							See who's doing this →
 						</a>
 					{/if}
 				</div>
@@ -324,7 +318,7 @@
 							onclick={onjoin}
 							class="font-medium px-3 py-1.5 shadow-xs"
 						>
-							+ Join Goal
+							Add to my list
 						</Button>
 					{/if}
 				</div>

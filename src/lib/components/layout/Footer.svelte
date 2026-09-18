@@ -4,7 +4,7 @@
 		<div class="flex items-center gap-3 text-[11px]">
 			<a href="/stats" class="hover:text-zinc-600 dark:hover:text-zinc-300 transition-colors">Stats</a>
 			<span>·</span>
-			<a href="/goals" class="hover:text-zinc-600 dark:hover:text-zinc-300 transition-colors">Goals</a>
+			<a href="/trending" class="hover:text-zinc-600 dark:hover:text-zinc-300 transition-colors">Trending</a>
 			<span>·</span>
 			<span>Public to create · Open to all</span>
 		</div>

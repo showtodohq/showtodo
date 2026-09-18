@@ -154,7 +154,7 @@ export function createTopicDetailResource(initialHash?: string) {
 		} catch (err) {
 			console.error('Failed to load topic detail:', err);
 			if (!topic) {
-				error = (err as Error).message || 'Goal does not exist or has ended';
+				error = (err as Error).message || 'Trending todo does not exist or has no records';
 			}
 		} finally {
 			loading = false;
@@ -214,13 +214,13 @@ export function createTopicDetailResource(initialHash?: string) {
 					p.shortId = realTodo.shortId || realTodo.id;
 				}
 			}
-			toast.success('Successfully joined this goal!');
+			toast.success('Added to your list successfully!');
 		} catch (err) {
 			// 回滚
 			topic.participants = topic.participants.filter((p) => p.todoId !== tempTodoId);
 			topic.totalParticipants = Math.max(0, topic.totalParticipants - 1);
 			topic.todayParticipants = Math.max(0, topic.todayParticipants - 1);
-			toast.error(`Failed to join: ${(err as Error).message}`);
+			toast.error(`Failed to add: ${(err as Error).message}`);
 		} finally {
 			isJoining = false;
 		}

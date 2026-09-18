@@ -245,7 +245,7 @@
 
 		<!-- 5. Top Leaderboards -->
 		<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 items-start">
-			<!-- Most Inspiring Goals Top 5 -->
+			<!-- Top Trending Todos Top 5 -->
 			<div
 				class="rounded-3xl border border-zinc-200/80 dark:border-zinc-800 bg-white/70 dark:bg-zinc-900/60 p-5 sm:p-7 backdrop-blur-md shadow-xs space-y-4"
 			>
@@ -253,22 +253,22 @@
 						<div class="space-y-0.5">
 							<h2 class="text-sm sm:text-base font-bold text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
 								<Icon icon="lucide:flame" class="h-4 w-4 text-orange-500 shrink-0" />
-								<span>Most Inspiring Goals</span>
+								<span>Top Trending Todos</span>
 							</h2>
-							<p class="text-xs text-zinc-400">Shared goals with the most participants</p>
+							<p class="text-xs text-zinc-400">Todos with the most people doing</p>
 						</div>
 						<a
-							href="/goals"
+							href="/trending"
 							class="text-xs font-semibold text-emerald-600 dark:text-emerald-400 hover:underline"
 						>
-							Explore Goals →
+							Explore Trending →
 						</a>
 					</div>
 
 					<div class="space-y-1.5">
 						{#each topTopics as topic (topic.topicHash)}
 							<a
-								href="/goals/{topic.topicHash}"
+								href="/trending/{topic.topicHash}"
 								class="flex items-center justify-between py-2.5 px-3 rounded-xl hover:bg-zinc-100/70 dark:hover:bg-zinc-800/60 transition-all duration-150 group"
 							>
 								<div class="min-w-0 flex-1">
@@ -279,7 +279,7 @@
 
 								<div class="flex items-center gap-3 shrink-0 text-xs font-mono">
 									<span class="text-zinc-500 dark:text-zinc-400">
-										<strong class="text-zinc-900 dark:text-zinc-100">{topic.totalParticipants}</strong> joined
+										<strong class="text-zinc-900 dark:text-zinc-100">{topic.totalParticipants}</strong> people
 									</span>
 									<span class="text-emerald-600 dark:text-emerald-400">
 										{topic.doneCount} completed

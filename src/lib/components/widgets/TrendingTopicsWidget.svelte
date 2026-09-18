@@ -43,23 +43,23 @@
 	<!-- Header bar: unified pattern with icon, full title, badge and action link -->
 	<div class="flex items-center justify-between">
 		<a
-			href="/goals"
+			href="/trending"
 			class="flex items-center gap-2 font-semibold text-xs text-zinc-900 dark:text-zinc-100 hover:text-amber-600 dark:hover:text-amber-400 transition-colors group/title"
-			title="Go to shared goals"
+			title="Go to trending todos"
 		>
-			<div class="flex h-6 w-6 items-center justify-center rounded-lg bg-orange-50 dark:bg-orange-950/50 text-orange-600 dark:text-orange-400 shrink-0">
+			<div class="flex h-6 w-6 items-center justify-center rounded-lg bg-orange-50 dark:bg-orange-950/50 text-orange-600 dark:orange-400 shrink-0">
 				<Icon icon="lucide:flame" class="h-3.5 w-3.5" />
 			</div>
-			<span>Today's Trending Goals</span>
+			<span>Today's Trending Todos</span>
 		</a>
 
 		<div class="flex items-center gap-1.5 font-mono text-xs">
 			<span class="text-[10px] text-zinc-400">TOP 5</span>
 			<span class="text-[10px] text-zinc-300 dark:text-zinc-700">·</span>
 			<a
-				href="/goals"
+				href="/trending"
 				class="inline-flex items-center gap-0.5 text-[11px] font-medium text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100 transition-colors group/link cursor-pointer font-sans"
-				title="View all trending goals"
+				title="View all trending todos"
 			>
 				<span>View all</span>
 				<Icon icon="lucide:arrow-right" class="h-3 w-3 transition-transform group-hover/link:translate-x-0.5" />
@@ -78,7 +78,7 @@
 
 		{#snippet emptyView()}
 			<div class="py-3 text-center text-xs text-zinc-400">
-				No trending goals yet. Post a todo and wait for fellow travelers!
+				No trending todos yet.
 			</div>
 		{/snippet}
 
@@ -99,9 +99,9 @@
 					<!-- Title & actions -->
 					<div class="flex items-center justify-between gap-2">
 						<a
-							href="/goals/{card.topicHash}?date={getTodayString()}"
+							href="/trending/{card.topicHash}?date={getTodayString()}"
 							class="min-w-0 flex-1 group/title focus:outline-hidden"
-							title="View goal details"
+							title="View trending details"
 						>
 							<span
 								class="text-xs font-semibold text-zinc-900 dark:text-zinc-100 group-hover/title:underline truncate block leading-snug {isAllDone ? 'text-amber-950 dark:text-amber-100' : ''}"
@@ -114,7 +114,7 @@
 							{#if isAllDone}
 								<span
 									class="inline-flex items-center gap-1 text-[10px] font-bold text-amber-900 dark:text-amber-100 bg-gradient-to-r from-amber-300 via-yellow-300 to-amber-400 dark:from-amber-600 dark:via-yellow-600 dark:to-amber-500 px-2 py-0.5 rounded-md shadow-xs animate-in zoom-in-90 duration-150 select-none"
-									title="All participants have completed this goal"
+									title="Everyone has completed this todo"
 								>
 									<Icon icon="lucide:trophy" class="h-3 w-3 shrink-0" />
 									<span>All Completed</span>
@@ -127,7 +127,7 @@
 										? 'text-amber-700 dark:text-amber-300 bg-amber-100/70 dark:bg-amber-900/40 border border-amber-300/60 dark:border-amber-700/50'
 										: 'text-emerald-600 dark:text-emerald-400 bg-emerald-50/80 dark:bg-emerald-950/40 border border-emerald-200/60 dark:border-emerald-800/40'} px-2 py-0.5 rounded-md select-none"
 								>
-									Joined
+									In my list
 								</span>
 							{:else}
 								<button
@@ -135,7 +135,7 @@
 									onclick={() => handleJoin(card)}
 									class="text-[11px] font-medium text-zinc-600 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-white px-2 py-0.5 rounded-md hover:bg-zinc-200/70 dark:hover:bg-zinc-800 transition-colors cursor-pointer"
 								>
-									+ Join
+									+ Add to my list
 								</button>
 							{/if}
 						</div>
@@ -144,16 +144,16 @@
 					<!-- Bottom: stats & avatars -->
 					<div class="flex items-center justify-between text-[11px] font-mono {isAllDone ? 'text-amber-600/90 dark:text-amber-400/90 font-medium' : 'text-zinc-400'}">
 						<a
-							href="/goals/{card.topicHash}?date={getTodayString()}"
+							href="/trending/{card.topicHash}?date={getTodayString()}"
 							class="flex items-center gap-1 hover:underline cursor-pointer"
-							title="View goal details"
+							title="View trending details"
 						>
 							{#if isAllDone}
 								<Icon icon="lucide:sparkles" class="h-3.5 w-3.5 text-amber-500 shrink-0" />
 								<span class="font-semibold text-amber-600 dark:text-amber-400">All {card.totalParticipants} completed</span>
 							{:else}
 								<span class="text-amber-500 font-semibold">{card.totalParticipants}</span>
-								<span>participants</span>
+								<span>people</span>
 								<span>·</span>
 								<span>{card.doneCount} completed</span>
 							{/if}

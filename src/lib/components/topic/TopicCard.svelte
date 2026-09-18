@@ -33,7 +33,7 @@
 			{#if isAllDone}
 				<span
 					class="inline-flex items-center gap-1 text-[11px] font-bold text-amber-900 dark:text-amber-100 bg-gradient-to-r from-amber-300 via-yellow-300 to-amber-400 dark:from-amber-600 dark:via-yellow-600 dark:to-amber-500 px-2 py-0.5 rounded-md shadow-xs animate-in zoom-in-95 duration-150 select-none"
-					title="All participants have completed this goal"
+					title="Everyone has completed this todo"
 				>
 					<Icon icon="lucide:trophy" class="h-3 w-3 shrink-0" />
 					<span>All Completed</span>
@@ -54,7 +54,7 @@
 						: 'text-emerald-600 dark:text-emerald-400 bg-emerald-50/80 dark:bg-emerald-950/40 border border-emerald-200/60 dark:border-emerald-800/40'} px-2.5 py-1 rounded-lg select-none"
 				>
 					<Icon icon="lucide:check" class="h-3 w-3 shrink-0" />
-					<span>Joined</span>
+					<span>In my list</span>
 				</span>
 			{:else}
 				<button
@@ -62,8 +62,7 @@
 					onclick={() => onjoin?.(topic)}
 					class="inline-flex items-center gap-1 text-xs font-semibold text-zinc-700 dark:text-zinc-200 bg-white hover:bg-zinc-100 dark:bg-zinc-800 dark:hover:bg-zinc-700 hover:text-zinc-900 dark:hover:text-white px-2.5 py-1 rounded-lg transition-colors cursor-pointer shadow-2xs"
 				>
-					<span>+</span>
-					<span>Join</span>
+					<span>+ Add to my list</span>
 				</button>
 			{/if}
 		</div>
@@ -72,9 +71,9 @@
 	<!-- Topic title link -->
 	<div>
 		<a
-			href="/goals/{topic.topicHash}"
+			href="/trending/{topic.topicHash}"
 			class="group/title block focus:outline-hidden"
-			title="View goal details and history"
+			title="View trending details"
 		>
 			<h3
 				class="text-base sm:text-lg font-bold tracking-tight text-zinc-900 dark:text-zinc-100 group-hover/title:text-zinc-600 dark:group-hover/title:text-zinc-300 transition-colors leading-snug {isAllDone ? 'text-amber-950 dark:text-amber-100' : ''}"
@@ -90,16 +89,14 @@
 			<div class="flex items-center gap-1.5 text-zinc-500 dark:text-zinc-400">
 				{#if isAllDone}
 					<Icon icon="lucide:sparkles" class="h-3.5 w-3.5 text-amber-500 shrink-0" />
-					<span class="font-medium text-amber-600 dark:text-amber-400">All {topic.totalParticipants} participants completed!</span>
+					<span class="font-medium text-amber-600 dark:text-amber-400">All {topic.totalParticipants} people completed!</span>
 				{:else if topic.totalParticipants > 1}
 					<span class="text-amber-500 font-semibold">{topic.totalParticipants}</span>
-					<span>participants</span>
+					<span>people</span>
 					<span>·</span>
 					<span>{topic.doneCount} completed</span>
 				{:else}
-					<span class="text-zinc-600 dark:text-zinc-300 font-medium">1 starter</span>
-					<span>·</span>
-					<span>Waiting for others</span>
+					<span class="text-zinc-600 dark:text-zinc-300 font-medium">1 person</span>
 				{/if}
 			</div>
 
@@ -142,10 +139,10 @@
 		</div>
 
 		<a
-			href="/goals/{topic.topicHash}"
+			href="/trending/{topic.topicHash}"
 			class="inline-flex items-center gap-1 text-xs text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 transition-colors group/more"
 		>
-			<span>Details</span>
+			<span>Who's doing this</span>
 			<span class="transition-transform group-hover/more:translate-x-0.5">→</span>
 		</a>
 	</div>
