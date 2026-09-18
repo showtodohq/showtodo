@@ -11,10 +11,15 @@
 	import TopicListSkeleton from '$lib/components/skeleton/TopicListSkeleton.svelte';
 	import Icon from '@iconify/svelte';
 
+	import {
+		SEARCH_URL_QUERY_PARAM,
+		SEARCH_PLACEHOLDERS
+	} from '$lib/constants/search';
+	import SearchInput from '$lib/components/ui/SearchInput.svelte';
+
 	const topicsRes = createTopicsResource();
 
 	let searchInput = $state('');
-	let searchDebounceTimer: ReturnType<typeof setTimeout> | null = null;
 
 	type ViewTab = 'all' | 'today' | 'mine';
 	const activeTab = $derived<ViewTab>(
@@ -25,13 +30,20 @@
 				: 'all'
 	);
 
-	function updateTabQuery(tab: ViewTab) {
+	function updateUrlQuery(tab: ViewTab, q: string) {
 		if (typeof window === 'undefined') return;
 		const url = new URL(window.location.href);
 		if (tab === 'all') {
 			url.searchParams.delete('tab');
 		} else {
 			url.searchParams.set('tab', tab);
+		}
+
+		const cleanQuery = q.trim();
+		if (!cleanQuery) {
+			url.searchParams.delete(SEARCH_URL_QUERY_PARAM);
+		} else {
+			url.searchParams.set(SEARCH_URL_QUERY_PARAM, cleanQuery);
 		}
 		window.history.replaceState(window.history.state, '', url.pathname + url.search);
 	}
@@ -51,13 +63,20 @@
 			topicsRes.setScope('all');
 			topicsRes.setTimeRange('all');
 		}
-		updateTabQuery(tab);
+		updateUrlQuery(tab, searchInput);
 	}
 
 	let isUrlInitialized = false;
 	$effect(() => {
 		if (!isUrlInitialized) {
 			const tabParam = page.url.searchParams.get('tab') as ViewTab | null;
+			const queryParam = page.url.searchParams.get(SEARCH_URL_QUERY_PARAM);
+
+			if (queryParam) {
+				searchInput = queryParam;
+				topicsRes.setSearch(queryParam);
+			}
+
 			if (tabParam === 'today') {
 				topicsRes.setScope('all');
 				topicsRes.setTimeRange('today');
@@ -71,13 +90,16 @@
 		}
 	});
 
-	function handleSearchChange(e: Event) {
-		const val = (e.target as HTMLInputElement).value;
+	function handleSearch(val: string) {
 		searchInput = val;
-		if (searchDebounceTimer) clearTimeout(searchDebounceTimer);
-		searchDebounceTimer = setTimeout(() => {
-			topicsRes.setSearch(val);
-		}, 300);
+		topicsRes.setSearch(val);
+		updateUrlQuery(activeTab, val);
+	}
+
+	function handleClearSearch() {
+		searchInput = '';
+		topicsRes.setSearch('');
+		updateUrlQuery(activeTab, '');
 	}
 
 	onMount(() => {
@@ -169,15 +191,15 @@
 			</div>
 
 			<!-- Search -->
-			<div class="relative flex-1 sm:w-44">
-				<input
-					type="text"
+			<div class="w-full sm:w-52">
+				<SearchInput
 					value={searchInput}
-					oninput={handleSearchChange}
-					placeholder="Search trending todos..."
-					class="w-full h-8 pl-8 pr-3 text-xs rounded-xl bg-zinc-100/80 dark:bg-zinc-800/80 text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 focus:outline-hidden focus:ring-1 focus:ring-zinc-400 dark:focus:ring-zinc-500 transition-all"
+					placeholder={SEARCH_PLACEHOLDERS.TRENDING}
+					loading={topicsRes.loading && searchInput.length > 0}
+					enableGlobalShortcut={true}
+					onsearch={handleSearch}
+					onclear={handleClearSearch}
 				/>
-				<Icon icon="lucide:search" class="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-zinc-400 pointer-events-none" />
 			</div>
 		</div>
 	</div>
@@ -212,7 +234,7 @@
 							topicsRes.setSearch('');
 							topicsRes.setMinParticipants(1);
 							searchInput = '';
-							updateTabQuery('all');
+							updateUrlQuery('all', '');
 						}}
 					>
 						Reset all filters

@@ -173,4 +173,66 @@ describe('createTopicsResource', () => {
 			category: 'study'
 		});
 	});
+
+	it('updates search query and triggers reload', async () => {
+		const res = createTopicsResource();
+		const spy = vi.spyOn(api, 'getTopics').mockResolvedValue({
+			total: 0,
+			topics: [],
+			hasMore: false
+		});
+
+		res.setSearch('跑步');
+		expect(res.search).toBe('跑步');
+		expect(spy).toHaveBeenCalled();
+	});
+
+	it('prevents race conditions from overwriting newer search results with slower old responses', async () => {
+		const res = createTopicsResource();
+
+		const slowTopic = mockTopic('h-slow', '慢请求结果');
+		const fastTopic = mockTopic('h-fast', '最新快速请求结果');
+
+		let resolveFirstRequest!: (value: any) => void;
+		const firstRequestPromise = new Promise((resolve) => {
+			resolveFirstRequest = resolve;
+		});
+
+		let resolveSecondRequest!: (value: any) => void;
+		const secondRequestPromise = new Promise((resolve) => {
+			resolveSecondRequest = resolve;
+		});
+
+		const spy = vi.spyOn(api, 'getTopics')
+			.mockImplementationOnce(() => firstRequestPromise as any)
+			.mockImplementationOnce(() => secondRequestPromise as any);
+
+		// 发起第一次慢请求（例如搜索“慢”）
+		res.setSearch('慢');
+
+		// 紧接着发起第二次快请求（例如用户继续输入“快”）
+		res.setSearch('快');
+
+		// 第二次快请求先返回
+		resolveSecondRequest({
+			total: 1,
+			topics: [fastTopic],
+			hasMore: false
+		});
+		await secondRequestPromise;
+		// 期待当前已显示最新结果
+		expect(res.topics[0]?.content).toBe('最新快速请求结果');
+
+		// 此时迟到的第一次慢请求才返回
+		resolveFirstRequest({
+			total: 1,
+			topics: [slowTopic],
+			hasMore: false
+		});
+		await firstRequestPromise;
+
+		// 验证：最新快结果绝对不能被慢请求脏覆盖
+		expect(res.topics[0]?.content).toBe('最新快速请求结果');
+		expect(res.topics.length).toBe(1);
+	});
 });

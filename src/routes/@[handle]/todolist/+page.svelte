@@ -13,6 +13,11 @@
 	import TodoStreamView from '$lib/components/todo/TodoStreamView.svelte';
 	import TodoKanbanView from '$lib/components/todo/TodoKanbanView.svelte';
 	import TodoCalendarView from '$lib/components/todo/TodoCalendarView.svelte';
+	import {
+		SEARCH_URL_QUERY_PARAM,
+		SEARCH_PLACEHOLDERS
+	} from '$lib/constants/search';
+	import SearchInput from '$lib/components/ui/SearchInput.svelte';
 	import Icon from '@iconify/svelte';
 
 	const handleParam = $derived(page.params.handle);
@@ -20,20 +25,25 @@
 
 	let composerCategory = $state<CategoryId | null>(null);
 
-	// 同步 URL 参数中的 ?view=
+	// 同步 URL 参数中的 ?view= 和 ?q=
 	let isUrlInitialized = false;
 
 	$effect(() => {
 		if (!isUrlInitialized) {
 			const viewParam = page.url.searchParams.get('view');
+			const queryParam = page.url.searchParams.get(SEARCH_URL_QUERY_PARAM);
+
 			if (viewParam === 'stream' || viewParam === 'kanban' || viewParam === 'calendar') {
 				resource.activeView = viewParam;
+			}
+			if (queryParam) {
+				resource.searchQuery = queryParam;
 			}
 			isUrlInitialized = true;
 		}
 	});
 
-	function updateViewQuery(view: 'stream' | 'kanban' | 'calendar') {
+	function updateQueryParams(view: 'stream' | 'kanban' | 'calendar', q: string) {
 		resource.activeView = view;
 		if (typeof window === 'undefined') return;
 		const url = new URL(window.location.href);
@@ -42,7 +52,28 @@
 		} else {
 			url.searchParams.set('view', view);
 		}
+
+		const cleanQ = q.trim();
+		if (!cleanQ) {
+			url.searchParams.delete(SEARCH_URL_QUERY_PARAM);
+		} else {
+			url.searchParams.set(SEARCH_URL_QUERY_PARAM, cleanQ);
+		}
 		window.history.replaceState(window.history.state, '', url.pathname + url.search);
+	}
+
+	function handleViewSwitch(view: 'stream' | 'kanban' | 'calendar') {
+		updateQueryParams(view, resource.searchQuery);
+	}
+
+	function handleSearch(val: string) {
+		resource.searchQuery = val;
+		updateQueryParams(resource.activeView, val);
+	}
+
+	function handleClearSearch() {
+		resource.searchQuery = '';
+		updateQueryParams(resource.activeView, '');
 	}
 
 	// 监听当前路由 handle 与登录用户变化拉取数据
@@ -142,16 +173,16 @@
 			</div>
 		{/if}
 
-		<!-- Sticky view switcher bar -->
+		<!-- Sticky view switcher and search toolbar -->
 		<div
-			class="sticky top-14 z-20 py-2.5 -mx-4 px-4 sm:-mx-6 sm:px-6 bg-white/80 dark:bg-zinc-950/80 backdrop-blur-md transition-all flex items-center justify-between gap-3"
+			class="sticky top-14 z-20 py-2.5 -mx-4 px-4 sm:-mx-6 sm:px-6 bg-white/80 dark:bg-zinc-950/80 backdrop-blur-md transition-all flex flex-wrap sm:flex-nowrap items-center justify-between gap-3"
 		>
 			<!-- View switcher pills (Stream / Kanban / Calendar) -->
-			<div class="inline-flex items-center rounded-2xl bg-zinc-100/90 dark:bg-zinc-800/80 p-1 text-xs font-medium shadow-2xs">
+			<div class="inline-flex items-center rounded-2xl bg-zinc-100/90 dark:bg-zinc-800/80 p-1 text-xs font-medium shadow-2xs shrink-0">
 				<!-- Stream view -->
 				<button
 					type="button"
-					onclick={() => updateViewQuery('stream')}
+					onclick={() => handleViewSwitch('stream')}
 					class="inline-flex items-center gap-1.5 p-2 sm:px-3.5 sm:py-1.5 rounded-xl font-medium transition-all cursor-pointer {resource.activeView === 'stream'
 						? 'bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 shadow-2xs font-semibold'
 						: 'text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100'}"
@@ -167,7 +198,7 @@
 				<!-- Kanban view -->
 				<button
 					type="button"
-					onclick={() => updateViewQuery('kanban')}
+					onclick={() => handleViewSwitch('kanban')}
 					class="inline-flex items-center gap-1.5 p-2 sm:px-3.5 sm:py-1.5 rounded-xl font-medium transition-all cursor-pointer {resource.activeView === 'kanban'
 						? 'bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 shadow-2xs font-semibold'
 						: 'text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100'}"
@@ -183,7 +214,7 @@
 				<!-- Calendar view -->
 				<button
 					type="button"
-					onclick={() => updateViewQuery('calendar')}
+					onclick={() => handleViewSwitch('calendar')}
 					class="inline-flex items-center gap-1.5 p-2 sm:px-3.5 sm:py-1.5 rounded-xl font-medium transition-all cursor-pointer {resource.activeView === 'calendar'
 						? 'bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 shadow-2xs font-semibold'
 						: 'text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100'}"
@@ -197,8 +228,19 @@
 				</button>
 			</div>
 
+			<!-- Universal Workbench Search Bar -->
+			<div class="flex-1 min-w-[180px] sm:max-w-xs order-3 sm:order-2 w-full sm:w-auto">
+				<SearchInput
+					value={resource.searchQuery}
+					placeholder={SEARCH_PLACEHOLDERS.WORKBENCH}
+					enableGlobalShortcut={true}
+					onsearch={handleSearch}
+					onclear={handleClearSearch}
+				/>
+			</div>
+
 			<!-- Metrics summary -->
-			<div class="text-xs font-mono text-zinc-400 shrink-0">
+			<div class="text-xs font-mono text-zinc-400 shrink-0 order-2 sm:order-3 ml-auto sm:ml-0">
 				<span class="hidden sm:inline">{resource.statusCounts.done}/{resource.totalCount} completed ({resource.completionRate}%)</span>
 				<span class="sm:hidden px-2 py-0.5 rounded-full bg-zinc-100 dark:bg-zinc-900 text-zinc-600 dark:text-zinc-400 font-medium">
 					{resource.statusCounts.done}/{resource.totalCount}

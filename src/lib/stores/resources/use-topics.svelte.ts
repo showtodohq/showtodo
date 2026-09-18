@@ -62,6 +62,9 @@ export function createTopicsResource() {
 				startDateTo
 			});
 
+			// 竞态守卫：如果当前请求已过时（用户已发起新搜索或切换身份），直接丢弃，防止脏覆写
+			if (!isCurrent()) return;
+
 			if (reset) {
 				topics = res.topics;
 			} else {
@@ -75,11 +78,14 @@ export function createTopicsResource() {
 			offset = reset ? res.topics.length : offset + res.topics.length;
 			loaded = true;
 		} catch (err) {
+			if (!isCurrent()) return;
 			error = (err as Error).message || 'Failed to load goals';
 			console.error('Failed to load topics:', err);
 		} finally {
-			loading = false;
-			loadingMore = false;
+			if (isCurrent()) {
+				loading = false;
+				loadingMore = false;
+			}
 		}
 	}
 
@@ -113,7 +119,9 @@ export function createTopicsResource() {
 	}
 
 	function setSearch(q: string) {
-		search = q;
+		const clean = q.trim();
+		if (search === clean) return;
+		search = clean;
 		load(true);
 	}
 

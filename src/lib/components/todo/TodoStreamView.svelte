@@ -30,45 +30,7 @@
 	}
 </script>
 
-<div class="space-y-6 sm:space-y-8">
-	<!-- 搜索框：参考发布框 TodoComposer 样式的专属大卡片 (大间距留白、通透高质感) -->
-	<div
-		class="rounded-2xl border border-zinc-200/80 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-3 sm:p-3.5 transition-all duration-200 shadow-2xs focus-within:border-zinc-300 dark:focus-within:border-zinc-700 focus-within:ring-2 focus-within:ring-zinc-900/5 dark:focus-within:ring-white/5"
-	>
-		<div class="flex items-center gap-3">
-			<!-- 左侧图标槽位 (与发布框用户头像尺寸对齐) -->
-			<div
-				class="h-8 w-8 rounded-full bg-zinc-100 dark:bg-zinc-900 flex items-center justify-center text-zinc-400 shrink-0 ring-1 ring-zinc-200/80 dark:ring-zinc-800"
-			>
-				<svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-				</svg>
-			</div>
-
-			<!-- 搜索输入正文 (字体与发布框正文同字号与字重，纯留白无边框) -->
-			<div class="flex-1 min-w-0 flex items-center">
-				<input
-					type="search"
-					bind:value={resource.searchQuery}
-					placeholder="Search my todos, notes, or keywords..."
-					class="w-full bg-transparent text-sm font-semibold placeholder:font-normal placeholder:text-zinc-400 dark:placeholder:text-zinc-500 text-zinc-900 dark:text-zinc-100 focus:outline-hidden leading-relaxed py-1"
-				/>
-			</div>
-
-			<!-- Clear button -->
-			{#if resource.searchQuery}
-				<button
-					type="button"
-					onclick={() => (resource.searchQuery = '')}
-					class="text-xs text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 p-1.5 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors cursor-pointer"
-					title="Clear search"
-				>
-					<Icon icon="lucide:x" class="h-3.5 w-3.5" />
-				</button>
-			{/if}
-		</div>
-	</div>
-
+<div class="space-y-4 sm:space-y-5">
 	<!-- Status tabs & category filter -->
 	<div class="space-y-3">
 		<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
