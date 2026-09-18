@@ -1,11 +1,14 @@
 <script lang="ts">
 	import type { ReactionEmoji } from '$lib/types/todo';
 	import { REACTIONS } from '$lib/constants/reactions';
+	import { POPOVER_PLACEMENT, POPOVER_TRIGGER, POPOVER_ROLE } from '$lib/constants/popover';
+	import Popover from '$lib/components/ui/Popover.svelte';
 
 	interface Props {
 		reactions?: Record<string, number>;
 		myReactions?: (ReactionEmoji | string)[];
 		size?: 'sm' | 'md';
+		defaultOpen?: boolean;
 		onreact?: (emoji?: ReactionEmoji) => void;
 		class?: string;
 	}
@@ -14,6 +17,7 @@
 		reactions = {},
 		myReactions = [],
 		size = 'sm',
+		defaultOpen = false,
 		onreact,
 		class: className = ''
 	}: Props = $props();
@@ -25,8 +29,6 @@
 	);
 	const hasMyReaction = $derived((myReactions?.length ?? 0) > 0);
 
-	let isEmojiPopOpen = $state(false);
-	let popCloseTimeout: ReturnType<typeof setTimeout> | null = null;
 	let isBouncing = $state(false);
 	let isCountBumping = $state(false);
 	let lastCount = $state<number | null>(null);
@@ -44,22 +46,8 @@
 		lastCount = current;
 	});
 
-	function handleMouseEnter() {
-		if (popCloseTimeout) {
-			clearTimeout(popCloseTimeout);
-			popCloseTimeout = null;
-		}
-		isEmojiPopOpen = true;
-	}
-
-	function handleMouseLeave() {
-		popCloseTimeout = setTimeout(() => {
-			isEmojiPopOpen = false;
-		}, 250);
-	}
-
-	function handleSelectEmoji(emoji?: ReactionEmoji) {
-		isEmojiPopOpen = false;
+	function handleSelectEmoji(emoji?: ReactionEmoji, close?: () => void) {
+		close?.();
 		isBouncing = true;
 		setTimeout(() => {
 			isBouncing = false;
@@ -70,111 +58,120 @@
 
 <div
 	class="relative inline-flex items-center {className}"
-	onmouseenter={handleMouseEnter}
-	onmouseleave={handleMouseLeave}
 	role="group"
 	aria-label="Reaction picker"
 >
-	<!-- 主互动按钮：爱心 SVG Icon + 反应总数 (带弹性果冻微动效与光圈波纹) -->
-	<button
-		type="button"
-		onclick={() => handleSelectEmoji()}
-		class="group/heart relative inline-flex items-center transition-all duration-150 cursor-pointer select-none active:scale-90 {isMd
-			? 'gap-2 px-3 py-1 min-h-[32px] rounded-full text-xs sm:text-sm'
-			: 'gap-1.5 px-2 py-0.5 rounded-full text-xs'} font-mono {hasMyReaction
-			? 'text-rose-600 dark:text-rose-400 bg-rose-50/80 dark:bg-rose-950/40 border border-rose-200/80 dark:border-rose-800/60 font-semibold shadow-2xs'
-			: 'text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800/80 border border-transparent'}"
-		title={hasMyReaction ? 'Reacted' : 'React to this todo'}
-		aria-label="Reaction button"
+	<Popover
+		placement={POPOVER_PLACEMENT.TOP}
+		trigger={POPOVER_TRIGGER.HOVER}
+		role={POPOVER_ROLE.DIALOG}
+		offset={8}
+		{defaultOpen}
 	>
-		<!-- Center heart & ripple -->
-		<span class="relative flex items-center justify-center shrink-0">
-			{#if isBouncing}
-				<span
-					class="absolute {isMd ? 'h-5 w-5' : 'h-4 w-4'} rounded-full bg-rose-400/30 dark:bg-rose-500/30 animate-ripple-burst pointer-events-none"
-				></span>
-			{/if}
-
-			{#if hasMyReaction}
-				<!-- Solid heart -->
-				<svg
-					class="{isMd ? 'h-4 w-4' : 'h-3.5 w-3.5'} text-rose-500 fill-rose-500 transition-transform {isBouncing
-						? 'animate-heart-bounce'
-						: ''}"
-					viewBox="0 0 24 24"
-				>
-					<path
-						d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"
-					/>
-				</svg>
-			{:else}
-				<!-- Outline heart -->
-				<svg
-					class="{isMd ? 'h-4 w-4' : 'h-3.5 w-3.5'} stroke-[1.8] text-zinc-400 group-hover/heart:text-rose-500 transition-all duration-150 {isBouncing
-						? 'animate-heart-bounce'
-						: 'group-hover/heart:scale-110'}"
-					fill="none"
-					viewBox="0 0 24 24"
-					stroke="currentColor"
-				>
-					<path
-						stroke-linecap="round"
-						stroke-linejoin="round"
-						d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z"
-					/>
-				</svg>
-			{/if}
-		</span>
-
-		{#if totalReactionCount > 0}
-			<span
-				class="{isMd ? 'text-xs' : 'text-[11px]'} leading-none transition-colors duration-150 {isCountBumping
-					? 'animate-count-bump'
-					: ''} {hasMyReaction
-					? 'text-rose-600 dark:text-rose-400 font-bold'
-					: 'text-zinc-500 dark:text-zinc-400 font-medium'}"
+		{#snippet triggerSnippet({ isOpen, close, triggerProps })}
+			<!-- 主互动按钮：爱心 SVG Icon + 反应总数 (带弹性果冻微动效与光圈波纹) -->
+			<button
+				type="button"
+				{...triggerProps}
+				onclick={() => handleSelectEmoji(undefined, close)}
+				class="group/heart relative inline-flex items-center transition-all duration-150 cursor-pointer select-none active:scale-90 {isMd
+					? 'gap-2 px-3 py-1 min-h-[32px] rounded-full text-xs sm:text-sm'
+					: 'gap-1.5 px-2 py-0.5 rounded-full text-xs'} font-mono {hasMyReaction
+					? 'text-rose-600 dark:text-rose-400 bg-rose-50/80 dark:bg-rose-950/40 border border-rose-200/80 dark:border-rose-800/60 font-semibold shadow-2xs'
+					: 'text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800/80 border border-transparent'}"
+				title={hasMyReaction ? 'Reacted' : 'React to this todo'}
+				aria-label="Reaction button"
 			>
-				{totalReactionCount}
-			</span>
-		{/if}
-	</button>
-
-	<!-- Emoji POP popup -->
-	{#if isEmojiPopOpen}
-		<div
-			class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 z-50 w-44 p-1.5 rounded-2xl bg-white dark:bg-zinc-900 shadow-xl border border-zinc-200/90 dark:border-zinc-800 animate-in fade-in zoom-in-95 duration-150 select-none"
-		>
-			<div class="grid grid-cols-4 gap-1 place-items-center">
-				{#each REACTIONS as item}
-					{@const count = reactions?.[item.emoji] || 0}
-					{@const isMyReaction = myReactions?.includes(item.emoji) ?? false}
-					<button
-						type="button"
-						onclick={() => handleSelectEmoji(item.emoji)}
-						class="relative flex flex-col items-center justify-center h-10 w-9 rounded-xl hover:scale-110 active:scale-90 transition-all duration-100 cursor-pointer {isMyReaction
-							? 'bg-rose-50/90 dark:bg-rose-950/60 ring-1.5 ring-rose-400 dark:ring-rose-600 shadow-2xs'
-							: 'hover:bg-zinc-100 dark:hover:bg-zinc-800'}"
-						title="{item.label}: {item.description} ({count} votes){isMyReaction ? ' · Reacted' : ''}"
-					>
-						<span class="text-base leading-tight">{item.emoji}</span>
+				<!-- Center heart & ripple -->
+				<span class="relative flex items-center justify-center shrink-0">
+					{#if isBouncing}
 						<span
-							class="text-[10px] font-mono leading-none mt-0.5 {isMyReaction
-								? 'text-rose-600 dark:text-rose-300 font-bold'
-								: count > 0
-									? 'text-zinc-700 dark:text-zinc-200 font-semibold'
-									: 'text-zinc-300 dark:text-zinc-600 font-normal'}"
+							class="absolute {isMd ? 'h-5 w-5' : 'h-4 w-4'} rounded-full bg-rose-400/30 dark:bg-rose-500/30 animate-ripple-burst pointer-events-none"
+						></span>
+					{/if}
+
+					{#if hasMyReaction}
+						<!-- Solid heart -->
+						<svg
+							class="{isMd ? 'h-4 w-4' : 'h-3.5 w-3.5'} text-rose-500 fill-rose-500 transition-transform {isBouncing
+								? 'animate-heart-bounce'
+								: ''}"
+							viewBox="0 0 24 24"
 						>
-							{count}
-						</span>
-					</button>
-				{/each}
-			</div>
-			<!-- 底部居中小箭头 -->
+							<path
+								d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"
+							/>
+						</svg>
+					{:else}
+						<!-- Outline heart -->
+						<svg
+							class="{isMd ? 'h-4 w-4' : 'h-3.5 w-3.5'} stroke-[1.8] text-zinc-400 group-hover/heart:text-rose-500 transition-all duration-150 {isBouncing
+								? 'animate-heart-bounce'
+								: 'group-hover/heart:scale-110'}"
+							fill="none"
+							viewBox="0 0 24 24"
+							stroke="currentColor"
+						>
+							<path
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z"
+							/>
+						</svg>
+					{/if}
+				</span>
+
+				{#if totalReactionCount > 0}
+					<span
+						class="{isMd ? 'text-xs' : 'text-[11px]'} leading-none transition-colors duration-150 {isCountBumping
+							? 'animate-count-bump'
+							: ''} {hasMyReaction
+							? 'text-rose-600 dark:text-rose-400 font-bold'
+							: 'text-zinc-500 dark:text-zinc-400 font-medium'}"
+					>
+						{totalReactionCount}
+					</span>
+				{/if}
+			</button>
+		{/snippet}
+
+		{#snippet children({ close })}
+			<!-- Emoji POP 顶层选择浮层 (置于浏览器 Top Layer) -->
 			<div
-				class="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 rotate-45 bg-white dark:bg-zinc-900 border-r border-b border-zinc-200/90 dark:border-zinc-800"
-			></div>
-		</div>
-	{/if}
+				class="relative w-44 p-1.5 rounded-2xl bg-white dark:bg-zinc-900 shadow-xl border border-zinc-200/90 dark:border-zinc-800 animate-in fade-in zoom-in-95 duration-150 select-none"
+			>
+				<div class="grid grid-cols-4 gap-1 place-items-center">
+					{#each REACTIONS as item}
+						{@const count = reactions?.[item.emoji] || 0}
+						{@const isMyReaction = myReactions?.includes(item.emoji) ?? false}
+						<button
+							type="button"
+							onclick={() => handleSelectEmoji(item.emoji, close)}
+							class="relative flex flex-col items-center justify-center h-10 w-9 rounded-xl hover:scale-110 active:scale-90 transition-all duration-100 cursor-pointer {isMyReaction
+								? 'bg-rose-50/90 dark:bg-rose-950/60 ring-1.5 ring-rose-400 dark:ring-rose-600 shadow-2xs'
+								: 'hover:bg-zinc-100 dark:hover:bg-zinc-800'}"
+							title="{item.label}: {item.description} ({count} votes){isMyReaction ? ' · Reacted' : ''}"
+						>
+							<span class="text-base leading-tight">{item.emoji}</span>
+							<span
+								class="text-[10px] font-mono leading-none mt-0.5 {isMyReaction
+									? 'text-rose-600 dark:text-rose-300 font-bold'
+									: count > 0
+										? 'text-zinc-700 dark:text-zinc-200 font-semibold'
+										: 'text-zinc-300 dark:text-zinc-600 font-normal'}"
+							>
+								{count}
+							</span>
+						</button>
+					{/each}
+				</div>
+				<!-- 底部居中小箭头 -->
+				<div
+					class="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 rotate-45 bg-white dark:bg-zinc-900 border-r border-b border-zinc-200/90 dark:border-zinc-800"
+				></div>
+			</div>
+		{/snippet}
+	</Popover>
 </div>
 
 <style>

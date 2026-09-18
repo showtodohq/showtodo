@@ -42,4 +42,11 @@ describe('Header rendering test', () => {
 		expect(rendered.body).toContain('justify-center');
 		expect(rendered.body).toContain('justify-end');
 	});
+
+	it('renders user avatar trigger button and native Popover structure', () => {
+		const rendered = render(Header);
+		expect(rendered.body).toContain('aria-label="User settings"');
+		expect(rendered.body).toContain('popover="auto"');
+		expect(rendered.body).toContain('data-placement="bottom-end"');
+	});
 });

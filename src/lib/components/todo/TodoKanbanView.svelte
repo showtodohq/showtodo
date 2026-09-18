@@ -11,6 +11,8 @@
 	import CategoryBadge from '$lib/components/todo/CategoryBadge.svelte';
 	import TodoCheckbox from '$lib/components/todo/TodoCheckbox.svelte';
 	import EmptyState from '$lib/components/ui/EmptyState.svelte';
+	import Popover from '$lib/components/ui/Popover.svelte';
+	import { POPOVER_PLACEMENT, POPOVER_TRIGGER, POPOVER_ROLE } from '$lib/constants/popover';
 	import { formatRelativeTime } from '$lib/utils/format';
 	import Icon from '@iconify/svelte';
 
@@ -30,20 +32,7 @@
 	);
 
 	const totalKanbanTodos = $derived(columns.reduce((acc, col) => acc + col.todos.length, 0));
-
-	let activeMenuTodoId = $state<string | null>(null);
-
-	function toggleMenu(todoId: string, e: MouseEvent) {
-		e.stopPropagation();
-		activeMenuTodoId = activeMenuTodoId === todoId ? null : todoId;
-	}
-
-	function closeMenu() {
-		activeMenuTodoId = null;
-	}
 </script>
-
-<svelte:window onclick={closeMenu} />
 
 <div class="space-y-4">
 	{#if totalKanbanTodos === 0}
@@ -130,23 +119,30 @@
 
 								<!-- Bottom bar: status menu & checkbox -->
 								<div class="flex items-center justify-between pt-1">
-									<div class="relative">
-										<button
-											type="button"
-											onclick={(e) => toggleMenu(todo.id, e)}
-											class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs font-medium bg-zinc-100/70 dark:bg-zinc-800/70 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200/80 dark:hover:bg-zinc-700/80 transition-colors cursor-pointer"
-											title="Change status"
-										>
-											<span class="h-1.5 w-1.5 rounded-full {currentStatusConfig.dotClass}"></span>
-											<span>{currentStatusConfig.label}</span>
-											<svg class="h-3 w-3 text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-												<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-											</svg>
-										</button>
+									<Popover
+										placement={POPOVER_PLACEMENT.TOP_START}
+										trigger={POPOVER_TRIGGER.CLICK}
+										role={POPOVER_ROLE.MENU}
+										offset={6}
+									>
+										{#snippet triggerSnippet({ triggerProps })}
+											<button
+												type="button"
+												{...triggerProps}
+												class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs font-medium bg-zinc-100/70 dark:bg-zinc-800/70 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200/80 dark:hover:bg-zinc-700/80 transition-colors cursor-pointer"
+												title="Change status"
+											>
+												<span class="h-1.5 w-1.5 rounded-full {currentStatusConfig.dotClass}"></span>
+												<span>{currentStatusConfig.label}</span>
+												<svg class="h-3 w-3 text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+													<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+												</svg>
+											</button>
+										{/snippet}
 
-										{#if activeMenuTodoId === todo.id}
+										{#snippet children({ close })}
 											<div
-												class="absolute left-0 bottom-full mb-1.5 z-30 w-32 rounded-2xl border border-zinc-200/80 dark:border-zinc-800 bg-white/95 dark:bg-zinc-900/95 backdrop-blur-md p-1.5 shadow-xl text-xs animate-in fade-in zoom-in-95 duration-100 space-y-0.5"
+												class="w-32 rounded-2xl border border-zinc-200/80 dark:border-zinc-800 bg-white/95 dark:bg-zinc-900/95 backdrop-blur-md p-1.5 shadow-xl text-xs animate-in fade-in zoom-in-95 duration-100 space-y-0.5"
 											>
 												<div class="px-2 py-1 text-[10px] text-zinc-400 font-medium">
 													Move to
@@ -156,7 +152,7 @@
 														type="button"
 														onclick={(e) => {
 															resource.changeStatus(todo.id, targetSt.id, e);
-															closeMenu();
+															close();
 														}}
 														class="w-full text-left px-2.5 py-1.5 rounded-xl hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-700 dark:text-zinc-300 transition-colors cursor-pointer flex items-center justify-between {todo.status === targetSt.id ? 'font-semibold bg-zinc-50 dark:bg-zinc-800/50' : ''}"
 													>
@@ -170,8 +166,8 @@
 													</button>
 												{/each}
 											</div>
-										{/if}
-									</div>
+										{/snippet}
+									</Popover>
 
 									<!-- 右侧打卡复选框 -->
 									<TodoCheckbox

@@ -25,9 +25,10 @@ describe('TodoCheckbox status popover restoration', () => {
 			}
 		});
 
-		// 1. Popover container card styles
+		// 1. Popover container card styles & Native Popover attributes
 		expect(rendered.body).toContain('rounded-xl bg-white dark:bg-zinc-900 shadow-xl border border-zinc-200/90 dark:border-zinc-800');
-		expect(rendered.body).toContain('absolute bottom-full right-0 mb-2 z-50');
+		expect(rendered.body).toContain('popover="auto"');
+		expect(rendered.body).toContain('data-placement="top-end"');
 
 		// 2. Contains all shortActionLabels
 		for (const st of TODO_STATUSES) {
