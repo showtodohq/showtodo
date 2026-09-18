@@ -38,7 +38,7 @@ describe('Todo Views (Stream, Kanban, Calendar) SSR Rendering', () => {
 		todoRegistry.clear();
 	});
 
-	it('renders TodoStreamView correctly with status tabs and todo items', () => {
+	it('renders TodoStreamView correctly with todo items', () => {
 		const res = createMyTodosResource();
 		const t = mockTodo('t1', 'pending', 'Stream Todo Test');
 		todoRegistry.upsert(t);
@@ -46,7 +46,6 @@ describe('Todo Views (Stream, Kanban, Calendar) SSR Rendering', () => {
 
 		const rendered = render(TodoStreamView, { props: { resource: res } });
 		expect(rendered.body).toContain('Stream Todo Test');
-		expect(rendered.body).toContain('All (1)');
 	});
 
 	it('renders TodoKanbanView correctly with 4 status columns', () => {

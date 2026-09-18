@@ -17,6 +17,7 @@
 		debounceMs?: number;
 		loading?: boolean;
 		size?: 'sm' | 'md';
+		autofocus?: boolean;
 		enableGlobalShortcut?: boolean;
 		class?: string;
 		onsearch?: (query: string) => void;
@@ -29,6 +30,7 @@
 		debounceMs = SEARCH_DEFAULT_DEBOUNCE_MS,
 		loading = false,
 		size = 'sm',
+		autofocus = false,
 		enableGlobalShortcut = false,
 		class: className = '',
 		onsearch,
@@ -39,6 +41,13 @@
 	let isFocused = $state(false);
 	let isComposing = $state(false);
 	let debounceTimer: ReturnType<typeof setTimeout> | null = null;
+
+	$effect(() => {
+		if (autofocus && inputRef) {
+			inputRef.focus();
+			inputRef.select();
+		}
+	});
 
 	function clearDebounceTimer() {
 		if (debounceTimer) {

@@ -3,8 +3,12 @@
  * 统一收敛全站搜索相关的配置、键名与文本，彻底杜绝硬编码
  */
 
-/** URL 搜索参数统一键名 */
+/** URL 搜索与筛选参数统一键名 */
 export const SEARCH_URL_QUERY_PARAM = 'q' as const;
+export const SEARCH_STATUS_QUERY_PARAM = 'status' as const;
+export const SEARCH_CATEGORY_QUERY_PARAM = 'category' as const;
+export const SEARCH_PEOPLE_QUERY_PARAM = 'min' as const;
+export const SEARCH_SORT_QUERY_PARAM = 'sort' as const;
 
 /** 默认输入防抖延时 (ms) */
 export const SEARCH_DEFAULT_DEBOUNCE_MS = 300 as const;
@@ -27,3 +31,12 @@ export const SEARCH_PLACEHOLDERS = {
 } as const;
 
 export type SearchScene = keyof typeof SEARCH_PLACEHOLDERS;
+
+/** Trending 排序选项常量表 */
+export const TRENDING_SORT_OPTIONS = [
+	{ id: 'participants', label: 'Most People' },
+	{ id: 'recent', label: 'Recently Active' },
+	{ id: 'completion', label: 'Completion Rate' }
+] as const;
+
+export type TrendingSortBy = (typeof TRENDING_SORT_OPTIONS)[number]['id'];

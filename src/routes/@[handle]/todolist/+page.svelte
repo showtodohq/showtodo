@@ -15,9 +15,14 @@
 	import TodoCalendarView from '$lib/components/todo/TodoCalendarView.svelte';
 	import {
 		SEARCH_URL_QUERY_PARAM,
+		SEARCH_STATUS_QUERY_PARAM,
+		SEARCH_CATEGORY_QUERY_PARAM,
 		SEARCH_PLACEHOLDERS
 	} from '$lib/constants/search';
-	import SearchInput from '$lib/components/ui/SearchInput.svelte';
+	import { TODO_STATUSES, getStatusConfig } from '$lib/constants/status';
+	import { CATEGORIES, getCategoryConfig } from '$lib/constants/categories';
+	import type { TodoStatus } from '$lib/types/todo';
+	import ExpandableFilterBar from '$lib/components/ui/ExpandableFilterBar.svelte';
 	import Icon from '@iconify/svelte';
 
 	const handleParam = $derived(page.params.handle);
@@ -25,13 +30,15 @@
 
 	let composerCategory = $state<CategoryId | null>(null);
 
-	// 同步 URL 参数中的 ?view= 和 ?q=
+	// 同步 URL 参数中的 ?view=, ?q=, ?status=, ?category=
 	let isUrlInitialized = false;
 
 	$effect(() => {
 		if (!isUrlInitialized) {
 			const viewParam = page.url.searchParams.get('view');
 			const queryParam = page.url.searchParams.get(SEARCH_URL_QUERY_PARAM);
+			const statusParam = page.url.searchParams.get(SEARCH_STATUS_QUERY_PARAM);
+			const categoryParam = page.url.searchParams.get(SEARCH_CATEGORY_QUERY_PARAM);
 
 			if (viewParam === 'stream' || viewParam === 'kanban' || viewParam === 'calendar') {
 				resource.activeView = viewParam;
@@ -39,11 +46,22 @@
 			if (queryParam) {
 				resource.searchQuery = queryParam;
 			}
+			if (statusParam && (['all', 'pending', 'in_progress', 'done', 'abandoned'] as string[]).includes(statusParam)) {
+				resource.streamTab = statusParam as TodoStatus | 'all';
+			}
+			if (categoryParam) {
+				resource.activeCategory = categoryParam as CategoryId;
+			}
 			isUrlInitialized = true;
 		}
 	});
 
-	function updateQueryParams(view: 'stream' | 'kanban' | 'calendar', q: string) {
+	function updateQueryParams(
+		view: 'stream' | 'kanban' | 'calendar',
+		q: string,
+		status: TodoStatus | 'all',
+		category: CategoryId | null
+	) {
 		resource.activeView = view;
 		if (typeof window === 'undefined') return;
 		const url = new URL(window.location.href);
@@ -59,22 +77,67 @@
 		} else {
 			url.searchParams.set(SEARCH_URL_QUERY_PARAM, cleanQ);
 		}
+
+		if (status === 'all') {
+			url.searchParams.delete(SEARCH_STATUS_QUERY_PARAM);
+		} else {
+			url.searchParams.set(SEARCH_STATUS_QUERY_PARAM, status);
+		}
+
+		if (!category) {
+			url.searchParams.delete(SEARCH_CATEGORY_QUERY_PARAM);
+		} else {
+			url.searchParams.set(SEARCH_CATEGORY_QUERY_PARAM, category);
+		}
+
 		window.history.replaceState(window.history.state, '', url.pathname + url.search);
 	}
 
 	function handleViewSwitch(view: 'stream' | 'kanban' | 'calendar') {
-		updateQueryParams(view, resource.searchQuery);
+		updateQueryParams(view, resource.searchQuery, resource.streamTab, resource.activeCategory);
 	}
 
 	function handleSearch(val: string) {
 		resource.searchQuery = val;
-		updateQueryParams(resource.activeView, val);
+		updateQueryParams(resource.activeView, val, resource.streamTab, resource.activeCategory);
 	}
 
-	function handleClearSearch() {
-		resource.searchQuery = '';
-		updateQueryParams(resource.activeView, '');
+	function handleStatusChange(st: TodoStatus | 'all') {
+		resource.streamTab = st;
+		updateQueryParams(resource.activeView, resource.searchQuery, st, resource.activeCategory);
 	}
+
+	function handleCategoryChange(cat: CategoryId | null) {
+		resource.activeCategory = resource.activeCategory === cat ? null : cat;
+		updateQueryParams(resource.activeView, resource.searchQuery, resource.streamTab, resource.activeCategory);
+	}
+
+	function handleClearAllFilters() {
+		resource.searchQuery = '';
+		resource.streamTab = 'all';
+		resource.activeCategory = null;
+		updateQueryParams(resource.activeView, '', 'all', null);
+	}
+
+	const hasActiveFilters = $derived(
+		Boolean(resource.searchQuery.trim() || resource.streamTab !== 'all' || resource.activeCategory)
+	);
+
+	const summaryText = $derived.by(() => {
+		const parts: string[] = [];
+		if (resource.searchQuery.trim()) {
+			parts.push(`"${resource.searchQuery.trim()}"`);
+		}
+		if (resource.streamTab !== 'all') {
+			const stConfig = getStatusConfig(resource.streamTab);
+			parts.push(stConfig?.label || resource.streamTab);
+		}
+		if (resource.activeCategory) {
+			const catConfig = getCategoryConfig(resource.activeCategory);
+			parts.push(catConfig?.name || resource.activeCategory);
+		}
+		return parts.join(' · ');
+	});
 
 	// 监听当前路由 handle 与登录用户变化拉取数据
 	let currentLoadedKey = $state<string | null>(null);
@@ -175,77 +238,125 @@
 
 		<!-- Sticky view switcher and search toolbar -->
 		<div
-			class="sticky top-14 z-20 py-2.5 -mx-4 px-4 sm:-mx-6 sm:px-6 bg-white/80 dark:bg-zinc-950/80 backdrop-blur-md transition-all flex flex-wrap sm:flex-nowrap items-center justify-between gap-3"
+			class="sticky top-14 z-20 py-2.5 -mx-4 px-4 sm:-mx-6 sm:px-6 bg-white/80 dark:bg-zinc-950/80 backdrop-blur-md transition-all"
 		>
-			<!-- View switcher pills (Stream / Kanban / Calendar) -->
-			<div class="inline-flex items-center rounded-2xl bg-zinc-100/90 dark:bg-zinc-800/80 p-1 text-xs font-medium shadow-2xs shrink-0">
-				<!-- Stream view -->
-				<button
-					type="button"
-					onclick={() => handleViewSwitch('stream')}
-					class="inline-flex items-center gap-1.5 p-2 sm:px-3.5 sm:py-1.5 rounded-xl font-medium transition-all cursor-pointer {resource.activeView === 'stream'
-						? 'bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 shadow-2xs font-semibold'
-						: 'text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100'}"
-					title="Stream view"
-					aria-label="Stream view"
-				>
-					<svg class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7" />
-					</svg>
-					<span class="hidden sm:inline">Stream</span>
-				</button>
+			<ExpandableFilterBar
+				bind:query={resource.searchQuery}
+				placeholder={SEARCH_PLACEHOLDERS.WORKBENCH}
+				{hasActiveFilters}
+				{summaryText}
+				onsearch={handleSearch}
+				onclearall={handleClearAllFilters}
+			>
+				{#snippet leading()}
+					<!-- View switcher pills (Stream / Kanban / Calendar) -->
+					<div class="inline-flex items-center rounded-2xl bg-zinc-100/90 dark:bg-zinc-800/80 p-1 text-xs font-medium shadow-2xs shrink-0">
+						<!-- Stream view -->
+						<button
+							type="button"
+							onclick={() => handleViewSwitch('stream')}
+							class="inline-flex items-center gap-1.5 p-2 sm:px-3.5 sm:py-1.5 rounded-xl font-medium transition-all cursor-pointer {resource.activeView === 'stream'
+								? 'bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 shadow-2xs font-semibold'
+								: 'text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100'}"
+							title="Stream view"
+							aria-label="Stream view"
+						>
+							<svg class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7" />
+							</svg>
+							<span class="hidden sm:inline">Stream</span>
+						</button>
 
-				<!-- Kanban view -->
-				<button
-					type="button"
-					onclick={() => handleViewSwitch('kanban')}
-					class="inline-flex items-center gap-1.5 p-2 sm:px-3.5 sm:py-1.5 rounded-xl font-medium transition-all cursor-pointer {resource.activeView === 'kanban'
-						? 'bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 shadow-2xs font-semibold'
-						: 'text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100'}"
-					title="Kanban view"
-					aria-label="Kanban view"
-				>
-					<svg class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2" />
-					</svg>
-					<span class="hidden sm:inline">Kanban</span>
-				</button>
+						<!-- Kanban view -->
+						<button
+							type="button"
+							onclick={() => handleViewSwitch('kanban')}
+							class="inline-flex items-center gap-1.5 p-2 sm:px-3.5 sm:py-1.5 rounded-xl font-medium transition-all cursor-pointer {resource.activeView === 'kanban'
+								? 'bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 shadow-2xs font-semibold'
+								: 'text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100'}"
+							title="Kanban view"
+							aria-label="Kanban view"
+						>
+							<svg class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2" />
+							</svg>
+							<span class="hidden sm:inline">Kanban</span>
+						</button>
 
-				<!-- Calendar view -->
-				<button
-					type="button"
-					onclick={() => handleViewSwitch('calendar')}
-					class="inline-flex items-center gap-1.5 p-2 sm:px-3.5 sm:py-1.5 rounded-xl font-medium transition-all cursor-pointer {resource.activeView === 'calendar'
-						? 'bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 shadow-2xs font-semibold'
-						: 'text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100'}"
-					title="Calendar view"
-					aria-label="Calendar view"
-				>
-					<svg class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-					</svg>
-					<span class="hidden sm:inline">Calendar</span>
-				</button>
-			</div>
+						<!-- Calendar view -->
+						<button
+							type="button"
+							onclick={() => handleViewSwitch('calendar')}
+							class="inline-flex items-center gap-1.5 p-2 sm:px-3.5 sm:py-1.5 rounded-xl font-medium transition-all cursor-pointer {resource.activeView === 'calendar'
+								? 'bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 shadow-2xs font-semibold'
+								: 'text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100'}"
+							title="Calendar view"
+							aria-label="Calendar view"
+						>
+							<svg class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+							</svg>
+							<span class="hidden sm:inline">Calendar</span>
+						</button>
+					</div>
+				{/snippet}
 
-			<!-- Universal Workbench Search Bar -->
-			<div class="flex-1 min-w-[180px] sm:max-w-xs order-3 sm:order-2 w-full sm:w-auto">
-				<SearchInput
-					value={resource.searchQuery}
-					placeholder={SEARCH_PLACEHOLDERS.WORKBENCH}
-					enableGlobalShortcut={true}
-					onsearch={handleSearch}
-					onclear={handleClearSearch}
-				/>
-			</div>
+				{#snippet filters()}
+					<!-- 状态微胶囊组 (全部 / 待办 / 进行中 / 完成 / 放弃) -->
+					<div class="flex items-center gap-1.5 flex-wrap text-xs">
+						<span class="text-[11px] text-zinc-400 dark:text-zinc-500 font-medium shrink-0">Status:</span>
+						<button
+							type="button"
+							onclick={() => handleStatusChange('all')}
+							class="px-2.5 py-1 rounded-lg text-xs font-medium transition-all cursor-pointer {resource.streamTab === 'all'
+								? 'bg-zinc-900 text-white dark:bg-white dark:text-zinc-900 shadow-2xs font-semibold'
+								: 'text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800'}"
+						>
+							All ({resource.totalCount})
+						</button>
+						{#each TODO_STATUSES as st}
+							<button
+								type="button"
+								onclick={() => handleStatusChange(st.id)}
+								class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium transition-all cursor-pointer {resource.streamTab === st.id
+									? 'bg-zinc-900 text-white dark:bg-white dark:text-zinc-900 shadow-2xs font-semibold'
+									: 'text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800'}"
+							>
+								<span class="h-1.5 w-1.5 rounded-full {st.dotClass}"></span>
+								<span>{st.label}</span>
+								<span class="opacity-60 text-[10px]">({resource.statusCounts[st.id] || 0})</span>
+							</button>
+						{/each}
+					</div>
 
-			<!-- Metrics summary -->
-			<div class="text-xs font-mono text-zinc-400 shrink-0 order-2 sm:order-3 ml-auto sm:ml-0">
-				<span class="hidden sm:inline">{resource.statusCounts.done}/{resource.totalCount} completed ({resource.completionRate}%)</span>
-				<span class="sm:hidden px-2 py-0.5 rounded-full bg-zinc-100 dark:bg-zinc-900 text-zinc-600 dark:text-zinc-400 font-medium">
-					{resource.statusCounts.done}/{resource.totalCount}
-				</span>
-			</div>
+					<!-- 分类微胶囊组 (全部 / 学习 / 健身 / 工作 / 生活 等) -->
+					<div class="flex items-center gap-1.5 flex-wrap text-xs pt-1.5 border-t border-zinc-100 dark:border-zinc-800/60">
+						<span class="text-[11px] text-zinc-400 dark:text-zinc-500 font-medium shrink-0">Category:</span>
+						<button
+							type="button"
+							onclick={() => handleCategoryChange(null)}
+							class="px-2.5 py-1 rounded-lg text-xs font-medium transition-all cursor-pointer {resource.activeCategory === null
+								? 'bg-zinc-900 text-white dark:bg-white dark:text-zinc-900 shadow-2xs font-semibold'
+								: 'text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800'}"
+						>
+							All
+						</button>
+						{#each CATEGORIES as cat}
+							{@const isSelected = resource.activeCategory === cat.id}
+							<button
+								type="button"
+								onclick={() => handleCategoryChange(cat.id)}
+								class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium transition-all cursor-pointer {isSelected
+									? 'bg-zinc-900 text-white dark:bg-white dark:text-zinc-900 shadow-2xs font-semibold'
+									: 'text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800'}"
+							>
+								<span class="h-1.5 w-1.5 rounded-full shrink-0" style="background-color: {cat.color};"></span>
+								<span>{cat.name}</span>
+							</button>
+						{/each}
+					</div>
+				{/snippet}
+			</ExpandableFilterBar>
 		</div>
 
 		<!-- Views -->

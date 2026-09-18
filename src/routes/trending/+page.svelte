@@ -13,9 +13,13 @@
 
 	import {
 		SEARCH_URL_QUERY_PARAM,
-		SEARCH_PLACEHOLDERS
+		SEARCH_PEOPLE_QUERY_PARAM,
+		SEARCH_SORT_QUERY_PARAM,
+		SEARCH_PLACEHOLDERS,
+		TRENDING_SORT_OPTIONS,
+		type TrendingSortBy
 	} from '$lib/constants/search';
-	import SearchInput from '$lib/components/ui/SearchInput.svelte';
+	import ExpandableFilterBar from '$lib/components/ui/ExpandableFilterBar.svelte';
 
 	const topicsRes = createTopicsResource();
 
@@ -30,7 +34,12 @@
 				: 'all'
 	);
 
-	function updateUrlQuery(tab: ViewTab, q: string) {
+	function updateUrlQuery(
+		tab: ViewTab,
+		q: string,
+		minPart: number,
+		sort: 'participants' | 'recent' | 'completion'
+	) {
 		if (typeof window === 'undefined') return;
 		const url = new URL(window.location.href);
 		if (tab === 'all') {
@@ -45,6 +54,19 @@
 		} else {
 			url.searchParams.set(SEARCH_URL_QUERY_PARAM, cleanQuery);
 		}
+
+		if (minPart <= 1) {
+			url.searchParams.delete(SEARCH_PEOPLE_QUERY_PARAM);
+		} else {
+			url.searchParams.set(SEARCH_PEOPLE_QUERY_PARAM, String(minPart));
+		}
+
+		if (sort === 'participants') {
+			url.searchParams.delete(SEARCH_SORT_QUERY_PARAM);
+		} else {
+			url.searchParams.set(SEARCH_SORT_QUERY_PARAM, sort);
+		}
+
 		window.history.replaceState(window.history.state, '', url.pathname + url.search);
 	}
 
@@ -63,7 +85,7 @@
 			topicsRes.setScope('all');
 			topicsRes.setTimeRange('all');
 		}
-		updateUrlQuery(tab, searchInput);
+		updateUrlQuery(tab, searchInput, topicsRes.minParticipants, topicsRes.sortBy);
 	}
 
 	let isUrlInitialized = false;
@@ -71,10 +93,23 @@
 		if (!isUrlInitialized) {
 			const tabParam = page.url.searchParams.get('tab') as ViewTab | null;
 			const queryParam = page.url.searchParams.get(SEARCH_URL_QUERY_PARAM);
+			const minParam = page.url.searchParams.get(SEARCH_PEOPLE_QUERY_PARAM);
+			const sortParam = page.url.searchParams.get(SEARCH_SORT_QUERY_PARAM);
 
 			if (queryParam) {
 				searchInput = queryParam;
 				topicsRes.setSearch(queryParam);
+			}
+
+			if (minParam) {
+				const num = parseInt(minParam, 10);
+				if (!isNaN(num) && num > 1) {
+					topicsRes.setMinParticipants(num);
+				}
+			}
+
+			if (sortParam && ['participants', 'recent', 'completion'].includes(sortParam)) {
+				topicsRes.setSortBy(sortParam as any);
 			}
 
 			if (tabParam === 'today') {
@@ -93,14 +128,47 @@
 	function handleSearch(val: string) {
 		searchInput = val;
 		topicsRes.setSearch(val);
-		updateUrlQuery(activeTab, val);
+		updateUrlQuery(activeTab, val, topicsRes.minParticipants, topicsRes.sortBy);
 	}
 
-	function handleClearSearch() {
+	function handleToggleMinParticipants() {
+		const next = topicsRes.minParticipants > 1 ? 1 : 2;
+		topicsRes.setMinParticipants(next);
+		updateUrlQuery(activeTab, searchInput, next, topicsRes.sortBy);
+	}
+
+	function handleSortChange(sort: 'participants' | 'recent' | 'completion') {
+		topicsRes.setSortBy(sort);
+		updateUrlQuery(activeTab, searchInput, topicsRes.minParticipants, sort);
+	}
+
+	function handleClearAllTrendingFilters() {
 		searchInput = '';
 		topicsRes.setSearch('');
-		updateUrlQuery(activeTab, '');
+		topicsRes.setMinParticipants(1);
+		topicsRes.setSortBy('participants');
+		updateUrlQuery(activeTab, '', 1, 'participants');
 	}
+
+	const hasActiveFilters = $derived(
+		Boolean(searchInput.trim() || topicsRes.minParticipants > 1 || topicsRes.sortBy !== 'participants')
+	);
+
+	const summaryText = $derived.by(() => {
+		const parts: string[] = [];
+		if (searchInput.trim()) {
+			parts.push(`"${searchInput.trim()}"`);
+		}
+		if (topicsRes.minParticipants > 1) {
+			parts.push('2+ People');
+		}
+		if (topicsRes.sortBy === 'recent') {
+			parts.push('Recent');
+		} else if (topicsRes.sortBy === 'completion') {
+			parts.push('Completion');
+		}
+		return parts.join(' · ');
+	});
 
 	onMount(() => {
 		topicsRes.load(true);
@@ -126,15 +194,22 @@
 		</div>
 	</div>
 
-	<!-- Filter & control bar -->
-	<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
-		<!-- Left: tabs (All / Today / Mine) + 2+ People filter -->
-		<div class="flex items-center gap-2 flex-wrap">
-			<div class="inline-flex items-center rounded-xl bg-zinc-100/90 dark:bg-zinc-800/80 p-0.5">
+	<!-- Filter & control bar: ExpandableFilterBar (整合大Tab + 话题搜索 + 2+人同行 + 排序规则) -->
+	<ExpandableFilterBar
+		bind:query={searchInput}
+		placeholder={SEARCH_PLACEHOLDERS.TRENDING}
+		{hasActiveFilters}
+		{summaryText}
+		onsearch={handleSearch}
+		onclearall={handleClearAllTrendingFilters}
+	>
+		{#snippet leading()}
+			<!-- Left: Primary scope tabs (All / Today / Mine) - 与工作台切换器严格统一规格 -->
+			<div class="inline-flex items-center rounded-2xl bg-zinc-100/90 dark:bg-zinc-800/80 p-1 text-xs font-medium shadow-2xs shrink-0">
 				<button
 					type="button"
 					onclick={() => handleTabSwitch('all')}
-					class="px-3 py-1.5 rounded-lg font-medium transition-all cursor-pointer {activeTab === 'all'
+					class="inline-flex items-center justify-center p-2 sm:px-3.5 sm:py-1.5 rounded-xl font-medium transition-all cursor-pointer {activeTab === 'all'
 						? 'bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 shadow-2xs font-semibold'
 						: 'text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100'}"
 				>
@@ -143,7 +218,7 @@
 				<button
 					type="button"
 					onclick={() => handleTabSwitch('today')}
-					class="px-3 py-1.5 rounded-lg font-medium transition-all cursor-pointer {activeTab === 'today'
+					class="inline-flex items-center justify-center p-2 sm:px-3.5 sm:py-1.5 rounded-xl font-medium transition-all cursor-pointer {activeTab === 'today'
 						? 'bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 shadow-2xs font-semibold'
 						: 'text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100'}"
 				>
@@ -152,57 +227,51 @@
 				<button
 					type="button"
 					onclick={() => handleTabSwitch('mine')}
-					class="px-3 py-1.5 rounded-lg font-medium transition-all cursor-pointer {activeTab === 'mine'
+					class="inline-flex items-center justify-center p-2 sm:px-3.5 sm:py-1.5 rounded-xl font-medium transition-all cursor-pointer {activeTab === 'mine'
 						? 'bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 shadow-2xs font-semibold'
 						: 'text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100'}"
 				>
 					Mine
 				</button>
 			</div>
+		{/snippet}
 
-			<!-- Group filter chip (>=2 people) -->
-			<button
-				type="button"
-				onclick={() => topicsRes.setMinParticipants(topicsRes.minParticipants > 1 ? 1 : 2)}
-				class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl font-medium transition-all cursor-pointer {topicsRes.minParticipants > 1
-					? 'bg-amber-100/80 text-amber-900 dark:bg-amber-950/60 dark:text-amber-200 font-semibold'
-					: 'bg-zinc-100/80 hover:bg-zinc-200/70 text-zinc-600 dark:bg-zinc-800/60 dark:hover:bg-zinc-800 dark:text-zinc-400'}"
-				title="Show todos with 2 or more people doing"
-			>
-				<Icon icon="lucide:users" class="h-3.5 w-3.5 shrink-0" />
-				<span>2+ People</span>
-			</button>
-		</div>
+		{#snippet filters()}
+			<div class="space-y-2 text-xs pt-0.5">
+				<!-- 维度 1: 门槛/人群 -->
+				<div class="flex items-center gap-1.5 flex-wrap">
+					<span class="text-[11px] text-zinc-400 dark:text-zinc-500 font-medium shrink-0">Filter:</span>
+					<button
+						type="button"
+						onclick={handleToggleMinParticipants}
+						class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium transition-all cursor-pointer {topicsRes.minParticipants > 1
+							? 'bg-zinc-900 text-white dark:bg-white dark:text-zinc-900 shadow-2xs font-semibold'
+							: 'text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800'}"
+						title="Filter goals with 2 or more participants"
+					>
+						<Icon icon="lucide:users" class="h-3.5 w-3.5" />
+						<span>2+ People</span>
+					</button>
+				</div>
 
-		<!-- Right: Sorting & search -->
-		<div class="flex items-center gap-2">
-			<div class="relative inline-flex items-center">
-				<select
-					value={topicsRes.sortBy}
-					onchange={(e) => topicsRes.setSortBy((e.target as HTMLSelectElement).value as any)}
-					class="appearance-none h-8 pl-3 pr-7 rounded-xl text-xs font-medium bg-zinc-100/80 hover:bg-zinc-200/70 dark:bg-zinc-800/80 dark:hover:bg-zinc-700/80 text-zinc-700 dark:text-zinc-200 focus:outline-hidden cursor-pointer transition-colors"
-					title="Sort by"
-				>
-					<option value="participants">Most People</option>
-					<option value="recent">Recently Active</option>
-					<option value="completion">Completion Rate</option>
-				</select>
-				<Icon icon="lucide:chevron-down" class="absolute right-2 top-2.5 h-3 w-3 pointer-events-none text-zinc-400" />
+				<!-- 维度 2: 排序方式 (平铺微胶囊) -->
+				<div class="flex items-center gap-1.5 flex-wrap pt-1.5 border-t border-zinc-100 dark:border-zinc-800/60">
+					<span class="text-[11px] text-zinc-400 dark:text-zinc-500 font-medium shrink-0">Sort:</span>
+					{#each TRENDING_SORT_OPTIONS as opt}
+						<button
+							type="button"
+							onclick={() => handleSortChange(opt.id)}
+							class="px-2.5 py-1 rounded-lg text-xs font-medium transition-all cursor-pointer {topicsRes.sortBy === opt.id
+								? 'bg-zinc-900 text-white dark:bg-white dark:text-zinc-900 shadow-2xs font-semibold'
+								: 'text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800'}"
+						>
+							{opt.label}
+						</button>
+					{/each}
+				</div>
 			</div>
-
-			<!-- Search -->
-			<div class="w-full sm:w-52">
-				<SearchInput
-					value={searchInput}
-					placeholder={SEARCH_PLACEHOLDERS.TRENDING}
-					loading={topicsRes.loading && searchInput.length > 0}
-					enableGlobalShortcut={true}
-					onsearch={handleSearch}
-					onclear={handleClearSearch}
-				/>
-			</div>
-		</div>
-	</div>
+		{/snippet}
+	</ExpandableFilterBar>
 
 	<!-- List content -->
 	<DataView
@@ -218,7 +287,7 @@
 			<div
 				class="p-10 rounded-3xl border border-dashed border-zinc-200 dark:border-zinc-800 text-center space-y-3 bg-white/40 dark:bg-zinc-900/20"
 			>
-				<div class="inline-flex p-3 rounded-2xl bg-zinc-100 dark:bg-zinc-800/80 text-zinc-400">
+				<div class="inline-flex p-3 rounded-2xl bg-zinc-100 dark:bg-zinc-800 text-zinc-400">
 					<Icon icon="lucide:sprout" class="h-6 w-6" />
 				</div>
 				<div class="text-sm font-semibold text-zinc-800 dark:text-zinc-200">
@@ -228,14 +297,7 @@
 					<Button
 						variant="outline"
 						size="sm"
-						onclick={() => {
-							topicsRes.setScope('all');
-							topicsRes.setTimeRange('all');
-							topicsRes.setSearch('');
-							topicsRes.setMinParticipants(1);
-							searchInput = '';
-							updateUrlQuery('all', '');
-						}}
+						onclick={handleClearAllTrendingFilters}
 					>
 						Reset all filters
 					</Button>
