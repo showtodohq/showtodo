@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { TodoStatus } from '$lib/types/todo';
-	import { TODO_STATUSES, getStatusConfig } from '$lib/constants/status';
+	import { TODO_STATUS, TODO_STATUSES, getStatusConfig } from '$lib/constants/status';
 	import Button from '$lib/components/ui/Button.svelte';
 	import Icon from '@iconify/svelte';
 
@@ -10,23 +10,23 @@
 		onsubmit?: (data: { status: TodoStatus; note: string }) => Promise<void> | void;
 	}
 
-	let { currentStatus = 'pending', isSubmitting = false, onsubmit }: Props = $props();
+	let { currentStatus = TODO_STATUS.PENDING, isSubmitting = false, onsubmit }: Props = $props();
 
 	// 默认情况下编辑打卡日志时，一般状态都是进行中 (in_progress)
-	let checkInStatus = $state<TodoStatus>('in_progress');
+	let checkInStatus = $state<TodoStatus>(TODO_STATUS.IN_PROGRESS);
 	let checkInNote = $state('');
 
 	$effect(() => {
-		checkInStatus = currentStatus === 'pending' ? 'in_progress' : currentStatus;
+		checkInStatus = currentStatus === TODO_STATUS.PENDING ? TODO_STATUS.IN_PROGRESS : currentStatus;
 	});
 
 	const checkInActionText = $derived(
-		checkInStatus === 'done'
-			? getStatusConfig('done').actionLabel
-			: checkInStatus === 'abandoned'
-				? getStatusConfig('abandoned').actionLabel
-				: checkInStatus === 'pending'
-					? getStatusConfig('pending').actionLabel
+		checkInStatus === TODO_STATUS.DONE
+			? getStatusConfig(TODO_STATUS.DONE).actionLabel
+			: checkInStatus === TODO_STATUS.ABANDONED
+				? getStatusConfig(TODO_STATUS.ABANDONED).actionLabel
+				: checkInStatus === TODO_STATUS.PENDING
+					? getStatusConfig(TODO_STATUS.PENDING).actionLabel
 					: 'Log Progress'
 	);
 
@@ -71,13 +71,13 @@
 						: 'text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-200'}"
 					title="{st.label}: {st.description}"
 				>
-					{#if st.id === 'pending'}
+					{#if st.id === TODO_STATUS.PENDING}
 						<Icon icon="lucide:circle" class="h-3 w-3" />
-					{:else if st.id === 'in_progress'}
+					{:else if st.id === TODO_STATUS.IN_PROGRESS}
 						<Icon icon="lucide:clock-3" class="h-3 w-3 text-blue-500" />
-					{:else if st.id === 'done'}
+					{:else if st.id === TODO_STATUS.DONE}
 						<Icon icon="lucide:check-circle-2" class="h-3 w-3 text-emerald-500" />
-					{:else if st.id === 'abandoned'}
+					{:else if st.id === TODO_STATUS.ABANDONED}
 						<Icon icon="lucide:x-circle" class="h-3 w-3 text-zinc-400" />
 					{/if}
 					<span>{st.label}</span>

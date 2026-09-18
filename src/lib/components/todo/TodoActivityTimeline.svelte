@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { TodoActivity, TodoStatus } from '$lib/types/todo';
-	import { getStatusConfig } from '$lib/constants/status';
+	import { TODO_STATUS, getStatusConfig } from '$lib/constants/status';
 	import { formatRelativeTime } from '$lib/utils/format';
 	import Icon from '@iconify/svelte';
 
@@ -79,7 +79,7 @@
 								{:else if act.type === 'status_change'}
 									Status changed to
 									<span class="font-medium text-zinc-900 dark:text-zinc-100">
-										"{getStatusConfig(act.toStatus || 'pending').label}"
+										"{getStatusConfig(act.toStatus || TODO_STATUS.PENDING).label}"
 									</span>
 								{:else}
 									Logged progress

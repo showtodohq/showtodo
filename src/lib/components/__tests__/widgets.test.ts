@@ -64,7 +64,7 @@ describe('ActivityHeatmap & SiteStatsWidget rendering test', () => {
 
 		const rendered = render(SiteStatsWidget);
 		expect(rendered.body).toContain('Site Pulse');
-		expect(rendered.body).toContain('10 members');
+		expect(rendered.body).toContain('10 people');
 		expect(rendered.body).toContain('100');
 		expect(rendered.body).toContain('45');
 		expect(rendered.body).toContain('70 activities');

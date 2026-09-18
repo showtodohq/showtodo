@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { TodoStatus } from '$lib/types/todo';
-	import { TODO_STATUSES } from '$lib/constants/status';
+	import { TODO_STATUS, TODO_STATUSES } from '$lib/constants/status';
 
 	interface Props {
 		status?: TodoStatus | string;
@@ -12,7 +12,7 @@
 	}
 
 	let {
-		status = 'pending',
+		status = TODO_STATUS.PENDING,
 		isMine = true,
 		size = 'md',
 		defaultOpen = false,
@@ -20,7 +20,7 @@
 		class: className = ''
 	}: Props = $props();
 
-	const currentStatus = $derived((status as TodoStatus) || 'pending');
+	const currentStatus = $derived((status as TodoStatus) || TODO_STATUS.PENDING);
 
 	const sizeClasses = {
 		sm: {
@@ -55,10 +55,10 @@
 	// 快速二元一键打卡：未完成/进行中 -> 一键完成；已完成/已放弃 -> 一键回退待办
 	function handleQuickClick(e: MouseEvent) {
 		let next: TodoStatus;
-		if (currentStatus === 'done' || currentStatus === 'abandoned') {
-			next = 'pending';
+		if (currentStatus === TODO_STATUS.DONE || currentStatus === TODO_STATUS.ABANDONED) {
+			next = TODO_STATUS.PENDING;
 		} else {
-			next = 'done';
+			next = TODO_STATUS.DONE;
 		}
 		isMenuOpen = false;
 		ontoggle?.(next, e);
@@ -86,22 +86,22 @@
 			onclick={handleQuickClick}
 			class="relative flex shrink-0 items-center justify-center rounded-full border overflow-hidden transition-all duration-150 active:scale-85 cursor-pointer {sizeClasses[
 				size
-			].box} {currentStatus === 'done'
+			].box} {currentStatus === TODO_STATUS.DONE
 				? 'border-zinc-900 bg-zinc-900 text-white dark:border-zinc-100 dark:bg-zinc-100 dark:text-zinc-900 shadow-xs'
-				: currentStatus === 'in_progress'
+				: currentStatus === TODO_STATUS.IN_PROGRESS
 					? 'border-zinc-900 dark:border-zinc-100 bg-zinc-100/80 dark:bg-zinc-800/80 text-zinc-900 dark:text-zinc-100'
-					: currentStatus === 'abandoned'
+					: currentStatus === TODO_STATUS.ABANDONED
 						? 'border-zinc-300 dark:border-zinc-700 bg-zinc-100 dark:bg-zinc-800 text-zinc-400'
 						: 'border-zinc-600 dark:border-zinc-300 hover:scale-110 hover:border-zinc-900 dark:hover:border-white hover:bg-zinc-100 dark:hover:bg-zinc-800'}"
-			title={currentStatus === 'done'
+			title={currentStatus === TODO_STATUS.DONE
 				? 'Completed (click to reopen, hover to change)'
-				: currentStatus === 'in_progress'
+				: currentStatus === TODO_STATUS.IN_PROGRESS
 					? 'In Progress (click to complete, hover to change)'
-					: currentStatus === 'abandoned'
+					: currentStatus === TODO_STATUS.ABANDONED
 						? 'Abandoned (click to reopen, hover to change)'
 						: 'Pending (click to complete, hover to change)'}
 		>
-			{#if currentStatus === 'done'}
+			{#if currentStatus === TODO_STATUS.DONE}
 				<svg
 					class="{sizeClasses[size].icon} stroke-[3] animate-in zoom-in-50 duration-150"
 					fill="none"
@@ -110,7 +110,7 @@
 				>
 					<path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
 				</svg>
-			{:else if currentStatus === 'in_progress'}
+			{:else if currentStatus === TODO_STATUS.IN_PROGRESS}
 				<svg
 					class="absolute inset-0 h-full w-full animate-in zoom-in-50 duration-150"
 					viewBox="0 0 24 24"
@@ -118,7 +118,7 @@
 				>
 					<path d="M12 12 L12 0 A12 12 0 0 1 24 12 Z" />
 				</svg>
-			{:else if currentStatus === 'abandoned'}
+			{:else if currentStatus === TODO_STATUS.ABANDONED}
 				<svg
 					class="{sizeClasses[size].icon} stroke-[2.5] animate-in zoom-in-50 duration-150"
 					fill="none"
@@ -145,23 +145,23 @@
 							: 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-zinc-100'}"
 						title="{st.label}: {st.description}"
 					>
-						{#if st.id === 'pending'}
+						{#if st.id === TODO_STATUS.PENDING}
 							<!-- 待办：标准空心正圆矢量 SVG (继承 currentColor) -->
 							<svg class="h-2.5 w-2.5 stroke-[2.2]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
 								<circle cx="12" cy="12" r="9" />
 							</svg>
-						{:else if st.id === 'in_progress'}
+						{:else if st.id === TODO_STATUS.IN_PROGRESS}
 							<!-- 进行中：标准 ◔ 四分之一填充圆 (外环 + 右上角 1/4 扇形填充，继承 currentColor) -->
 							<svg class="h-2.5 w-2.5" viewBox="0 0 24 24" fill="none">
 								<circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2.2" />
 								<path d="M12 12 L12 3 A9 9 0 0 1 21 12 Z" fill="currentColor" />
 							</svg>
-						{:else if st.id === 'done'}
+						{:else if st.id === TODO_STATUS.DONE}
 							<!-- 已完成：加粗打勾矢量 SVG -->
 							<svg class="h-2.5 w-2.5 stroke-[3]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
 								<path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
 							</svg>
-						{:else if st.id === 'abandoned'}
+						{:else if st.id === TODO_STATUS.ABANDONED}
 							<!-- 已放弃：极简叉号矢量 SVG -->
 							<svg class="h-2.5 w-2.5 stroke-[2.5]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
 								<path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
@@ -178,7 +178,7 @@
 			</div>
 		{/if}
 	{:else}
-		{#if currentStatus === 'done'}
+		{#if currentStatus === TODO_STATUS.DONE}
 			<div
 				class="flex shrink-0 items-center justify-center rounded-full border border-zinc-300 dark:border-zinc-600 bg-zinc-200/70 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 cursor-default select-none shadow-2xs {sizeClasses[
 					size
@@ -194,7 +194,7 @@
 					<path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
 				</svg>
 			</div>
-		{:else if currentStatus === 'in_progress'}
+		{:else if currentStatus === TODO_STATUS.IN_PROGRESS}
 			<div
 				class="relative flex shrink-0 items-center justify-center rounded-full border border-zinc-300 dark:border-zinc-700 bg-zinc-200/50 dark:bg-zinc-800/60 text-zinc-500 dark:text-zinc-400 overflow-hidden cursor-default select-none {sizeClasses[
 					size
@@ -209,7 +209,7 @@
 					<path d="M12 12 L12 0 A12 12 0 0 1 24 12 Z" />
 				</svg>
 			</div>
-		{:else if currentStatus === 'abandoned'}
+		{:else if currentStatus === TODO_STATUS.ABANDONED}
 			<div
 				class="flex shrink-0 items-center justify-center rounded-full border border-zinc-200 dark:border-zinc-800 bg-zinc-100 dark:bg-zinc-800 text-zinc-400 cursor-default select-none {sizeClasses[
 					size

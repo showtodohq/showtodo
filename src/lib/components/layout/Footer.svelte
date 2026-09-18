@@ -5,8 +5,6 @@
 			<a href="/stats" class="hover:text-zinc-600 dark:hover:text-zinc-300 transition-colors">Stats</a>
 			<span>·</span>
 			<a href="/trending" class="hover:text-zinc-600 dark:hover:text-zinc-300 transition-colors">Trending</a>
-			<span>·</span>
-			<span>Public to create · Open to all</span>
 		</div>
 	</div>
 </footer>

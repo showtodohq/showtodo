@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { Todo, TodoStatus, ReactionEmoji } from '$lib/types/todo';
-	import { getStatusConfig } from '$lib/constants/status';
+	import { getStatusConfig, isStatusDone } from '$lib/constants/status';
 	import { getCategoryConfig } from '$lib/constants/categories';
 	import { formatRelativeTime, formatScheduleRange } from '$lib/utils/format';
 	import { toast } from '$lib/stores/toast.svelte';
@@ -181,8 +181,9 @@
 	{:else}
 		<div class="space-y-3">
 			<h1
-				class="text-xl sm:text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100 leading-snug break-words {todo.status ===
-				'done'
+				class="text-xl sm:text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100 leading-snug break-words {isStatusDone(
+				todo.status
+			)
 					? 'line-through text-zinc-400 dark:text-zinc-500'
 					: ''}"
 			>

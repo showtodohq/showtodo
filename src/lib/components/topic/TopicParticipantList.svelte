@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { TopicParticipant, TodoStatus } from '$lib/types/todo';
-	import { getStatusConfig } from '$lib/constants/status';
+	import { TODO_STATUS, getStatusConfig } from '$lib/constants/status';
 	import { formatRelativeTime } from '$lib/utils/format';
 	import Avatar from '$lib/components/ui/Avatar.svelte';
 	import TodoCheckbox from '$lib/components/todo/TodoCheckbox.svelte';
@@ -195,12 +195,12 @@
 				<div class="flex flex-col items-end gap-2 shrink-0">
 					<span
 						class="px-2.5 py-0.5 rounded-full text-xs font-medium {getStatusConfig(
-							p.status || 'pending'
-						).bgClass} {getStatusConfig(p.status || 'pending').textClass} border {getStatusConfig(
-							p.status || 'pending'
+							p.status || TODO_STATUS.PENDING
+						).bgClass} {getStatusConfig(p.status || TODO_STATUS.PENDING).textClass} border {getStatusConfig(
+							p.status || TODO_STATUS.PENDING
 						).borderClass}"
 					>
-						{getStatusConfig(p.status || 'pending').label}
+						{getStatusConfig(p.status || TODO_STATUS.PENDING).label}
 					</span>
 
 					{#if isSelf}

@@ -3,6 +3,7 @@ import { userStore } from '$lib/stores/user.svelte';
 import { getLocalDayAsUtcRange } from '$lib/utils/format';
 import { todoRegistry } from '$lib/stores/entities/todo-registry.svelte';
 import type { Todo } from '$lib/types/todo';
+import { isStatusDone } from '$lib/constants/status';
 
 class TodayStore {
 	todayTodoIds = $state<string[]>([]);
@@ -17,7 +18,7 @@ class TodayStore {
 	});
 
 	// 派生今日完成与总计指标
-	doneCount = $derived(this.todos.filter((t) => t.status === 'done').length);
+	doneCount = $derived(this.todos.filter((t) => isStatusDone(t.status)).length);
 	totalCount = $derived(this.todos.length);
 	isAllDone = $derived(this.totalCount > 0 && this.doneCount >= this.totalCount);
 

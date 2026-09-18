@@ -126,8 +126,6 @@
 								<Icon icon="lucide:globe" class="h-3 w-3 text-emerald-500" />
 								<span>Public Workbench</span>
 							</span>
-							<span class="text-zinc-300 dark:text-zinc-700">·</span>
-							<span class="text-[11px] text-zinc-400">Spectator Mode</span>
 						</div>
 					</div>
 				</div>

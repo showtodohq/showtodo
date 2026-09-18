@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { TodoStatus } from '$lib/types/todo';
-	import { getStatusConfig } from '$lib/constants/status';
+	import { TODO_STATUS, getStatusConfig } from '$lib/constants/status';
 
 	interface Props {
 		totalCount?: number;
@@ -10,7 +10,12 @@
 
 	let {
 		totalCount = 0,
-		statusCounts = { pending: 0, in_progress: 0, done: 0, abandoned: 0 },
+		statusCounts = {
+			[TODO_STATUS.PENDING]: 0,
+			[TODO_STATUS.IN_PROGRESS]: 0,
+			[TODO_STATUS.DONE]: 0,
+			[TODO_STATUS.ABANDONED]: 0
+		},
 		completionRate = 0
 	}: Props = $props();
 </script>
@@ -26,15 +31,15 @@
 	</div>
 	<div class="space-y-0.5">
 		<div class="text-2xl font-bold font-mono text-emerald-600 dark:text-emerald-400">
-			{statusCounts.done || 0}
+			{statusCounts[TODO_STATUS.DONE] || 0}
 		</div>
-		<div class="text-xs text-zinc-400 font-medium">{getStatusConfig('done').label}</div>
+		<div class="text-xs text-zinc-400 font-medium">{getStatusConfig(TODO_STATUS.DONE).label}</div>
 	</div>
 	<div class="space-y-0.5">
 		<div class="text-2xl font-bold font-mono text-blue-600 dark:text-blue-400">
-			{statusCounts.in_progress || 0}
+			{statusCounts[TODO_STATUS.IN_PROGRESS] || 0}
 		</div>
-		<div class="text-xs text-zinc-400 font-medium">{getStatusConfig('in_progress').label}</div>
+		<div class="text-xs text-zinc-400 font-medium">{getStatusConfig(TODO_STATUS.IN_PROGRESS).label}</div>
 	</div>
 	<div class="space-y-0.5">
 		<div class="text-2xl font-bold font-mono text-amber-600 dark:text-amber-400">

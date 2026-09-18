@@ -8,6 +8,7 @@ import { feedStore } from '$lib/stores/feed.svelte';
 import { todayStore } from '$lib/stores/today.svelte';
 import { trendingStore } from '$lib/stores/trending.svelte';
 import type { Todo, TodoStatus, ReactionEmoji, CategoryId } from '$lib/types/todo';
+import { TODO_STATUS, isStatusDone } from '$lib/constants/status';
 
 class TodoMutations {
 	/**
@@ -48,7 +49,7 @@ class TodoMutations {
 			isNotePublic,
 			category: data.category ?? null,
 			authorId: currentUser.id,
-			status: 'pending',
+			status: TODO_STATUS.PENDING,
 			startDate: startDateIso,
 			dueDate: data.dueDate ? new Date(data.dueDate).toISOString() : null,
 			createdAt: nowIso,
@@ -174,12 +175,13 @@ class TodoMutations {
 		todoRegistry.upsert(target);
 
 		const prevStatus = target.status;
-		const targetStatus: TodoStatus = nextStatus || (prevStatus === 'done' ? 'pending' : 'done');
+		const targetStatus: TodoStatus =
+			nextStatus || (isStatusDone(prevStatus) ? TODO_STATUS.PENDING : TODO_STATUS.DONE);
 
-		if (targetStatus === 'done') {
+		if (isStatusDone(targetStatus)) {
 			const isAllDone =
 				todayStore.todos.length > 0 &&
-				todayStore.todos.every((t) => (t.id === todoId ? true : t.status === 'done'));
+				todayStore.todos.every((t) => (t.id === todoId ? true : isStatusDone(t.status)));
 
 			if (isAllDone) {
 				confetti.tripleCelebration();

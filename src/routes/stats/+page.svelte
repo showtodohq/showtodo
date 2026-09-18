@@ -37,9 +37,6 @@
 			<span class="text-base sm:text-lg font-bold tracking-tight text-zinc-900 dark:text-zinc-100">
 				Stats Dashboard
 			</span>
-			<span class="text-xs text-zinc-400 font-mono">
-				Live Ecosystem
-			</span>
 		</div>
 
 		<div class="flex items-center gap-2 font-mono text-xs">
@@ -117,12 +114,12 @@
 				</div>
 			</div>
 
-			<!-- Members -->
+			<!-- People -->
 			<div
 				class="p-4 sm:p-5 rounded-2xl border border-blue-200/60 dark:border-blue-900/40 bg-blue-50/30 dark:bg-blue-950/20 backdrop-blur-xs space-y-1"
 			>
 				<div class="flex items-center justify-between text-xs text-blue-600 dark:text-blue-400 font-medium">
-					<span>Members</span>
+					<span>People</span>
 					<Icon icon="lucide:users" class="h-4 w-4 text-blue-500 shrink-0" />
 				</div>
 				<div class="text-2xl sm:text-3xl font-black font-mono text-blue-600 dark:text-blue-400">
@@ -139,15 +136,10 @@
 			class="rounded-3xl border border-zinc-200/80 dark:border-zinc-800 bg-white/70 dark:bg-zinc-900/60 p-5 sm:p-7 backdrop-blur-md shadow-xs space-y-4"
 		>
 			<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-				<div class="space-y-0.5">
-					<h2 class="text-sm sm:text-base font-bold text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
-						<Icon icon="lucide:calendar" class="h-4 w-4 text-emerald-500 shrink-0" />
-						<span>Activity Heatmap</span>
-					</h2>
-					<p class="text-xs text-zinc-400">
-						Tracking daily created todos, progress check-ins, and completions
-					</p>
-				</div>
+				<h2 class="text-sm sm:text-base font-bold text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
+					<Icon icon="lucide:calendar" class="h-4 w-4 text-emerald-500 shrink-0" />
+					<span>Activity Heatmap</span>
+				</h2>
 				<div class="flex items-center gap-3 font-mono text-xs text-zinc-500 dark:text-zinc-400">
 					<span>Total activities: <strong class="text-zinc-900 dark:text-zinc-100">{heatmap.totalActivities}</strong></span>
 					<span>·</span>
@@ -163,13 +155,10 @@
 			class="rounded-3xl border border-zinc-200/80 dark:border-zinc-800 bg-white/70 dark:bg-zinc-900/60 p-5 sm:p-7 backdrop-blur-md shadow-xs space-y-4"
 		>
 			<div class="flex items-center justify-between">
-				<div class="space-y-0.5">
-					<h2 class="text-sm sm:text-base font-bold text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
-						<Icon icon="lucide:trending-up" class="h-4 w-4 text-blue-500 shrink-0" />
-						<span>14-Day Trend</span>
-					</h2>
-					<p class="text-xs text-zinc-400">Comparing daily created vs completed momentum</p>
-				</div>
+				<h2 class="text-sm sm:text-base font-bold text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
+					<Icon icon="lucide:trending-up" class="h-4 w-4 text-blue-500 shrink-0" />
+					<span>14-Day Trend</span>
+				</h2>
 				<div class="flex items-center gap-3 text-xs">
 					<div class="flex items-center gap-1.5">
 						<span class="h-2 w-2 rounded-full bg-zinc-400"></span>
@@ -232,13 +221,10 @@
 		<div
 			class="rounded-3xl border border-zinc-200/80 dark:border-zinc-800 bg-white/70 dark:bg-zinc-900/60 p-5 sm:p-7 backdrop-blur-md shadow-xs space-y-4"
 		>
-			<div class="space-y-0.5">
-				<h2 class="text-sm sm:text-base font-bold text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
-					<Icon icon="lucide:target" class="h-4 w-4 text-indigo-500 shrink-0" />
-					<span>Category Insights</span>
-				</h2>
-				<p class="text-xs text-zinc-400">Todo volume, share, and completion rate by category</p>
-			</div>
+			<h2 class="text-sm sm:text-base font-bold text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
+				<Icon icon="lucide:target" class="h-4 w-4 text-indigo-500 shrink-0" />
+				<span>Category Insights</span>
+			</h2>
 
 			<CategoryDonutChart {categories} totalTodos={overview.totalTodos} />
 		</div>
@@ -250,13 +236,10 @@
 				class="rounded-3xl border border-zinc-200/80 dark:border-zinc-800 bg-white/70 dark:bg-zinc-900/60 p-5 sm:p-7 backdrop-blur-md shadow-xs space-y-4"
 			>
 					<div class="flex items-center justify-between">
-						<div class="space-y-0.5">
-							<h2 class="text-sm sm:text-base font-bold text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
-								<Icon icon="lucide:flame" class="h-4 w-4 text-orange-500 shrink-0" />
-								<span>Top Trending Todos</span>
-							</h2>
-							<p class="text-xs text-zinc-400">Todos with the most people doing</p>
-						</div>
+						<h2 class="text-sm sm:text-base font-bold text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
+							<Icon icon="lucide:flame" class="h-4 w-4 text-orange-500 shrink-0" />
+							<span>Top Trending Todos</span>
+						</h2>
 						<a
 							href="/trending"
 							class="text-xs font-semibold text-emerald-600 dark:text-emerald-400 hover:underline"
@@ -294,13 +277,10 @@
 				<div
 					class="rounded-3xl border border-zinc-200/80 dark:border-zinc-800 bg-white/70 dark:bg-zinc-900/60 p-5 sm:p-7 backdrop-blur-md shadow-xs space-y-4"
 				>
-					<div class="space-y-0.5">
-						<h2 class="text-sm sm:text-base font-bold text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
-							<Icon icon="lucide:trophy" class="h-4 w-4 text-amber-500 shrink-0" />
-							<span>Top Achievers</span>
-						</h2>
-						<p class="text-xs text-zinc-400">Active members with the most completed todos</p>
-					</div>
+					<h2 class="text-sm sm:text-base font-bold text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
+						<Icon icon="lucide:trophy" class="h-4 w-4 text-amber-500 shrink-0" />
+						<span>Top Achievers</span>
+					</h2>
 
 					<div class="space-y-1.5">
 						{#each topUsers as user, idx (user.id)}

@@ -1,4 +1,36 @@
-import type { TodoStatus } from '$lib/types/todo';
+/**
+ * 待办状态领域常量类 (Todo Status Domain Constants)
+ * 统一收敛系统待办状态标识，杜绝各业务层硬编码
+ */
+export const TODO_STATUS = {
+	PENDING: 'pending',
+	IN_PROGRESS: 'in_progress',
+	DONE: 'done',
+	ABANDONED: 'abandoned'
+} as const;
+
+export type TodoStatus = (typeof TODO_STATUS)[keyof typeof TODO_STATUS];
+export type TodoStatusCode = TodoStatus;
+
+/**
+ * 全站合法的待办状态清单
+ */
+export const ALL_TODO_STATUSES: readonly TodoStatus[] = [
+	TODO_STATUS.PENDING,
+	TODO_STATUS.IN_PROGRESS,
+	TODO_STATUS.DONE,
+	TODO_STATUS.ABANDONED
+] as const;
+
+/**
+ * 领域状态判断谓词 (Domain Status Predicates)
+ */
+export const isStatusDone = (status?: TodoStatus | string | null): boolean => status === TODO_STATUS.DONE;
+export const isStatusInProgress = (status?: TodoStatus | string | null): boolean => status === TODO_STATUS.IN_PROGRESS;
+export const isStatusPending = (status?: TodoStatus | string | null): boolean => status === TODO_STATUS.PENDING;
+export const isStatusAbandoned = (status?: TodoStatus | string | null): boolean => status === TODO_STATUS.ABANDONED;
+export const isStatusCompletedOrAbandoned = (status?: TodoStatus | string | null): boolean =>
+	status === TODO_STATUS.DONE || status === TODO_STATUS.ABANDONED;
 
 export interface StatusConfig {
 	id: TodoStatus;
@@ -21,7 +53,7 @@ export interface StatusConfig {
 
 export const TODO_STATUSES: StatusConfig[] = [
 	{
-		id: 'pending',
+		id: TODO_STATUS.PENDING,
 		label: 'Pending',
 		actionLabel: 'Set to Pending',
 		shortActionLabel: 'Pending',
@@ -41,7 +73,7 @@ export const TODO_STATUSES: StatusConfig[] = [
 			'bg-zinc-50 dark:bg-zinc-800 hover:bg-zinc-100 text-zinc-700 dark:text-zinc-300 border-zinc-200 dark:border-zinc-700'
 	},
 	{
-		id: 'in_progress',
+		id: TODO_STATUS.IN_PROGRESS,
 		label: 'In Progress',
 		actionLabel: 'Start Working',
 		shortActionLabel: 'In Progress',
@@ -60,7 +92,7 @@ export const TODO_STATUSES: StatusConfig[] = [
 			'bg-blue-50 dark:bg-blue-950/40 hover:bg-blue-100 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800'
 	},
 	{
-		id: 'done',
+		id: TODO_STATUS.DONE,
 		label: 'Completed',
 		actionLabel: 'Mark Completed',
 		shortActionLabel: 'Completed',
@@ -79,7 +111,7 @@ export const TODO_STATUSES: StatusConfig[] = [
 			'bg-emerald-50 dark:bg-emerald-950/40 hover:bg-emerald-100 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800'
 	},
 	{
-		id: 'abandoned',
+		id: TODO_STATUS.ABANDONED,
 		label: 'Abandoned',
 		actionLabel: 'Mark Abandoned',
 		shortActionLabel: 'Abandoned',
@@ -106,7 +138,7 @@ export const STATUS_MAP = new Map<TodoStatus, StatusConfig>(
 export function getStatusConfig(status: TodoStatus | string): StatusConfig {
 	return (
 		STATUS_MAP.get(status as TodoStatus) || {
-			id: 'pending',
+			id: TODO_STATUS.PENDING,
 			label: status,
 			actionLabel: status,
 			shortActionLabel: status,
@@ -129,10 +161,10 @@ export function getStatusConfig(status: TodoStatus | string): StatusConfig {
  * 状态机合法流转规则表
  */
 export const ALLOWED_STATUS_TRANSITIONS: Record<TodoStatus, TodoStatus[]> = {
-	pending: ['in_progress', 'done', 'abandoned'],
-	in_progress: ['pending', 'done', 'abandoned'],
-	done: ['in_progress', 'pending', 'abandoned'],
-	abandoned: ['pending', 'in_progress', 'done']
+	[TODO_STATUS.PENDING]: [TODO_STATUS.IN_PROGRESS, TODO_STATUS.DONE, TODO_STATUS.ABANDONED],
+	[TODO_STATUS.IN_PROGRESS]: [TODO_STATUS.PENDING, TODO_STATUS.DONE, TODO_STATUS.ABANDONED],
+	[TODO_STATUS.DONE]: [TODO_STATUS.IN_PROGRESS, TODO_STATUS.PENDING, TODO_STATUS.ABANDONED],
+	[TODO_STATUS.ABANDONED]: [TODO_STATUS.PENDING, TODO_STATUS.IN_PROGRESS, TODO_STATUS.DONE]
 };
 
 export function canTransitionTo(current: TodoStatus, target: TodoStatus): boolean {

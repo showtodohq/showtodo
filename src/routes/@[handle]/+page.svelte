@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { page } from '$app/state';
 	import { goto } from '$app/navigation';
-	import { TODO_STATUSES } from '$lib/constants/status';
+	import { TODO_STATUSES, ALL_TODO_STATUSES } from '$lib/constants/status';
 	import { getCategoryConfig } from '$lib/constants/categories';
 	import type { TodoStatus, CategoryId } from '$lib/types/todo';
 	import { createUserProfileResource } from '$lib/stores/resources/use-user-profile.svelte';
@@ -26,7 +26,7 @@
 			const categoryParam = page.url.searchParams.get('category');
 			if (
 				statusParam &&
-				(['all', 'pending', 'in_progress', 'done', 'abandoned'] as string[]).includes(statusParam)
+				(['all', ...ALL_TODO_STATUSES] as string[]).includes(statusParam)
 			) {
 				profileRes.activeTab = statusParam as TodoStatus | 'all';
 			}
@@ -123,7 +123,7 @@
 						User Not Found
 					</div>
 					<p class="text-xs text-zinc-500 max-w-sm mx-auto">
-						This user may not be registered or the link is invalid. Return to the Feed to discover active members.
+						This user may not be registered or the link is invalid. Return to the Feed to discover active people.
 					</p>
 					<Button variant="outline" size="sm" onclick={() => goto('/')}>
 						Back to Feed
@@ -145,7 +145,7 @@
 						{msg}
 					</div>
 					<p class="text-xs text-zinc-500 max-w-sm mx-auto">
-						This user may not be registered or the link is invalid. Return to the Feed to discover active members.
+						This user may not be registered or the link is invalid. Return to the Feed to discover active people.
 					</p>
 					<Button variant="outline" size="sm" onclick={() => goto('/')}>
 						Back to Feed
@@ -183,9 +183,6 @@
 						<div class="flex items-center gap-2">
 							<span class="text-base font-bold text-zinc-900 dark:text-zinc-100">
 								Activity Footprint
-							</span>
-							<span class="text-xs text-zinc-400 font-mono">
-								(Past 365 Days)
 							</span>
 						</div>
 						<div class="text-xs text-zinc-500 dark:text-zinc-400 font-mono">

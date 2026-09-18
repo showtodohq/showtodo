@@ -1,7 +1,13 @@
 <script lang="ts">
 	import type { createMyTodosResource } from '$lib/stores/resources/use-my-todos.svelte';
 	import type { Todo, TodoStatus } from '$lib/types/todo';
-	import { TODO_STATUSES, getStatusConfig, getAllowedNextStatuses } from '$lib/constants/status';
+	import {
+		TODO_STATUSES,
+		getStatusConfig,
+		getAllowedNextStatuses,
+		isStatusDone,
+		isStatusAbandoned
+	} from '$lib/constants/status';
 	import CategoryBadge from '$lib/components/todo/CategoryBadge.svelte';
 	import TodoCheckbox from '$lib/components/todo/TodoCheckbox.svelte';
 	import { formatRelativeTime } from '$lib/utils/format';
@@ -87,9 +93,11 @@
 								<!-- Todo content link -->
 								<a
 									href="/t/{todo.shortId || todo.id}"
-									class="block text-xs font-semibold leading-relaxed text-zinc-800 dark:text-zinc-200 hover:text-zinc-950 dark:hover:text-white transition-colors {todo.status === 'done'
+									class="block text-xs font-semibold leading-relaxed text-zinc-800 dark:text-zinc-200 hover:text-zinc-950 dark:hover:text-white transition-colors {isStatusDone(
+										todo.status
+									)
 										? 'line-through text-zinc-400 dark:text-zinc-500'
-										: todo.status === 'abandoned'
+										: isStatusAbandoned(todo.status)
 											? 'line-through text-zinc-400 dark:text-zinc-500 opacity-60'
 											: ''}"
 									title="View todo details"

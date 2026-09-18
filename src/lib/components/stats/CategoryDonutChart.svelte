@@ -158,7 +158,7 @@
 						<div class="text-[10px] font-mono text-zinc-500 dark:text-zinc-400">
 							<span class="font-bold">{activeCategoryData.percentage}% share</span>
 							<span class="opacity-60">·</span>
-							<span class="text-emerald-600 dark:text-emerald-400 font-semibold">{activeCategoryData.completionRate}% done</span>
+							<span class="text-emerald-600 dark:text-emerald-400 font-semibold">{activeCategoryData.completionRate}% completed</span>
 						</div>
 					</div>
 				{:else}

@@ -2,6 +2,7 @@ import { api } from '$lib/services/api';
 import { userStore } from '$lib/stores/user.svelte';
 import { getTodayString, getLocalDayAsUtcRange } from '$lib/utils/format';
 import type { DailyCard, TodoStatus, Todo } from '$lib/types/todo';
+import { TODO_STATUS, isStatusDone } from '$lib/constants/status';
 
 function normalizeText(text: string) {
 	return text.trim().toLowerCase();
@@ -60,9 +61,9 @@ class TrendingStore {
 			);
 			if (p) {
 				p.status = targetStatus;
-				if (prevStatus !== 'done' && targetStatus === 'done') {
+				if (!isStatusDone(prevStatus) && isStatusDone(targetStatus)) {
 					card.doneCount += 1;
-				} else if (prevStatus === 'done' && targetStatus !== 'done') {
+				} else if (isStatusDone(prevStatus) && !isStatusDone(targetStatus)) {
 					card.doneCount = Math.max(0, card.doneCount - 1);
 				}
 				changed = true;
@@ -89,7 +90,7 @@ class TrendingStore {
 		const participant = {
 			todoId: tempId,
 			shortId: tempId,
-			status: 'pending' as TodoStatus,
+			status: TODO_STATUS.PENDING,
 			createdAt: new Date().toISOString(),
 			isMe: true,
 			user: {

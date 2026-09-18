@@ -1,10 +1,53 @@
 import { describe, it, expect } from 'vitest';
-import { TODO_STATUSES, getStatusConfig } from '../status';
+import {
+	TODO_STATUS,
+	ALL_TODO_STATUSES,
+	TODO_STATUSES,
+	getStatusConfig,
+	isStatusDone,
+	isStatusInProgress,
+	isStatusPending,
+	isStatusAbandoned,
+	isStatusCompletedOrAbandoned
+} from '../status';
 import { ACTIVITY_CONFIG } from '../activity';
 
 describe('Constants Domain Ubiquitous Language (TDD)', () => {
+	it('defines TODO_STATUS enum constants and ALL_TODO_STATUSES without hardcoding', () => {
+		expect(TODO_STATUS.PENDING).toBe('pending');
+		expect(TODO_STATUS.IN_PROGRESS).toBe('in_progress');
+		expect(TODO_STATUS.DONE).toBe('done');
+		expect(TODO_STATUS.ABANDONED).toBe('abandoned');
+
+		expect(ALL_TODO_STATUSES).toEqual([
+			TODO_STATUS.PENDING,
+			TODO_STATUS.IN_PROGRESS,
+			TODO_STATUS.DONE,
+			TODO_STATUS.ABANDONED
+		]);
+	});
+
+	it('provides domain predicate helpers for status checking', () => {
+		expect(isStatusDone(TODO_STATUS.DONE)).toBe(true);
+		expect(isStatusDone(TODO_STATUS.PENDING)).toBe(false);
+
+		expect(isStatusInProgress(TODO_STATUS.IN_PROGRESS)).toBe(true);
+		expect(isStatusInProgress(TODO_STATUS.DONE)).toBe(false);
+
+		expect(isStatusPending(TODO_STATUS.PENDING)).toBe(true);
+		expect(isStatusPending(TODO_STATUS.ABANDONED)).toBe(false);
+
+		expect(isStatusAbandoned(TODO_STATUS.ABANDONED)).toBe(true);
+		expect(isStatusAbandoned(TODO_STATUS.DONE)).toBe(false);
+
+		expect(isStatusCompletedOrAbandoned(TODO_STATUS.DONE)).toBe(true);
+		expect(isStatusCompletedOrAbandoned(TODO_STATUS.ABANDONED)).toBe(true);
+		expect(isStatusCompletedOrAbandoned(TODO_STATUS.PENDING)).toBe(false);
+		expect(isStatusCompletedOrAbandoned(TODO_STATUS.IN_PROGRESS)).toBe(false);
+	});
+
 	it('TODO_STATUSES has standard "Completed" for done status', () => {
-		const doneConfig = getStatusConfig('done');
+		const doneConfig = getStatusConfig(TODO_STATUS.DONE);
 		expect(doneConfig.label).toBe('Completed');
 		expect(doneConfig.actionLabel).toBe('Mark Completed');
 		expect(doneConfig.shortActionLabel).toBe('Completed');

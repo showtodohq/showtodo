@@ -30,7 +30,7 @@
 		<div class="flex items-center gap-1.5 font-mono text-xs">
 			{#if statsStore.stats?.overview}
 				<span class="text-[10px] text-zinc-400">
-					{statsStore.stats.overview.totalUsers} members
+					{statsStore.stats.overview.totalUsers} people
 				</span>
 				<span class="text-[10px] text-zinc-300 dark:text-zinc-700">·</span>
 			{/if}
@@ -98,10 +98,7 @@
 			{#if statsStore.stats.heatmap?.days && statsStore.stats.heatmap.days.length > 0}
 				<div class="pt-1 border-t border-zinc-200/50 dark:border-zinc-800/50 space-y-1.5">
 					<div class="flex items-center justify-between text-[10px] text-zinc-400 font-medium">
-						<span class="flex items-center gap-1">
-							<span>Past year activity</span>
-							<span class="text-[9px] text-zinc-400/80 font-normal">(scroll horizontally)</span>
-						</span>
+						<span>Past year activity</span>
 						<span class="font-mono">{statsStore.stats.heatmap.totalActivities ?? 0} activities</span>
 					</div>
 					<ActivityHeatmap days={statsStore.stats.heatmap.days} compact={true} />

@@ -1,4 +1,6 @@
-export type TodoStatus = 'pending' | 'in_progress' | 'done' | 'abandoned';
+import type { TodoStatus } from '$lib/constants/status';
+
+export type { TodoStatus };
 
 export type CategoryId = 'study' | 'fitness' | 'finance' | 'dev' | 'life' | 'other';
 

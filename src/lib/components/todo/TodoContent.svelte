@@ -1,5 +1,11 @@
 <script lang="ts">
 	import type { TodoStatus } from '$lib/types/todo';
+	import {
+		TODO_STATUS,
+		isStatusDone,
+		isStatusAbandoned,
+		isStatusInProgress
+	} from '$lib/constants/status';
 
 	interface Props {
 		content: string;
@@ -11,15 +17,15 @@
 
 	let {
 		content,
-		status = 'pending',
+		status = TODO_STATUS.PENDING,
 		size = 'sm',
 		truncate = false,
 		class: className = ''
 	}: Props = $props();
 
-	const isDone = $derived(status === 'done');
-	const isAbandoned = $derived(status === 'abandoned');
-	const isInProgress = $derived(status === 'in_progress');
+	const isDone = $derived(isStatusDone(status));
+	const isAbandoned = $derived(isStatusAbandoned(status));
+	const isInProgress = $derived(isStatusInProgress(status));
 
 	const sizeClasses = {
 		xs: 'text-xs leading-normal',

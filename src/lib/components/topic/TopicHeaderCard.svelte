@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { TopicDetail, TodoStatus } from '$lib/types/todo';
-	import { getStatusConfig } from '$lib/constants/status';
+	import { TODO_STATUS, getStatusConfig } from '$lib/constants/status';
 	import TodoCheckbox from '$lib/components/todo/TodoCheckbox.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
 	import Icon from '@iconify/svelte';
@@ -71,7 +71,7 @@
 				{#if topic.todayParticipants > 0}
 					<span><strong>{topic.todayParticipants}</strong> today</span>
 					<span>·</span>
-					<span><strong>{topic.todayDoneCount}</strong> {getStatusConfig('done').label.toLowerCase()}</span>
+					<span><strong>{topic.todayDoneCount}</strong> {getStatusConfig(TODO_STATUS.DONE).label.toLowerCase()}</span>
 					{#if topic.totalParticipants > topic.todayParticipants}
 						<span class="text-zinc-400 dark:text-zinc-500 font-normal">
 							({topic.totalParticipants} total all-time)
@@ -80,7 +80,7 @@
 				{:else}
 					<span><strong>{topic.totalParticipants}</strong> total all-time</span>
 					<span>·</span>
-					<span><strong>{topic.doneCount}</strong> {getStatusConfig('done').label.toLowerCase()}</span>
+					<span><strong>{topic.doneCount}</strong> {getStatusConfig(TODO_STATUS.DONE).label.toLowerCase()}</span>
 				{/if}
 			</div>
 			<div class="font-mono font-semibold text-zinc-900 dark:text-zinc-100">

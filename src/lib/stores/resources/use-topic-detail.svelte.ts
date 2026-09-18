@@ -6,6 +6,7 @@ import { getLocalDayAsUtcRange } from '$lib/utils/format';
 import { todoRegistry } from '$lib/stores/entities/todo-registry.svelte';
 import { todoMutations } from '$lib/stores/mutations.svelte';
 import type { TopicDetail, TodoStatus, DailyCard } from '$lib/types/todo';
+import { isStatusDone } from '$lib/constants/status';
 
 function buildTopicFromCard(cachedCard: DailyCard): TopicDetail {
 	const participants = cachedCard.participants.map((p, idx) => ({
@@ -236,10 +237,10 @@ export function createTopicDetailResource(initialHash?: string) {
 		myParticipant.status = nextStatus;
 
 		// 同步完成计数
-		if (prevStatus !== 'done' && nextStatus === 'done') {
+		if (!isStatusDone(prevStatus) && isStatusDone(nextStatus)) {
 			topic.doneCount += 1;
 			topic.todayDoneCount += 1;
-		} else if (prevStatus === 'done' && nextStatus !== 'done') {
+		} else if (isStatusDone(prevStatus) && !isStatusDone(nextStatus)) {
 			topic.doneCount = Math.max(0, topic.doneCount - 1);
 			topic.todayDoneCount = Math.max(0, topic.todayDoneCount - 1);
 		}
@@ -251,10 +252,10 @@ export function createTopicDetailResource(initialHash?: string) {
 		} catch {
 			// 失败回滚
 			myParticipant.status = prevStatus;
-			if (prevStatus !== 'done' && nextStatus === 'done') {
+			if (!isStatusDone(prevStatus) && isStatusDone(nextStatus)) {
 				topic.doneCount = Math.max(0, topic.doneCount - 1);
 				topic.todayDoneCount = Math.max(0, topic.todayDoneCount - 1);
-			} else if (prevStatus === 'done' && nextStatus !== 'done') {
+			} else if (isStatusDone(prevStatus) && !isStatusDone(nextStatus)) {
 				topic.doneCount += 1;
 				topic.todayDoneCount += 1;
 			}

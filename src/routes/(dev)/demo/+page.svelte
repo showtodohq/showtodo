@@ -6,7 +6,16 @@
 	import { userStore } from '$lib/stores/user.svelte';
 	import Avatar from '$lib/components/ui/Avatar.svelte';
 	import { getLocalDayAsUtcRange } from '$lib/utils/format';
-	import { TODO_STATUSES, getStatusConfig, ALLOWED_STATUS_TRANSITIONS } from '$lib/constants/status';
+	import {
+		TODO_STATUS,
+		ALL_TODO_STATUSES,
+		TODO_STATUSES,
+		getStatusConfig,
+		ALLOWED_STATUS_TRANSITIONS,
+		isStatusDone,
+		isStatusInProgress,
+		isStatusAbandoned
+	} from '$lib/constants/status';
 
 	// ---------------------------------------------------------------------------
 	// 预设测试账号池（便于在单页面快速切换多重身份体验协同与隔离）
@@ -230,7 +239,7 @@
 					card.participants.unshift(newParticipant);
 					card.totalParticipants = card.participants.length;
 					card.isMultiplayer = card.totalParticipants > 1;
-					if (newParticipant.status === 'done') {
+					if (isStatusDone(newParticipant.status)) {
 						card.doneCount += 1;
 					}
 				}
@@ -247,7 +256,7 @@
 						category: res.todo.category,
 						isMultiplayer: false,
 						totalParticipants: 1,
-						doneCount: res.todo.status === 'done' ? 1 : 0,
+						doneCount: isStatusDone(res.todo.status) ? 1 : 0,
 						participants: [newParticipant]
 					});
 					totalCards += 1;
@@ -302,7 +311,7 @@
 				card.participants.unshift(myParticipant);
 				card.totalParticipants = card.participants.length;
 				card.isMultiplayer = card.totalParticipants > 1;
-				if (myParticipant.status === 'done') {
+				if (isStatusDone(myParticipant.status)) {
 					card.doneCount += 1;
 				}
 			}
@@ -328,9 +337,9 @@
 
 		// 乐观更新
 		participant.status = targetStatus;
-		if (targetStatus === 'done' && oldStatus !== 'done') {
+		if (isStatusDone(targetStatus) && !isStatusDone(oldStatus)) {
 			card.doneCount += 1;
-		} else if (oldStatus === 'done' && targetStatus !== 'done') {
+		} else if (isStatusDone(oldStatus) && !isStatusDone(targetStatus)) {
 			card.doneCount = Math.max(0, card.doneCount - 1);
 		}
 		openStatusMenuTodoId = null;
@@ -345,8 +354,8 @@
 			console.error('Failed to transition status:', err);
 			// 回滚
 			participant.status = oldStatus;
-			if (targetStatus === 'done' && oldStatus !== 'done') card.doneCount = Math.max(0, card.doneCount - 1);
-			else if (oldStatus === 'done' && targetStatus !== 'done') card.doneCount += 1;
+			if (isStatusDone(targetStatus) && !isStatusDone(oldStatus)) card.doneCount = Math.max(0, card.doneCount - 1);
+			else if (isStatusDone(oldStatus) && !isStatusDone(targetStatus)) card.doneCount += 1;
 			showToast('Failed to update status, please try again');
 		}
 	}
@@ -355,8 +364,8 @@
 	function getAvailableNextStatuses(currentStatus: TodoStatus): TodoStatus[] {
 		const allowed = ALLOWED_STATUS_TRANSITIONS[currentStatus] || [];
 		// 如果是 done 或 abandoned，也允许重置为 pending 便于 demo 反复演练
-		if (currentStatus === 'done' || currentStatus === 'abandoned') {
-			return ['pending', 'in_progress', 'done', 'abandoned'].filter((s) => s !== currentStatus) as TodoStatus[];
+		if (isStatusDone(currentStatus) || isStatusAbandoned(currentStatus)) {
+			return ALL_TODO_STATUSES.filter((s) => s !== currentStatus) as TodoStatus[];
 		}
 		return allowed;
 	}
@@ -416,7 +425,7 @@
 					card.participants = card.participants.filter((p) => p.todoId !== todo.todoId);
 					card.totalParticipants = card.participants.length;
 					card.isMultiplayer = card.totalParticipants > 1;
-					if (todo.status === 'done') {
+					if (isStatusDone(todo.status)) {
 						card.doneCount = Math.max(0, card.doneCount - 1);
 					}
 
@@ -426,7 +435,7 @@
 						targetCard.participants.unshift({ ...todo });
 						targetCard.totalParticipants = targetCard.participants.length;
 						targetCard.isMultiplayer = targetCard.totalParticipants > 1;
-						if (res.todo.status === 'done') targetCard.doneCount += 1;
+						if (isStatusDone(res.todo.status)) targetCard.doneCount += 1;
 					} else {
 						cards.unshift({
 							topicHash: res.todo.topicHash,
@@ -434,7 +443,7 @@
 							category: res.todo.category,
 							isMultiplayer: false,
 							totalParticipants: 1,
-							doneCount: res.todo.status === 'done' ? 1 : 0,
+							doneCount: isStatusDone(res.todo.status) ? 1 : 0,
 							participants: [{ ...todo }]
 						});
 						totalCards += 1;
@@ -446,7 +455,7 @@
 					card.topicHash = res.todo.topicHash;
 				}
 			} else {
-				const doneParticipants = card.participants.filter((p) => p.status === 'done').length;
+				const doneParticipants = card.participants.filter((p) => isStatusDone(p.status)).length;
 				card.doneCount = doneParticipants;
 			}
 
@@ -744,7 +753,7 @@
 
 							<!-- Progress -->
 							<div class="flex items-center gap-2 font-mono text-xs {isAllDone ? 'text-amber-600 dark:text-amber-400 font-semibold' : 'text-zinc-400'}">
-								<span>{card.doneCount}/{card.totalParticipants} done</span>
+								<span>{card.doneCount}/{card.totalParticipants} completed</span>
 								<div class="h-1.5 w-16 overflow-hidden rounded-full bg-zinc-100 dark:bg-zinc-800">
 									<div
 										class="h-full transition-all duration-300 {isAllDone ? 'bg-gradient-to-r from-amber-400 to-yellow-300' : 'bg-zinc-900 dark:bg-white'}"
@@ -756,7 +765,7 @@
 
 						<!-- Card Content and Action -->
 						<div class="mb-4 flex items-start justify-between gap-4">
-							<h3 class="text-base font-semibold leading-snug text-zinc-900 dark:text-zinc-100 {myParticipant?.status === 'done' ? 'line-through text-zinc-400 dark:text-zinc-500' : ''}">
+							<h3 class="text-base font-semibold leading-snug text-zinc-900 dark:text-zinc-100 {isStatusDone(myParticipant?.status) ? 'line-through text-zinc-400 dark:text-zinc-500' : ''}">
 								{card.content}
 							</h3>
 
@@ -768,7 +777,7 @@
 									<div class="relative">
 										<button
 											onclick={() => (openStatusMenuTodoId = openStatusMenuTodoId === myParticipant.todoId ? null : myParticipant.todoId)}
-											class="flex items-center gap-1.5 rounded-lg border px-2.5 py-1 text-xs font-semibold transition {myParticipant.status === 'done' ? 'border-zinc-900 bg-zinc-900 text-white dark:border-white dark:bg-white dark:text-zinc-900' : myParticipant.status === 'in_progress' ? 'border-zinc-900 text-zinc-900 dark:border-white dark:text-white' : myParticipant.status === 'abandoned' ? 'border-zinc-300 bg-zinc-100 text-zinc-500 line-through dark:border-zinc-700 dark:bg-zinc-800' : 'border-zinc-300 bg-zinc-50 text-zinc-700 hover:bg-zinc-100 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300'}"
+											class="flex items-center gap-1.5 rounded-lg border px-2.5 py-1 text-xs font-semibold transition {isStatusDone(myParticipant.status) ? 'border-zinc-900 bg-zinc-900 text-white dark:border-white dark:bg-white dark:text-zinc-900' : isStatusInProgress(myParticipant.status) ? 'border-zinc-900 text-zinc-900 dark:border-white dark:text-white' : isStatusAbandoned(myParticipant.status) ? 'border-zinc-300 bg-zinc-100 text-zinc-500 line-through dark:border-zinc-700 dark:bg-zinc-800' : 'border-zinc-300 bg-zinc-50 text-zinc-700 hover:bg-zinc-100 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300'}"
 										>
 											<Icon icon={currentConfig.icon} class="h-3.5 w-3.5" />
 											<span>{currentConfig.label}</span>
@@ -838,13 +847,13 @@
 											<span class="text-xs font-medium text-zinc-800 dark:text-zinc-200">
 												{p.user.nickname}{isMe ? ' (You)' : ''}
 											</span>
-											{#if p.status === 'done'}
+											{#if isStatusDone(p.status)}
 												<span class="flex h-3.5 w-3.5 items-center justify-center rounded-full bg-zinc-900 text-white dark:bg-white dark:text-zinc-900" title="Completed">
 													<Icon icon="lucide:check" class="h-2.5 w-2.5 stroke-[3]" />
 												</span>
-											{:else if p.status === 'in_progress'}
+											{:else if isStatusInProgress(p.status)}
 												<span class="h-2 w-2 rounded-full bg-zinc-900 dark:bg-zinc-100 animate-pulse" title="In Progress"></span>
-											{:else if p.status === 'abandoned'}
+											{:else if isStatusAbandoned(p.status)}
 												<Icon icon="lucide:x" class="h-2.5 w-2.5 text-zinc-400 stroke-[3]" />
 											{:else}
 												<span class="h-1.5 w-1.5 rounded-full bg-zinc-300 dark:bg-zinc-600" title="Pending"></span>
@@ -891,7 +900,7 @@
 											</div>
 
 											<div class="flex items-center gap-2">
-												<span class="rounded px-2 py-0.5 text-[10px] font-semibold {p.status === 'done' ? 'bg-zinc-900 text-white dark:bg-white dark:text-zinc-900' : p.status === 'in_progress' ? 'border border-zinc-900 text-zinc-900 dark:border-white dark:text-white' : 'bg-zinc-200 text-zinc-600 dark:bg-zinc-700 dark:text-zinc-300'}">
+												<span class="rounded px-2 py-0.5 text-[10px] font-semibold {isStatusDone(p.status) ? 'bg-zinc-900 text-white dark:bg-white dark:text-zinc-900' : isStatusInProgress(p.status) ? 'border border-zinc-900 text-zinc-900 dark:border-white dark:text-white' : 'bg-zinc-200 text-zinc-600 dark:bg-zinc-700 dark:text-zinc-300'}">
 													{getStatusConfig(p.status).label}
 												</span>
 											</div>

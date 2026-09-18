@@ -102,7 +102,6 @@
 				</span>
 			{/if}
 		</div>
-		<span class="text-xs text-zinc-400 font-mono hidden sm:inline">Todos people are doing today</span>
 	</div>
 
 	<!-- Filter & control bar -->

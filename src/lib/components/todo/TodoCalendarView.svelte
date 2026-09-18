@@ -1,6 +1,10 @@
 <script lang="ts">
 	import type { createMyTodosResource, CalendarDayCell } from '$lib/stores/resources/use-my-todos.svelte';
-	import { getStatusConfig } from '$lib/constants/status';
+	import {
+		getStatusConfig,
+		isStatusDone,
+		isStatusCompletedOrAbandoned
+	} from '$lib/constants/status';
 	import TodoItem from '$lib/components/todo/TodoItem.svelte';
 
 	interface Props {
@@ -31,7 +35,7 @@
 	});
 
 	const monthTotal = $derived(monthTodos.length);
-	const monthDone = $derived(monthTodos.filter((t) => t.status === 'done').length);
+	const monthDone = $derived(monthTodos.filter((t) => isStatusDone(t.status)).length);
 
 	function onSelectDay(cell: CalendarDayCell) {
 		resource.selectCalendarDate(cell.dateStr);
@@ -143,7 +147,9 @@
 						{#each cell.todos.slice(0, 3) as todo (todo.id)}
 							{@const stConfig = getStatusConfig(todo.status)}
 							<div
-								class="w-full px-2 py-0.5 rounded-lg text-[11px] font-medium truncate flex items-center gap-1.5 bg-white/90 dark:bg-zinc-800/90 text-zinc-700 dark:text-zinc-300 shadow-2xs transition-all {todo.status === 'done' || todo.status === 'abandoned'
+								class="w-full px-2 py-0.5 rounded-lg text-[11px] font-medium truncate flex items-center gap-1.5 bg-white/90 dark:bg-zinc-800/90 text-zinc-700 dark:text-zinc-300 shadow-2xs transition-all {isStatusCompletedOrAbandoned(
+									todo.status
+								)
 									? 'line-through text-zinc-400 dark:text-zinc-500 opacity-60'
 									: ''}"
 								title={todo.content}

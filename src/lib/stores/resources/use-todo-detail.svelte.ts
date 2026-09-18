@@ -5,6 +5,7 @@ import { toast } from '$lib/stores/toast.svelte';
 import { todoRegistry } from '$lib/stores/entities/todo-registry.svelte';
 import { todoMutations } from '$lib/stores/mutations.svelte';
 import type { Todo, TodoStatus, TodoActivityType } from '$lib/types/todo';
+import { TODO_STATUS, isStatusDone } from '$lib/constants/status';
 
 export function createTodoDetailResource(initialIdentifier?: string) {
 	const initialCached = initialIdentifier ? (todoRegistry.get(initialIdentifier) || null) : null;
@@ -271,7 +272,8 @@ export function createTodoDetailResource(initialIdentifier?: string) {
 	async function handleToggleMyStatus(nextStatus?: TodoStatus, e?: MouseEvent) {
 		if (!myJoinedTodo || !userStore.email) return;
 
-		const targetStatus: TodoStatus = nextStatus || (myJoinedTodo.status === 'done' ? 'pending' : 'done');
+		const targetStatus: TodoStatus =
+			nextStatus || (isStatusDone(myJoinedTodo.status) ? TODO_STATUS.PENDING : TODO_STATUS.DONE);
 		const prevStatus = myJoinedTodo.status;
 		if (serverMyJoinedTodo) {
 			serverMyJoinedTodo.status = targetStatus;
