@@ -78,4 +78,20 @@ describe('Todo Views (Stream, Kanban, Calendar) SSR Rendering', () => {
 		expect(rendered.body).toContain('Today');
 		expect(rendered.body).toContain('Calendar Test Todo');
 	});
+
+	it('renders TodoKanbanView EmptyState when no todos exist', () => {
+		const res = createMyTodosResource();
+		res.setTodoIds([]);
+
+		const rendered = render(TodoKanbanView, { props: { resource: res } });
+		expect(rendered.body).toContain('No todos in workbench');
+	});
+
+	it('renders TodoCalendarView month empty indicator when monthTotal is 0', () => {
+		const res = createMyTodosResource();
+		res.setTodoIds([]);
+
+		const rendered = render(TodoCalendarView, { props: { resource: res } });
+		expect(rendered.body).toContain('No todos this month');
+	});
 });

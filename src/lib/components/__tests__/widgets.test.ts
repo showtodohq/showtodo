@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import ActivityHeatmap from '../stats/ActivityHeatmap.svelte';
+import CategoryDonutChart from '../stats/CategoryDonutChart.svelte';
 import SiteStatsWidget from '../widgets/SiteStatsWidget.svelte';
 import MyTodayWidget from '../widgets/MyTodayWidget.svelte';
 import { statsStore } from '$lib/stores/stats.svelte';
@@ -83,5 +84,25 @@ describe('ActivityHeatmap & SiteStatsWidget rendering test', () => {
 		expect(rendered.body).toContain("My Today's Todos");
 		expect(rendered.body).toContain('href="/@test/todolist"');
 		expect(rendered.body).toContain('View all');
+	});
+
+	it('renders ActivityHeatmap fallback placeholder when days array is empty', () => {
+		const rendered = render(ActivityHeatmap, {
+			props: {
+				days: [],
+				compact: false
+			}
+		});
+		expect(rendered.body).toContain('No records');
+	});
+
+	it('renders CategoryDonutChart EmptyState when categories array is empty', () => {
+		const rendered = render(CategoryDonutChart, {
+			props: {
+				categories: [],
+				totalTodos: 0
+			}
+		});
+		expect(rendered.body).toContain('No category data available');
 	});
 });

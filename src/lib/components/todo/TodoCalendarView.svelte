@@ -6,6 +6,7 @@
 		isStatusCompletedOrAbandoned
 	} from '$lib/constants/status';
 	import TodoItem from '$lib/components/todo/TodoItem.svelte';
+	import EmptyState from '$lib/components/ui/EmptyState.svelte';
 
 	interface Props {
 		resource: ReturnType<typeof createMyTodosResource>;
@@ -88,9 +89,10 @@
 
 		<!-- Right: Month overview -->
 		<div class="text-xs font-mono text-zinc-400">
-			{monthTotal} todos this month
-			{#if monthTotal > 0}
-				<span> · <strong class="text-zinc-800 dark:text-zinc-200 font-semibold">{monthDone}</strong> completed</span>
+			{#if monthTotal === 0}
+				<span>No todos this month</span>
+			{:else}
+				<span>{monthTotal} todos this month · <strong class="text-zinc-800 dark:text-zinc-200 font-semibold">{monthDone}</strong> completed</span>
 			{/if}
 		</div>
 	</div>
@@ -180,11 +182,10 @@
 			</div>
 
 			{#if resource.selectedDateTodos.length === 0}
-				<div
-					class="py-16 text-center text-xs text-zinc-400"
-				>
-					No todos for this date
-				</div>
+				<EmptyState
+					title="No todos for this date"
+					class="py-12"
+				/>
 			{:else}
 				<div class="space-y-1.5 sm:space-y-2">
 					{#each resource.selectedDateTodos as todo (todo.id)}

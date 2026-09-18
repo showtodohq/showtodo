@@ -10,6 +10,7 @@
 	} from '$lib/constants/status';
 	import CategoryBadge from '$lib/components/todo/CategoryBadge.svelte';
 	import TodoCheckbox from '$lib/components/todo/TodoCheckbox.svelte';
+	import EmptyState from '$lib/components/ui/EmptyState.svelte';
 	import { formatRelativeTime } from '$lib/utils/format';
 	import Icon from '@iconify/svelte';
 
@@ -28,6 +29,8 @@
 		}))
 	);
 
+	const totalKanbanTodos = $derived(columns.reduce((acc, col) => acc + col.todos.length, 0));
+
 	let activeMenuTodoId = $state<string | null>(null);
 
 	function toggleMenu(todoId: string, e: MouseEvent) {
@@ -43,10 +46,21 @@
 <svelte:window onclick={closeMenu} />
 
 <div class="space-y-4">
-	<!-- 主流横向看板通道：横向自由滑动、固定舒适列宽、释放垂直空间 (Linear / Trello 风格) -->
-	<div
-		class="-mx-4 px-4 sm:-mx-6 sm:px-6 overflow-x-auto pb-4 pt-1 flex gap-4 sm:gap-5 scrollbar-thin snap-x snap-mandatory scroll-smooth"
-	>
+	{#if totalKanbanTodos === 0}
+		<EmptyState
+			title="No todos in workbench"
+			description="Create a goal or plan to get started on the board"
+			class="py-16"
+		>
+			{#snippet icon()}
+				<Icon icon="lucide:kanban" class="h-6 w-6 text-zinc-400" />
+			{/snippet}
+		</EmptyState>
+	{:else}
+		<!-- 主流横向看板通道：横向自由滑动、固定舒适列宽、释放垂直空间 (Linear / Trello 风格) -->
+		<div
+			class="-mx-4 px-4 sm:-mx-6 sm:px-6 overflow-x-auto pb-4 pt-1 flex gap-4 sm:gap-5 scrollbar-thin snap-x snap-mandatory scroll-smooth"
+		>
 		{#each columns as col (col.status)}
 			<div
 				class="flex flex-col rounded-3xl bg-zinc-100/50 dark:bg-zinc-900/40 p-3.5 sm:p-4 space-y-3.5 w-[280px] sm:w-[300px] shrink-0 snap-start min-h-[460px]"
@@ -173,5 +187,6 @@
 				</div>
 			</div>
 		{/each}
-	</div>
+		</div>
+	{/if}
 </div>

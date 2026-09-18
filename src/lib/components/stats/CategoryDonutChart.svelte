@@ -3,6 +3,8 @@
 	import { getCategoryConfig } from '$lib/constants/categories';
 	import { calculateDonutSlices } from '$lib/utils/chart';
 	import CategoryBadge from '$lib/components/todo/CategoryBadge.svelte';
+	import EmptyState from '$lib/components/ui/EmptyState.svelte';
+	import Icon from '@iconify/svelte';
 
 	interface Props {
 		categories: CategoryStatItem[];
@@ -56,7 +58,17 @@
 	);
 </script>
 
-<div class="flex flex-col lg:flex-row items-center gap-6 lg:gap-10 pt-2 select-none">
+{#if categories.length === 0 || totalSum === 0}
+	<EmptyState
+		title="No category data available"
+		class="py-12 border-none bg-transparent"
+	>
+		{#snippet icon()}
+			<Icon icon="lucide:pie-chart" class="h-6 w-6 text-indigo-500" />
+		{/snippet}
+	</EmptyState>
+{:else}
+	<div class="flex flex-col lg:flex-row items-center gap-6 lg:gap-10 pt-2 select-none">
 	<!-- 左侧：SVG 环形图 (Donut Chart) 与中心 HUD -->
 	<div class="relative w-[220px] h-[220px] shrink-0">
 		<svg
@@ -227,3 +239,4 @@
 		{/each}
 	</div>
 </div>
+{/if}

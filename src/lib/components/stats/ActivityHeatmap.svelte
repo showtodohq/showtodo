@@ -24,13 +24,36 @@
 		days: (HeatmapDayItem | null)[];
 	}
 
-	const weeks = $derived.by(() => {
-		if (!days || days.length === 0) return [];
+	function generateFallbackDays(count: number): HeatmapDayItem[] {
+		const res: HeatmapDayItem[] = [];
+		const now = new Date();
+		for (let i = count - 1; i >= 0; i--) {
+			const d = new Date(now);
+			d.setDate(d.getDate() - i);
+			const dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+			res.push({
+				date: dateStr,
+				count: 0,
+				level: 0,
+				created: 0,
+				completed: 0,
+				notes: 0
+			});
+		}
+		return res;
+	}
 
+	const isDataEmpty = $derived(!days || days.length === 0);
+	const effectiveDays = $derived.by(() => {
+		if (days && days.length > 0) return days;
+		return generateFallbackDays(compact ? 120 : 365);
+	});
+
+	const weeks = $derived.by(() => {
 		// 获取客户端当前本地日期的 YYYY-MM-DD，严格过滤掉未来的未到来日期
 		const now = new Date();
 		const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
-		const targetDays = days.filter((d) => d.date <= todayStr);
+		const targetDays = effectiveDays.filter((d) => d.date <= todayStr);
 		if (targetDays.length === 0) return [];
 
 		const cols: WeekColumn[] = [];
@@ -192,6 +215,9 @@
 				{#if !compact}
 					<div>
 						<span>Activity · Past year</span>
+						{#if isDataEmpty}
+							<span class="text-zinc-400/80 dark:text-zinc-500 ml-1 font-normal">· No records</span>
+						{/if}
 					</div>
 				{/if}
 				<div class="flex items-center gap-1.5 ml-auto">

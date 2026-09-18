@@ -95,13 +95,13 @@
 			</div>
 
 			<!-- Heatmap -->
-			{#if statsStore.stats.heatmap?.days && statsStore.stats.heatmap.days.length > 0}
+			{#if statsStore.stats.heatmap}
 				<div class="pt-1 border-t border-zinc-200/50 dark:border-zinc-800/50 space-y-1.5">
 					<div class="flex items-center justify-between text-[10px] text-zinc-400 font-medium">
 						<span>Past year activity</span>
 						<span class="font-mono">{statsStore.stats.heatmap.totalActivities ?? 0} activities</span>
 					</div>
-					<ActivityHeatmap days={statsStore.stats.heatmap.days} compact={true} />
+					<ActivityHeatmap days={statsStore.stats.heatmap.days || []} compact={true} />
 				</div>
 			{/if}
 
