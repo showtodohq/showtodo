@@ -238,7 +238,7 @@
 	<!-- Tooltip popup -->
 	{#if hoveredDay}
 		<div
-			class="absolute z-50 pointer-events-none -translate-x-1/2 px-2.5 py-2 rounded-xl bg-zinc-900/95 dark:bg-zinc-100/95 text-white dark:text-zinc-900 text-xs shadow-xl backdrop-blur-md border border-zinc-800/80 dark:border-zinc-200/80 transition-all duration-75 select-none min-w-[124px] {tooltipPos.showBelow ? 'translate-y-0' : '-translate-y-full'}"
+			class="absolute z-50 pointer-events-none -translate-x-1/2 px-2.5 py-2 rounded-xl bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 text-xs shadow-xl border border-zinc-800 dark:border-zinc-200 transition-all duration-75 select-none min-w-[124px] {tooltipPos.showBelow ? 'translate-y-0' : '-translate-y-full'}"
 			style="left: {tooltipPos.x}px; top: {tooltipPos.y}px;"
 		>
 			<div class="font-medium font-mono text-[11px] text-zinc-400 dark:text-zinc-500 pb-1.5 mb-1.5 border-b border-zinc-800/90 dark:border-zinc-200">

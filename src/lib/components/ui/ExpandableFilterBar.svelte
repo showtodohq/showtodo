@@ -200,11 +200,11 @@
 		</div>
 	</div>
 
-	<!-- 悬浮浮层 (Popover): 绝对定位悬浮于文档流之上，零页面布局抖动 (0 CLS)，全面适配移动端 Touch 体验 -->
+	<!-- 悬浮浮层 (Popover): 绝对定位纯实色浮层，高信噪比与零页面布局抖动 (0 CLS)，全面适配移动端 Touch 体验 -->
 	{#if isExpanded}
 		<div
 			bind:this={popoverPanelRef}
-			class="absolute top-full left-0 right-0 mt-2 z-40 w-full rounded-2xl border border-zinc-200/90 dark:border-zinc-800 bg-white/95 dark:bg-zinc-950/95 backdrop-blur-xl p-3 sm:p-3.5 shadow-2xl transition-all space-y-2.5 animate-in fade-in zoom-in-98 duration-150 ring-1 ring-black/5 dark:ring-white/5"
+			class="absolute top-full left-0 right-0 mt-2 z-40 w-full rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-3 sm:p-3.5 shadow-2xl transition-all space-y-2.5 animate-in fade-in zoom-in-98 duration-150 ring-1 ring-black/5 dark:ring-white/5"
 		>
 			<!-- 顶部搜索行: 搜索框 + 重置 + 收起按钮 -->
 			<div class="flex items-center gap-2">

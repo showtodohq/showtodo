@@ -142,7 +142,7 @@
 
 										{#snippet children({ close })}
 											<div
-												class="w-32 rounded-2xl border border-zinc-200/80 dark:border-zinc-800 bg-white/95 dark:bg-zinc-900/95 backdrop-blur-md p-1.5 shadow-xl text-xs animate-in fade-in zoom-in-95 duration-100 space-y-0.5"
+												class="w-32 rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-1.5 shadow-xl text-xs animate-in fade-in zoom-in-95 duration-100 space-y-0.5"
 											>
 												<div class="px-2 py-1 text-[10px] text-zinc-400 font-medium">
 													Move to

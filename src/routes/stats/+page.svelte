@@ -218,7 +218,7 @@
 					{#if hoveredTrendIndex !== null}
 						{@const hItem = trend[hoveredTrendIndex]}
 						<div
-							class="absolute top-0 right-4 px-3 py-1.5 rounded-xl border border-zinc-200/80 dark:border-zinc-800 bg-white/95 dark:bg-zinc-900/95 text-xs shadow-md backdrop-blur-xs flex items-center gap-3 animate-in fade-in duration-100 font-mono"
+							class="absolute top-0 right-4 px-3 py-1.5 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-xs shadow-md flex items-center gap-3 animate-in fade-in duration-100 font-mono"
 						>
 							<span class="font-bold text-zinc-900 dark:text-zinc-100">{hItem.date}</span>
 							<span class="text-zinc-500">New: <strong class="text-zinc-900 dark:text-zinc-100">{hItem.created}</strong></span>

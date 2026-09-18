@@ -89,12 +89,12 @@
 	{/snippet}
 
 	{#snippet children({ close })}
-		<!-- 悬浮毛玻璃气泡面板：Linear / Raycast 风格 4 段式模块化架构 (置于浏览器 Top Layer，支持原生 Light-Dismiss) -->
+		<!-- 悬浮气泡面板：Linear / Raycast 风格 4 段式纯实色高信噪比卡片 (置于浏览器 Top Layer，支持原生 Light-Dismiss) -->
 		<div
-			class="w-72 sm:w-80 rounded-2xl border border-zinc-200/90 dark:border-zinc-800 bg-white/95 dark:bg-zinc-900/95 backdrop-blur-md p-2 shadow-2xl text-left animate-in fade-in zoom-in-95 duration-150 divide-y divide-zinc-100 dark:divide-zinc-800/70 select-none"
+			class="w-72 sm:w-80 rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-2 shadow-2xl text-left animate-in fade-in zoom-in-95 duration-150 divide-y divide-zinc-100 dark:divide-zinc-800 select-none"
 		>
 			<!-- 【第 1 段：身份识别区 (Identity Header)】 -->
-			<div class="p-3 bg-zinc-50/50 dark:bg-zinc-900/30 border-b border-zinc-100 dark:border-zinc-800">
+			<div class="p-3 bg-zinc-50 dark:bg-zinc-950/40 border-b border-zinc-100 dark:border-zinc-800">
 				{#if userStore.current}
 					{@const myProfileUrl = `/@${userStore.handle || userStore.id}`}
 					<div class="flex items-center gap-3">
