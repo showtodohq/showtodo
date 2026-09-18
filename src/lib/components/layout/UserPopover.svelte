@@ -128,7 +128,7 @@
 									type="button"
 									onclick={copyHandle}
 									class="text-[10px] text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 font-mono transition-colors cursor-pointer"
-									title="Click to copy @"
+									title="Copy handle"
 								>
 									@{userStore.handle}
 								</button>
@@ -172,10 +172,7 @@
 							</svg>
 							Profile
 						</span>
-						<span class="text-[11px] text-zinc-400 inline-flex items-center gap-0.5">
-							<span>Accomplishments & check-ins</span>
-							<Icon icon="lucide:arrow-right" class="h-3 w-3 transition-transform group-hover/link:translate-x-0.5" />
-						</span>
+						<Icon icon="lucide:arrow-right" class="h-3 w-3 text-zinc-400 transition-transform group-hover/link:translate-x-0.5" />
 					</a>
 
 					<!-- 扩展槽位 0.5：我的待办清单工作台 -->
@@ -190,10 +187,7 @@
 							</svg>
 							Todo List
 						</span>
-						<span class="text-[11px] text-zinc-400 inline-flex items-center gap-0.5">
-							<span>Kanban & Calendar</span>
-							<Icon icon="lucide:arrow-right" class="h-3 w-3 transition-transform group-hover/link:translate-x-0.5" />
-						</span>
+						<Icon icon="lucide:arrow-right" class="h-3 w-3 text-zinc-400 transition-transform group-hover/link:translate-x-0.5" />
 					</a>
 
 					<!-- 扩展槽位 1：快捷键指南 -->

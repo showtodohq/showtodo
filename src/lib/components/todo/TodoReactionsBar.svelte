@@ -103,7 +103,7 @@
 						class="group/pill inline-flex items-center gap-1.5 px-3 py-1 min-h-[32px] rounded-full text-xs sm:text-sm font-mono transition-all duration-150 cursor-pointer select-none active:scale-90 {item.isMyReaction
 							? 'bg-rose-50/90 dark:bg-rose-950/50 text-rose-700 dark:text-rose-300 border border-rose-300/90 dark:border-rose-700/80 font-semibold shadow-2xs ring-1 ring-rose-400/20'
 							: 'bg-zinc-100/90 hover:bg-zinc-200/80 dark:bg-zinc-800/70 dark:hover:bg-zinc-700/70 text-zinc-700 dark:text-zinc-300 border border-zinc-200/80 dark:border-zinc-700/60'}"
-						title="{item.label}: {item.description} ({item.count} votes){item.isMyReaction ? ' · Reacted (click to undo)' : ' · Click to react'}"
+						title="{item.label}: {item.description} ({item.count} votes){item.isMyReaction ? ' · Reacted' : ''}"
 						aria-label="{item.label} reaction"
 					>
 						<span

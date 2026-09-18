@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { TodoStatus } from '$lib/types/todo';
-	import { TODO_STATUS, TODO_STATUSES } from '$lib/constants/status';
+	import { TODO_STATUS, TODO_STATUSES, getStatusConfig } from '$lib/constants/status';
 
 	interface Props {
 		status?: TodoStatus | string;
@@ -93,13 +93,7 @@
 					: currentStatus === TODO_STATUS.ABANDONED
 						? 'border-zinc-300 dark:border-zinc-700 bg-zinc-100 dark:bg-zinc-800 text-zinc-400'
 						: 'border-zinc-600 dark:border-zinc-300 hover:scale-110 hover:border-zinc-900 dark:hover:border-white hover:bg-zinc-100 dark:hover:bg-zinc-800'}"
-			title={currentStatus === TODO_STATUS.DONE
-				? 'Completed (click to reopen, hover to change)'
-				: currentStatus === TODO_STATUS.IN_PROGRESS
-					? 'In Progress (click to complete, hover to change)'
-					: currentStatus === TODO_STATUS.ABANDONED
-						? 'Abandoned (click to reopen, hover to change)'
-						: 'Pending (click to complete, hover to change)'}
+			title={getStatusConfig(currentStatus).label}
 		>
 			{#if currentStatus === TODO_STATUS.DONE}
 				<svg

@@ -107,7 +107,7 @@
 						onclick={handleClearCategory}
 						class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-2xs hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-all cursor-pointer group"
 						style="color: {catConfig?.color};"
-						title="Click to clear category filter"
+						title="Clear category filter"
 					>
 						<span
 							class="h-1.5 w-1.5 rounded-full shrink-0"

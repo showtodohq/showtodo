@@ -131,7 +131,7 @@
 				type="button"
 				tabindex={activeCategory ? 0 : -1}
 				onclick={handleReset}
-				title={activeCategory ? 'Click to reset to overall view' : undefined}
+				title={activeCategory ? 'Reset to overall view' : undefined}
 				class="w-[112px] h-[112px] rounded-full flex flex-col items-center justify-center p-2 text-center transition-all duration-200 outline-none focus:outline-none select-none {activeCategory
 					? 'cursor-pointer pointer-events-auto hover:bg-zinc-100/60 dark:hover:bg-zinc-800/50'
 					: 'pointer-events-none'}"

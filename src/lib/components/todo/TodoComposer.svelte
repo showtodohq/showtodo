@@ -222,7 +222,7 @@
 									</svg>
 								{/if}
 							</div>
-							<span class="leading-none">{isNotePublic ? 'Public note in square' : 'Private (only to you)'}</span>
+							<span class="leading-none">Public note</span>
 						</button>
 					</div>
 				</div>

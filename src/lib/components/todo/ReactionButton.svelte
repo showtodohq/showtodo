@@ -84,9 +84,7 @@
 			: 'gap-1.5 px-2 py-0.5 rounded-full text-xs'} font-mono {hasMyReaction
 			? 'text-rose-600 dark:text-rose-400 bg-rose-50/80 dark:bg-rose-950/40 border border-rose-200/80 dark:border-rose-800/60 font-semibold shadow-2xs'
 			: 'text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800/80 border border-transparent'}"
-		title={hasMyReaction
-			? 'Reacted (click to remove, hover for more)'
-			: 'Like (hover for more reactions)'}
+		title={hasMyReaction ? 'Reacted' : 'React to this todo'}
 		aria-label="Reaction button"
 	>
 		<!-- Center heart & ripple -->
@@ -156,7 +154,7 @@
 						class="relative flex flex-col items-center justify-center h-10 w-9 rounded-xl hover:scale-110 active:scale-90 transition-all duration-100 cursor-pointer {isMyReaction
 							? 'bg-rose-50/90 dark:bg-rose-950/60 ring-1.5 ring-rose-400 dark:ring-rose-600 shadow-2xs'
 							: 'hover:bg-zinc-100 dark:hover:bg-zinc-800'}"
-						title="{item.label}: {item.description} ({count} votes){isMyReaction ? ' - Reacted (click to remove)' : ''}"
+						title="{item.label}: {item.description} ({count} votes){isMyReaction ? ' · Reacted' : ''}"
 					>
 						<span class="text-base leading-tight">{item.emoji}</span>
 						<span
