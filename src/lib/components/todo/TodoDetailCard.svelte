@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { Todo, TodoStatus, ReactionEmoji } from '$lib/types/todo';
-	import { getStatusConfig, TODO_STATUS } from '$lib/constants/status';
+	import { TODO_STATUS } from '$lib/constants/status';
 	import { getCategoryConfig } from '$lib/constants/categories';
 	import { formatRelativeTime, formatScheduleRange } from '$lib/utils/format';
 	import { toast } from '$lib/stores/toast.svelte';
@@ -11,6 +11,8 @@
 	import TodoCheckbox from '$lib/components/todo/TodoCheckbox.svelte';
 	import TodoContent from '$lib/components/todo/TodoContent.svelte';
 	import TodoReactionsBar from '$lib/components/todo/TodoReactionsBar.svelte';
+	import TodoStatusDropdown from '$lib/components/todo/TodoStatusDropdown.svelte';
+	import { POPOVER_PLACEMENT } from '$lib/constants/popover';
 	import Icon from '@iconify/svelte';
 
 	interface Props {
@@ -27,6 +29,7 @@
 		onabandon?: () => Promise<void> | void;
 		onjoin?: () => Promise<void> | void;
 		onmystatuschange?: (nextStatus: TodoStatus, e?: MouseEvent) => void;
+		onlogprogress?: (data: { status: TodoStatus; note: string }) => Promise<void> | void;
 	}
 
 	let {
@@ -42,7 +45,8 @@
 		ondelete,
 		onabandon,
 		onjoin,
-		onmystatuschange
+		onmystatuschange,
+		onlogprogress
 	}: Props = $props();
 
 	let isEditing = $state(false);
@@ -83,7 +87,6 @@
 		editNote = todo.note || '';
 	});
 
-	const currentStatusCfg = $derived(getStatusConfig(todo.status));
 	const scheduleText = $derived(formatScheduleRange(todo.startDate, todo.dueDate));
 
 	async function handleSave(e: SubmitEvent) {
@@ -144,19 +147,15 @@
 			</div>
 		</a>
 
-		<!-- Right status badge & interactive checkbox -->
-		<div class="flex items-center gap-2.5 shrink-0 pt-0.5">
-			<span
-				class="px-2.5 py-1 rounded-full text-xs font-medium {currentStatusCfg.bgClass} {currentStatusCfg.textClass} border {currentStatusCfg.borderClass}"
-			>
-				{currentStatusCfg.label}
-			</span>
-
-			<TodoCheckbox
+		<!-- Right status dropdown -->
+		<div class="flex items-center gap-2 shrink-0 pt-0.5">
+			<TodoStatusDropdown
 				status={todo.status}
-				{isMine}
-				size="md"
-				ontoggle={(next, e) => onstatuschange?.(next, e)}
+				disabled={!isMine}
+				placement={POPOVER_PLACEMENT.BOTTOM_END}
+				todoTitle={todo.content}
+				onchange={(next, e) => onstatuschange?.(next, e)}
+				onlogprogress={isMine ? onlogprogress : undefined}
 			/>
 		</div>
 	</div>

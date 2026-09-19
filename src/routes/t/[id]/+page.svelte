@@ -12,7 +12,6 @@
 	import TodoDetailSkeleton from '$lib/components/skeleton/TodoDetailSkeleton.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
 	import TodoDetailCard from '$lib/components/todo/TodoDetailCard.svelte';
-	import TodoCheckInForm from '$lib/components/todo/TodoCheckInForm.svelte';
 	import TodoActivityTimeline from '$lib/components/todo/TodoActivityTimeline.svelte';
 	import Icon from '@iconify/svelte';
 
@@ -138,16 +137,8 @@
 					onabandon={handleAbandon}
 					onjoin={detailRes.handleJoinTopic}
 					onmystatuschange={detailRes.handleToggleMyStatus}
+					onlogprogress={detailRes.handleCheckIn}
 				/>
-
-				<!-- 若是作者本人，显示进展打卡模块 -->
-				{#if detailRes.isMine}
-					<TodoCheckInForm
-						currentStatus={detailRes.todo.status}
-						isSubmitting={detailRes.isSubmittingCheckIn}
-						onsubmit={detailRes.handleCheckIn}
-					/>
-				{/if}
 
 				<!-- 生命周期动态时间线 -->
 				<TodoActivityTimeline
