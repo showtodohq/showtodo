@@ -377,67 +377,88 @@
 	closeOnEsc={!isDeleting && !isAbandoning}
 >
 	{#snippet header()}
-		<div class="flex items-center gap-2.5 text-zinc-900 dark:text-zinc-100">
-			<div class="p-2 rounded-xl bg-red-100 dark:bg-red-950/60 text-red-600 dark:text-red-400">
-				<Icon icon="lucide:trash-2" class="w-4 h-4" />
+		<div
+			class="flex items-center justify-between px-6 py-4 border-b border-zinc-100 dark:border-zinc-800/80 bg-zinc-50/50 dark:bg-zinc-900/40"
+		>
+			<div class="flex items-center gap-2.5">
+				<div
+					class="flex items-center justify-center h-8 w-8 rounded-xl bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20 shadow-2xs"
+				>
+					<Icon icon="lucide:trash-2" class="w-4 h-4" />
+				</div>
+				<h3 class="text-sm sm:text-base font-semibold text-zinc-900 dark:text-zinc-100 tracking-tight">
+					Delete this todo?
+				</h3>
 			</div>
-			<span class="text-base font-semibold">Delete this todo?</span>
+
+			<button
+				type="button"
+				onclick={() => (showDeleteModal = false)}
+				disabled={isDeleting || isAbandoning}
+				class="inline-flex items-center justify-center h-7 w-7 rounded-lg text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors cursor-pointer disabled:opacity-50"
+				aria-label="Close dialog"
+			>
+				<Icon icon="lucide:x" class="w-4 h-4" />
+			</button>
 		</div>
 	{/snippet}
 
-	<div class="space-y-4 pt-1">
-		<p class="text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed">
-			This action cannot be undone. All activity logs and reactions will be permanently deleted.
+	<div class="space-y-4">
+		<p class="text-xs sm:text-sm text-zinc-500 dark:text-zinc-400 leading-relaxed">
+			This action is permanent and cannot be undone. All activity logs and reactions will be wiped.
 		</p>
 
 		<!-- 放弃引导说明 (内含快捷放弃，推荐操作) -->
-		<div class="p-3.5 rounded-2xl bg-amber-50/80 dark:bg-amber-950/20 border border-amber-200/70 dark:border-amber-900/40 space-y-2.5">
-			<div class="space-y-1">
-				<div class="flex items-center gap-1.5 text-xs font-semibold text-amber-800 dark:text-amber-300">
-					<Icon icon="lucide:lightbulb" class="w-3.5 h-3.5 text-amber-600 dark:text-amber-400 shrink-0" />
+		<div
+			class="p-4 rounded-2xl bg-zinc-50/70 dark:bg-zinc-800/40 border border-zinc-200/80 dark:border-zinc-800/80 space-y-3"
+		>
+			<div class="flex items-start justify-between gap-2">
+				<div class="flex items-center gap-1.5 text-xs font-semibold text-zinc-900 dark:text-zinc-100">
+					<Icon icon="lucide:lightbulb" class="w-3.5 h-3.5 text-amber-500 shrink-0" />
 					<span>Not working on this anymore?</span>
 				</div>
-				<p class="text-[11px] text-amber-700/90 dark:text-amber-400/80 leading-relaxed">
-					Marking it as abandoned preserves your history and public streak.
-				</p>
+				<span
+					class="shrink-0 text-[10px] px-2 py-0.5 rounded-full font-medium bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20"
+				>
+					Recommended
+				</span>
 			</div>
+
+			<p class="text-[11px] sm:text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed">
+				Marking it as abandoned preserves your history and public streak.
+			</p>
 
 			<button
 				type="button"
 				onclick={handleAbandon}
 				disabled={isAbandoning || isDeleting}
-				class="w-full inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium text-amber-900 dark:text-amber-200 bg-amber-100/90 hover:bg-amber-200/90 dark:bg-amber-900/40 dark:hover:bg-amber-900/60 border border-amber-300/60 dark:border-amber-800/60 transition-colors cursor-pointer select-none disabled:opacity-50"
+				class="w-full inline-flex items-center justify-center gap-2 py-2 px-3.5 rounded-xl text-xs font-medium text-zinc-700 dark:text-zinc-200 bg-white dark:bg-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-700/80 border border-zinc-200/90 dark:border-zinc-700 shadow-2xs transition-all duration-150 cursor-pointer disabled:opacity-50 active:scale-[0.99]"
 			>
-				<Icon icon="lucide:archive" class="w-3.5 h-3.5 shrink-0" />
-				<span>Mark as Abandoned</span>
-				<span class="text-[10px] px-1.5 py-0.5 rounded-full bg-amber-200/80 dark:bg-amber-800/80 text-amber-800 dark:text-amber-200 font-medium">
-					Recommended
-				</span>
+				<Icon icon="lucide:archive" class="w-3.5 h-3.5 text-zinc-400" />
+				<span>Mark as Abandoned instead</span>
 			</button>
 		</div>
 	</div>
 
 	{#snippet footer()}
-		<div class="flex items-center justify-end gap-2 w-full">
-			<Button
-				type="button"
-				variant="ghost"
-				size="sm"
-				onclick={() => (showDeleteModal = false)}
-				disabled={isDeleting || isAbandoning}
-			>
-				Cancel
-			</Button>
-			<Button
-				type="button"
-				variant="danger"
-				size="sm"
-				loading={isDeleting}
-				disabled={isAbandoning}
-				onclick={handleDelete}
-			>
-				Delete
-			</Button>
-		</div>
+		<Button
+			type="button"
+			variant="ghost"
+			size="sm"
+			onclick={() => (showDeleteModal = false)}
+			disabled={isDeleting || isAbandoning}
+		>
+			Cancel
+		</Button>
+		<Button
+			type="button"
+			variant="danger"
+			size="sm"
+			loading={isDeleting}
+			disabled={isAbandoning}
+			onclick={handleDelete}
+		>
+			Delete
+		</Button>
 	{/snippet}
 </Modal>

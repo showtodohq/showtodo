@@ -37,7 +37,7 @@
 		const ok = await detailRes.handleDeleteTodo();
 		if (ok) {
 			if (authorHandle) {
-				goto(`/@${authorHandle}`);
+				goto(`/@${authorHandle}/todolist`);
 			} else {
 				goto('/');
 			}
