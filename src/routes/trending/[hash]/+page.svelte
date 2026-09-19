@@ -1,4 +1,6 @@
 <script lang="ts">
+	import type { PageData } from './$types';
+	import { untrack } from 'svelte';
 	import { page } from '$app/state';
 	import { goto } from '$app/navigation';
 	import { userStore } from '$lib/stores/user.svelte';
@@ -13,14 +15,21 @@
 
 	import { getTodayString } from '$lib/utils/format';
 
-	const topicRes = createTopicDetailResource(page.params.hash);
-	let currentLoadedKey = $state<string | null>(null);
+	let { data }: { data: PageData } = $props();
+
+	const topicRes = createTopicDetailResource(page.params.hash, untrack(() => data.topic));
+	let currentLoadedKey = $state<string | null>(
+		page.params.hash ? `${page.params.hash}:${page.url.searchParams.get('date') || getTodayString()}` : null
+	);
 
 	$effect(() => {
 		const hash = page.params.hash;
 		const targetDate = page.url.searchParams.get('date') || getTodayString();
 		const key = `${hash}:${targetDate}`;
-		if (hash && key !== currentLoadedKey) {
+		if (data.topic && data.topic.topicHash === hash) {
+			topicRes.hydrate(data.topic);
+			currentLoadedKey = key;
+		} else if (hash && key !== currentLoadedKey) {
 			currentLoadedKey = key;
 			topicRes.load(hash, targetDate);
 		}

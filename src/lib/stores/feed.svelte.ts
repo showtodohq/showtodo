@@ -38,6 +38,17 @@ class FeedStore {
 		this.todoIds = this.todoIds.filter((item) => item !== id);
 	}
 
+	hydrate(data: { todos: Todo[]; nextCursor?: string | null; category?: CategoryId | null }) {
+		const fetchedTodos = data.todos || [];
+		todoRegistry.upsertMany(fetchedTodos);
+		this.todoIds = fetchedTodos.map((t) => t.id);
+		this.nextCursor = data.nextCursor ?? null;
+		this.activeCategory = data.category ?? null;
+		this.loadedKey = JSON.stringify([this.activeCategory, userStore.id]);
+		this.loaded = true;
+		this.loading = false;
+	}
+
 	private requestVersion = 0;
 	private requestKey: string | null = null;
 	private loadedKey: string | null = null;
@@ -49,9 +60,10 @@ class FeedStore {
 	) {
 		const viewerId = userStore.id;
 		const key = JSON.stringify([category, viewerId]);
+		const guestKey = JSON.stringify([category, undefined]);
 		if (isInitial && this.loading && this.requestKey === key && !force) return;
-		if (!isInitial && (this.loading || this.loadingMore || !this.nextCursor || this.loadedKey !== key)) return;
-		if (isInitial && !force && this.loaded && this.loadedKey === key) return;
+		if (!isInitial && (this.loading || this.loadingMore || !this.nextCursor || (this.loadedKey !== key && this.loadedKey !== guestKey))) return;
+		if (isInitial && !force && this.loaded && (this.loadedKey === key || this.loadedKey === guestKey)) return;
 
 		const version = ++this.requestVersion;
 		this.requestKey = key;

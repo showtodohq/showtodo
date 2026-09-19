@@ -1,4 +1,6 @@
 <script lang="ts">
+	import type { PageData } from './$types';
+	import { untrack } from 'svelte';
 	import { page } from '$app/state';
 	import { goto } from '$app/navigation';
 	import { userStore } from '$lib/stores/user.svelte';
@@ -17,14 +19,13 @@
 	import SeoHead from '$lib/components/seo/SeoHead.svelte';
 	import Icon from '@iconify/svelte';
 
-	const detailRes = createTodoDetailResource(page.params.id);
-	let currentLoadedId = $state<string | null>(null);
+	let { data }: { data: PageData } = $props();
+
+	const detailRes = createTodoDetailResource(page.params.id, untrack(() => data.todo));
 
 	$effect(() => {
-		const paramId = page.params.id;
-		if (paramId && paramId !== currentLoadedId) {
-			currentLoadedId = paramId;
-			detailRes.load(paramId);
+		if (data.todo && data.todo.id !== detailRes.todo?.id) {
+			detailRes.hydrate(data.todo);
 		}
 	});
 

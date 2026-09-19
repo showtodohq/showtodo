@@ -17,7 +17,9 @@
 	let { onJoinTopic }: Props = $props();
 
 	onMount(() => {
-		trendingStore.load();
+		if (!trendingStore.loaded) {
+			trendingStore.load();
+		}
 	});
 
 	function handleJoin(card: DailyCard) {

@@ -61,16 +61,34 @@ function getInitialProfileAndTodos(identifier?: string): { user: UserProfile | n
 	return { user: null, todoIds: [] };
 }
 
-export function createUserProfileResource(initialIdentifier?: string) {
-	const initial = getInitialProfileAndTodos(initialIdentifier);
+export function createUserProfileResource(
+	initialIdentifier?: string,
+	initialData?: { user?: UserProfile | null; todos?: Todo[]; heatmap?: HeatmapData | null }
+) {
+	if (initialData?.user) {
+		userProfileRegistry.upsertProfile(initialData.user);
+	}
+	if (initialData?.todos) {
+		todoRegistry.upsertMany(initialData.todos);
+		if (initialData.user) {
+			userProfileRegistry.setUserTodoIds(initialData.user.id, initialData.todos.map((t) => t.id));
+			if (initialData.user.handle) {
+				userProfileRegistry.setUserTodoIds(initialData.user.handle, initialData.todos.map((t) => t.id));
+			}
+		}
+	}
 
-	let loading = $state(!initial.user);
-	let isTodosLoading = $state(initial.todoIds.length === 0);
+	const initial = getInitialProfileAndTodos(initialIdentifier);
+	const initialUser = initialData?.user || initial.user;
+	const initialTodoIds = initialData?.todos ? initialData.todos.map((t) => t.id) : initial.todoIds;
+
+	let loading = $state(!initialUser);
+	let isTodosLoading = $state(!initialData?.todos && initialTodoIds.length === 0);
 	let isRevalidating = $state(false);
 	let error = $state<string | null>(null);
-	let user = $state<UserProfile | null>(initial.user);
-	let userTodoIds = $state<string[]>(initial.todoIds);
-	let heatmap = $state<HeatmapData | null>(null);
+	let user = $state<UserProfile | null>(initialUser);
+	let userTodoIds = $state<string[]>(initialTodoIds);
+	let heatmap = $state<HeatmapData | null>(initialData?.heatmap || null);
 	let isHeatmapLoading = $state(false);
 	let activeTab = $state<TodoStatus | 'all'>('all');
 	let activeCategory = $state<CategoryId | null>(null);
@@ -313,6 +331,22 @@ export function createUserProfileResource(initialIdentifier?: string) {
 		},
 		get filteredTodos() {
 			return filteredTodos;
+		},
+		hydrate(data: { user?: UserProfile | null; todos?: Todo[]; heatmap?: HeatmapData | null }) {
+			if (data.user) {
+				userProfileRegistry.upsertProfile(data.user);
+				user = data.user;
+				loading = false;
+			}
+			if (data.todos) {
+				todoRegistry.upsertMany(data.todos);
+				userTodoIds = data.todos.map((t) => t.id);
+				isTodosLoading = false;
+			}
+			if (data.heatmap) {
+				heatmap = data.heatmap;
+				isHeatmapLoading = false;
+			}
 		},
 		load,
 		handleSaveProfile,

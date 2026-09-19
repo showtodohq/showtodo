@@ -72,15 +72,34 @@ function getInitialWorkbenchData(handle?: string | null): {
 	};
 }
 
-export function createMyTodosResource(initialTargetHandle?: string) {
-	const initialData = getInitialWorkbenchData(initialTargetHandle);
-	const hasInitialData = initialData.hasCache;
+export function createMyTodosResource(
+	initialTargetHandle?: string,
+	initialServerData?: { user?: UserProfile | null; todos?: Todo[] }
+) {
+	if (initialServerData?.user) {
+		userProfileRegistry.upsertProfile(initialServerData.user);
+	}
+	if (initialServerData?.todos) {
+		todoRegistry.upsertMany(initialServerData.todos);
+		if (initialServerData.user) {
+			const ids = initialServerData.todos.map((t) => t.id);
+			userProfileRegistry.setUserTodoIds(initialServerData.user.id, ids);
+			if (initialServerData.user.handle) {
+				userProfileRegistry.setUserTodoIds(initialServerData.user.handle, ids);
+			}
+		}
+	}
 
-	let loading = $state(!hasInitialData && Boolean(initialTargetHandle || userStore.id));
+	const initialData = getInitialWorkbenchData(initialTargetHandle);
+	const targetUserVal = initialServerData?.user || initialData.targetUser;
+	const todoIdsVal = initialServerData?.todos ? initialServerData.todos.map((t) => t.id) : initialData.todoIds;
+	const hasInitialData = Boolean(initialServerData?.user);
+
+	let loading = $state(!hasInitialData && !initialData.hasCache && Boolean(initialTargetHandle || userStore.id));
 	let isRevalidating = $state(false);
 	let error = $state<string | null>(null);
-	let todoIds = $state<string[]>(initialData.todoIds);
-	let targetUser = $state<UserProfile | CurrentUserSession | null>(initialData.targetUser);
+	let todoIds = $state<string[]>(todoIdsVal);
+	let targetUser = $state<UserProfile | CurrentUserSession | null>(targetUserVal);
 	let targetHandle = $state<string | null>(initialTargetHandle || null);
 
 	const isMe = $derived.by(() => {
@@ -521,6 +540,18 @@ export function createMyTodosResource(initialTargetHandle?: string) {
 		createTodo,
 		insertTop,
 		setTodoIds,
+		hydrate(data: { user?: UserProfile | null; todos?: Todo[] }) {
+			if (data.user) {
+				userProfileRegistry.upsertProfile(data.user);
+				targetUser = data.user;
+			}
+			if (data.todos) {
+				todoRegistry.upsertMany(data.todos);
+				todoIds = data.todos.map((t) => t.id);
+			}
+			loading = false;
+			error = null;
+		},
 		load
 	};
 }

@@ -1,5 +1,6 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
+	import type { PageData } from './$types';
+	import { onMount, untrack } from 'svelte';
 	import { statsStore } from '$lib/stores/stats.svelte';
 	import { getCategoryConfig } from '$lib/constants/categories';
 	import Avatar from '$lib/components/ui/Avatar.svelte';
@@ -10,6 +11,14 @@
 	import CategoryDonutChart from '$lib/components/stats/CategoryDonutChart.svelte';
 	import Icon from '@iconify/svelte';
 
+	let { data }: { data: PageData } = $props();
+
+	untrack(() => {
+		if (data.stats) {
+			statsStore.hydrate(data.stats);
+		}
+	});
+
 	let hoveredTrendIndex = $state<number | null>(null);
 
 	const trendMaxVal = $derived(
@@ -19,7 +28,9 @@
 	);
 
 	onMount(() => {
-		statsStore.load(false, 365);
+		if (!statsStore.loaded) {
+			statsStore.load(false, 365);
+		}
 	});
 
 	function refresh() {

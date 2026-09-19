@@ -14,9 +14,22 @@ class TrendingStore {
 	loaded = $state(false);
 	isRevalidating = $state(false);
 
+	private lastHydratedAt = 0;
+
+	hydrate(cards: DailyCard[]) {
+		this.cards = cards;
+		this.loaded = true;
+		this.loading = false;
+		this.lastHydratedAt = Date.now();
+	}
+
 	async load(force = false) {
 		// 在途请求合并防抖：加载或注水中避免重复发请求
 		if (this.loading || this.isRevalidating) {
+			return;
+		}
+
+		if (!force && this.loaded && Date.now() - this.lastHydratedAt < 30000) {
 			return;
 		}
 

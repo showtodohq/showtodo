@@ -5,14 +5,14 @@ import { todoMutations } from '$lib/stores/mutations.svelte';
 import { getLocalDayAsUtcRange } from '$lib/utils/format';
 import type { TopicItem } from '$lib/types/todo';
 
-export function createTopicsResource() {
-	let topics = $state<TopicItem[]>([]);
-	let total = $state(0);
+export function createTopicsResource(initialData?: { topics: TopicItem[]; total: number }) {
+	let topics = $state<TopicItem[]>(initialData?.topics || []);
+	let total = $state(initialData?.total || 0);
 	let loading = $state(false);
 	let loadingMore = $state(false);
-	let loaded = $state(false);
+	let loaded = $state(Boolean(initialData));
 	let error = $state<string | null>(null);
-	let hasMore = $state(false);
+	let hasMore = $state(initialData ? initialData.topics.length < initialData.total : false);
 
 	let category = $state<string>('all');
 	let scope = $state<'all' | 'mine'>('all');
@@ -20,7 +20,7 @@ export function createTopicsResource() {
 	let timeRange = $state<'all' | 'today'>('all');
 	let search = $state<string>('');
 	let minParticipants = $state<number>(1);
-	let offset = $state(0);
+	let offset = $state(initialData?.topics ? initialData.topics.length : 0);
 	const PAGE_SIZE = 15;
 
 	let requestVersion = 0;
@@ -220,6 +220,14 @@ export function createTopicsResource() {
 			return minParticipants;
 		},
 		load,
+		hydrate(data: { topics: TopicItem[]; total: number }) {
+			topics = data.topics;
+			total = data.total;
+			offset = data.topics.length;
+			hasMore = data.topics.length < data.total;
+			loaded = true;
+			loading = false;
+		},
 		loadMore,
 		setCategory,
 		setScope,

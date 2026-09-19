@@ -1,4 +1,6 @@
 <script lang="ts">
+	import type { PageData } from './$types';
+	import { untrack } from 'svelte';
 	import { page } from '$app/state';
 	import { goto } from '$app/navigation';
 	import { TODO_STATUSES, ALL_TODO_STATUSES } from '$lib/constants/status';
@@ -18,7 +20,16 @@
 	import SeoHead from '$lib/components/seo/SeoHead.svelte';
 	import Icon from '@iconify/svelte';
 
-	const profileRes = createUserProfileResource(page.params.handle);
+	let { data }: { data: PageData } = $props();
+
+	const profileRes = createUserProfileResource(
+		page.params.handle,
+		untrack(() => ({
+			user: data.profile,
+			todos: data.todos,
+			heatmap: data.heatmap
+		}))
+	);
 
 	let isUrlInitialized = false;
 
@@ -75,11 +86,18 @@
 		updateQueryParams(profileRes.activeTab, null);
 	}
 
-	let currentLoadedId = $state<string | null>(null);
+	let currentLoadedId = $state<string | null>(page.params.handle || null);
 
 	$effect(() => {
 		const paramHandle = page.params.handle;
-		if (paramHandle && paramHandle !== currentLoadedId) {
+		if (data.profile && (data.profile.handle === paramHandle || data.profile.id === paramHandle)) {
+			profileRes.hydrate({
+				user: data.profile,
+				todos: data.todos,
+				heatmap: data.heatmap
+			});
+			currentLoadedId = paramHandle;
+		} else if (paramHandle && paramHandle !== currentLoadedId) {
 			currentLoadedId = paramHandle;
 			profileRes.load(paramHandle);
 		}

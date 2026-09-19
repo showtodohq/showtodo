@@ -7,8 +7,11 @@ import { todoMutations } from '$lib/stores/mutations.svelte';
 import type { Todo, TodoStatus, TodoActivityType } from '$lib/types/todo';
 import { TODO_STATUS, isStatusDone } from '$lib/constants/status';
 
-export function createTodoDetailResource(initialIdentifier?: string) {
-	const initialCached = initialIdentifier ? (todoRegistry.get(initialIdentifier) || null) : null;
+export function createTodoDetailResource(initialIdentifier?: string, initialTodo?: Todo | null) {
+	if (initialTodo) {
+		todoRegistry.upsert(initialTodo);
+	}
+	const initialCached = initialTodo || (initialIdentifier ? (todoRegistry.get(initialIdentifier) || null) : null);
 	let loading = $state(!initialCached);
 	let isRevalidating = $state(false);
 	let error = $state<string | null>(null);
@@ -331,6 +334,18 @@ export function createTodoDetailResource(initialIdentifier?: string) {
 			return myJoinedTodo;
 		},
 		load,
+		hydrate(newTodo: Todo) {
+			const upserted = todoRegistry.upsert(newTodo);
+			todo = upserted;
+			if (newTodo.topicParticipantCount !== undefined) {
+				topicParticipantCount = newTodo.topicParticipantCount;
+			}
+			if (newTodo.myJoinedTodo !== undefined) {
+				serverMyJoinedTodo = newTodo.myJoinedTodo;
+			}
+			loading = false;
+			error = null;
+		},
 		handleStatusChange,
 		handleCheckIn,
 		handleSaveEdit,

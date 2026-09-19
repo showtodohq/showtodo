@@ -157,6 +157,12 @@ $$\text{effectiveCreatedAt} = \begin{cases}
 
 - Joining a companion goal immediately sets your personal timestamp to `now`, smoothly floating the goal to the top of your personal list without shifting it unexpectedly for observers.
 
+### 4.4 SSR 数据直出与客户端平滑水合 (Progressive Hydration Architecture)
+为保证极致的首屏体验 (LCP/FCP) 与全球搜索引擎 (SEO)/社交分享卡片 (OpenGraph) 抓取，全站公开路由全面采用 SvelteKit 服务端 Loader (`+page.server.ts`)：
+1. **单一信源 (Single Source of Truth)**：服务端 Loader 直接调用底层领域服务（`todoService`、`userService`、`statsService`），避免内部 HTTP 网络反向回环。
+2. **公共视角直出**：首屏按公共观察者视角执行 SSR，直出包含真实待办列表、热门目标、统计面板及真实 `<SeoHead>` 元标签的完整 HTML。
+3. **零闪烁平滑水合**：客户端通过各领域 Store/Resource 的 `hydrate()` 协议同步接收首屏数据并写入 `todoRegistry`，同时 `userStore` 从本地读取身份毫秒级计算 `isMine` 与点赞高亮，彻底消除骨架屏闪烁与二次瀑布流拉取。
+
 ---
 
 ## 5. View Architecture & Triple-View Engine

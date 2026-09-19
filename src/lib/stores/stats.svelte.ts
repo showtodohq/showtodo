@@ -7,8 +7,21 @@ class StatsStore {
 	loaded = $state(false);
 	isRevalidating = $state(false);
 
+	private lastHydratedAt = 0;
+
+	hydrate(stats: GlobalStatsData) {
+		this.stats = stats;
+		this.loaded = true;
+		this.loading = false;
+		this.lastHydratedAt = Date.now();
+	}
+
 	async load(force = false, heatmapDays?: number) {
 		if (this.loading || this.isRevalidating) {
+			return;
+		}
+
+		if (!force && this.loaded && Date.now() - this.lastHydratedAt < 30000) {
 			return;
 		}
 

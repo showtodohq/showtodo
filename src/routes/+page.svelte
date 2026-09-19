@@ -1,11 +1,13 @@
 <script lang="ts">
+	import type { PageData } from './$types';
 	import { untrack } from 'svelte';
 	import { page } from '$app/state';
 	import { goto } from '$app/navigation';
 	import type { Todo, CategoryId } from '$lib/types/todo';
 	import { getCategoryConfig } from '$lib/constants/categories';
 	import { userStore } from '$lib/stores/user.svelte';
-	import { feedStore, todoMutations } from '$lib/stores/todo.svelte';
+	import { feedStore, trendingStore, todoMutations } from '$lib/stores/todo.svelte';
+	import { statsStore } from '$lib/stores/stats.svelte';
 	import Spinner from '$lib/components/ui/Spinner.svelte';
 	import DataView from '$lib/components/ui/DataView.svelte';
 	import FeedSkeleton from '$lib/components/skeleton/FeedSkeleton.svelte';
@@ -18,10 +20,22 @@
 	import SeoHead from '$lib/components/seo/SeoHead.svelte';
 	import Icon from '@iconify/svelte';
 
+	let { data }: { data: PageData } = $props();
+
+	// SSR 同步水合首屏实体与状态
+	untrack(() => {
+		feedStore.hydrate(data.feed);
+		if (data.stats) {
+			statsStore.hydrate(data.stats);
+		}
+		if (data.trendingCards) {
+			trendingStore.hydrate(data.trendingCards);
+		}
+	});
+
 	// 分类筛选与顶部发布框联动
 	let activeCategoryFilter = $state<CategoryId | null>(null);
 	let composerCategory = $state<CategoryId | null>(null);
-	// URL 与当前身份是加载依赖；store 内部的 loading/loaded 不应成为 effect 依赖。
 
 	const homeSeo = $derived(getHomeSeo(activeCategoryFilter));
 
@@ -44,14 +58,20 @@
 	}
 
 	$effect(() => {
-		const category = page.url.searchParams.get('category') as CategoryId | null;
-		const viewerId = userStore.id;
-		untrack(() => {
-			activeCategoryFilter = category;
-			composerCategory = category;
-			void viewerId;
-			void feedStore.load(true, category, true);
-		});
+		const category = (page.url.searchParams.get('category') as CategoryId | null) ?? data.feed.category;
+		activeCategoryFilter = category;
+		composerCategory = category;
+
+		// 当 SvelteKit 服务端重新加载数据或路由切换时同步水合
+		if (data.feed && (feedStore.activeCategory !== data.feed.category || !feedStore.loaded)) {
+			feedStore.hydrate(data.feed);
+		}
+		if (data.stats) {
+			statsStore.hydrate(data.stats);
+		}
+		if (data.trendingCards) {
+			trendingStore.hydrate(data.trendingCards);
+		}
 	});
 
 	function isMyTodo(todo: Todo): boolean {

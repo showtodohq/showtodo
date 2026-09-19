@@ -56,11 +56,11 @@ function getTopicCacheKey(hash: string, userId?: string, date?: string) {
 	return `${hash}:${userId || 'anon'}:${date || 'all'}`;
 }
 
-export function createTopicDetailResource(initialHash?: string) {
+export function createTopicDetailResource(initialHash?: string, initialTopicData?: TopicDetail | null) {
 	const initialCacheKey = initialHash ? getTopicCacheKey(initialHash, userStore.id) : '';
 	const initialFromCache = initialCacheKey ? topicDetailCache.get(initialCacheKey) : undefined;
 	const initialCard = !initialFromCache && initialHash ? trendingStore.cards.find((c) => c.topicHash === initialHash) : null;
-	const initialTopic = initialFromCache || (initialCard ? buildTopicFromCard(initialCard) : null);
+	const initialTopic = initialTopicData || initialFromCache || (initialCard ? buildTopicFromCard(initialCard) : null);
 
 	let loading = $state(!initialTopic);
 	let isRevalidating = $state(false);
@@ -287,6 +287,11 @@ export function createTopicDetailResource(initialHash?: string) {
 			return myParticipant;
 		},
 		load,
+		hydrate(data: TopicDetail) {
+			topic = data;
+			loading = false;
+			error = null;
+		},
 		handleJoin,
 		handleToggleMyStatus
 	};

@@ -7,7 +7,9 @@
 	import Icon from '@iconify/svelte';
 
 	onMount(() => {
-		statsStore.load();
+		if (!statsStore.loaded) {
+			statsStore.load();
+		}
 	});
 </script>
 

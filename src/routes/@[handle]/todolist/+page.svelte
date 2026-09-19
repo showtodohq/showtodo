@@ -1,4 +1,5 @@
 <script lang="ts">
+	import type { PageData } from './$types';
 	import { page } from '$app/state';
 	import { goto } from '$app/navigation';
 	import { untrack } from 'svelte';
@@ -30,8 +31,13 @@
 	import SeoHead from '$lib/components/seo/SeoHead.svelte';
 	import Icon from '@iconify/svelte';
 
+	let { data }: { data: PageData } = $props();
+
 	const handleParam = $derived(page.params.handle);
-	const resource = createMyTodosResource(page.params.handle);
+	const resource = createMyTodosResource(
+		page.params.handle,
+		untrack(() => ({ user: data.profile, todos: data.todos }))
+	);
 
 	// 同步 URL 参数中的 ?view=, ?q=, ?status=, ?category=
 	let isUrlInitialized = false;
@@ -142,14 +148,18 @@
 		return parts.join(' · ');
 	});
 
-	// 监听当前路由 handle 与登录用户变化拉取数据
-	let currentLoadedKey = $state<string | null>(null);
+	let currentLoadedKey = $state<string | null>(
+		page.params.handle ? `${page.params.handle}:init` : null
+	);
 
 	$effect(() => {
 		const targetHandle = handleParam;
 		const viewerId = userStore.id;
 		const key = `${targetHandle}:${viewerId}`;
-		if (targetHandle && key !== currentLoadedKey) {
+		if (data.profile && (data.profile.handle === targetHandle || data.profile.id === targetHandle)) {
+			resource.hydrate({ user: data.profile, todos: data.todos });
+			currentLoadedKey = key;
+		} else if (targetHandle && key !== currentLoadedKey) {
 			currentLoadedKey = key;
 			untrack(() => {
 				void resource.load(targetHandle);

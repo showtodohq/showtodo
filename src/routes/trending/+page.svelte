@@ -1,5 +1,6 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
+	import type { PageData } from './$types';
+	import { onMount, untrack } from 'svelte';
 	import { page } from '$app/state';
 	import { userStore } from '$lib/stores/user.svelte';
 	import { toast } from '$lib/stores/toast.svelte';
@@ -26,7 +27,9 @@
 	import { getTrendingSeo } from '$lib/constants/seo';
 	import SeoHead from '$lib/components/seo/SeoHead.svelte';
 
-	const topicsRes = createTopicsResource();
+	let { data }: { data: PageData } = $props();
+
+	const topicsRes = createTopicsResource(untrack(() => ({ topics: data.topics, total: data.total })));
 
 	let searchInput = $state('');
 
@@ -178,7 +181,9 @@
 	const trendingSeo = $derived(getTrendingSeo(searchInput));
 
 	onMount(() => {
-		topicsRes.load(true);
+		if (!topicsRes.loaded) {
+			topicsRes.load(true);
+		}
 	});
 </script>
 
