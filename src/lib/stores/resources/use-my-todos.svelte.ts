@@ -278,6 +278,14 @@ export function createMyTodosResource(initialTargetHandle?: string) {
 		todoMutations.toggleStatus(todoId, nextStatus, e, t);
 	}
 
+	function logProgress(todoId: string, nextStatus: TodoStatus, note: string) {
+		if (!isMe) return;
+		const t = todoRegistry.get(todoId);
+		return todoMutations.toggleStatus(todoId, nextStatus, undefined, t, {
+			activityNote: note
+		});
+	}
+
 	function insertTop(id: string) {
 		if (!todoIds.includes(id)) {
 			todoIds = [id, ...todoIds];
@@ -496,6 +504,7 @@ export function createMyTodosResource(initialTargetHandle?: string) {
 		selectCalendarDate,
 		handleToggle,
 		changeStatus,
+		logProgress,
 		createTodo,
 		insertTop,
 		setTodoIds,

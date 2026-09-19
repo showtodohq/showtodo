@@ -112,7 +112,9 @@
 
 									<TodoStatusDropdown
 										status={todo.status}
+										todoTitle={todo.content}
 										onchange={(nextSt, e) => resource.changeStatus(todo.id, nextSt, e)}
+										onlogprogress={(data) => resource.logProgress(todo.id, data.status, data.note)}
 									/>
 								</div>
 							</div>

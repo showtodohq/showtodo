@@ -40,4 +40,19 @@ describe('TodoStatusDropdown Component SSR', () => {
 		expect(rendered.body).toContain('Completed');
 		expect(rendered.body).toContain('disabled');
 	});
+
+	it('renders log progress message icon button and avoids redundant check icon', () => {
+		const rendered = render(TodoStatusDropdown, {
+			props: {
+				status: 'in_progress',
+				defaultOpen: true,
+				onlogprogress: () => {}
+			}
+		});
+
+		// Verify English tooltip for logging progress
+		expect(rendered.body).toContain('Log progress with this status');
+		// Verify redundant checkmark icon is not rendered
+		expect(rendered.body).not.toContain('lucide:check');
+	});
 });
