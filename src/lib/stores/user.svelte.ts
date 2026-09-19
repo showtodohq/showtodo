@@ -94,9 +94,15 @@ class UserStore {
 
 	isAuthor(authorId?: string | null, authorEmail?: string | null, authorHandle?: string | null): boolean {
 		if (!this.current) return false;
-		if (authorId && this.current.id && this.current.id === authorId) return true;
-		if (authorEmail && this.current.email.toLowerCase() === authorEmail.toLowerCase()) return true;
-		if (authorHandle && this.current.handle && this.current.handle.toLowerCase() === authorHandle.toLowerCase()) return true;
+		const clean = (val: string) => (val.startsWith('@') ? val.slice(1).toLowerCase() : val.toLowerCase());
+		if (authorId) {
+			const norm = clean(authorId);
+			if (this.current.id && this.current.id.toLowerCase() === norm) return true;
+			if (this.current.handle && clean(this.current.handle) === norm) return true;
+			if (this.current.email && clean(this.current.email) === norm) return true;
+		}
+		if (authorEmail && this.current.email.toLowerCase() === clean(authorEmail)) return true;
+		if (authorHandle && this.current.handle && clean(this.current.handle) === clean(authorHandle)) return true;
 		return false;
 	}
 }

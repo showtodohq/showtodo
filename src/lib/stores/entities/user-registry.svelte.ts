@@ -74,13 +74,19 @@ class UserProfileRegistry {
 		return this.profiles[realId];
 	}
 
-	/**
-	 * 获取已缓存的用户待办 ID 列表
-	 */
 	getUserTodoIds(identifier?: string | null): string[] | undefined {
 		if (!identifier) return undefined;
 		const realId = this.getRealUserId(identifier) || identifier;
 		return this.userTodoIdsMap[realId];
+	}
+
+	/**
+	 * 清空所有注册表数据 (供单元测试或重置会话使用)
+	 */
+	clear() {
+		this.profiles = {};
+		this.handleMap = {};
+		this.userTodoIdsMap = {};
 	}
 }
 

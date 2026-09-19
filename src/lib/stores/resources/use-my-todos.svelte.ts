@@ -1,6 +1,7 @@
 import { api } from '$lib/services/api';
 import { userStore } from '$lib/stores/user.svelte';
 import { todoRegistry } from '$lib/stores/entities/todo-registry.svelte';
+import { userProfileRegistry } from '$lib/stores/entities/user-registry.svelte';
 import { todoMutations } from '$lib/stores/mutations.svelte';
 import { formatDateISO, isSameDay } from '$lib/utils/calendar';
 import type { Todo, TodoStatus, CategoryId } from '$lib/types/todo';
@@ -15,11 +16,73 @@ export interface CalendarDayCell {
 	todos: Todo[];
 }
 
+function getInitialWorkbenchData(handle?: string | null): {
+	targetUser: UserProfile | CurrentUserSession | null;
+	todoIds: string[];
+	hasCache: boolean;
+} {
+	if (!handle) {
+		const currentUser = userStore.current;
+		const cachedTodoIds = userStore.id ? userProfileRegistry.getUserTodoIds(userStore.id) : undefined;
+		if (currentUser && cachedTodoIds !== undefined) {
+			return {
+				targetUser: currentUser,
+				todoIds: cachedTodoIds,
+				hasCache: true
+			};
+		}
+		return {
+			targetUser: currentUser,
+			todoIds: [],
+			hasCache: false
+		};
+	}
+
+	const cachedUser = userProfileRegistry.getProfile(handle);
+	const cachedTodoIds = userProfileRegistry.getUserTodoIds(handle);
+
+	if (cachedUser && cachedTodoIds !== undefined) {
+		return {
+			targetUser: cachedUser,
+			todoIds: cachedTodoIds,
+			hasCache: true
+		};
+	}
+
+	if (cachedUser) {
+		return {
+			targetUser: cachedUser,
+			todoIds: cachedTodoIds || [],
+			hasCache: Boolean(cachedTodoIds !== undefined)
+		};
+	}
+
+	if (userStore.isAuthor(handle)) {
+		const currentUser = userStore.current;
+		const userTodoIds = userStore.id ? userProfileRegistry.getUserTodoIds(userStore.id) : undefined;
+		return {
+			targetUser: currentUser,
+			todoIds: userTodoIds || [],
+			hasCache: Boolean(userTodoIds !== undefined)
+		};
+	}
+
+	return {
+		targetUser: null,
+		todoIds: [],
+		hasCache: false
+	};
+}
+
 export function createMyTodosResource(initialTargetHandle?: string) {
-	let loading = $state(false);
+	const initialData = getInitialWorkbenchData(initialTargetHandle);
+	const hasInitialData = initialData.hasCache;
+
+	let loading = $state(!hasInitialData && Boolean(initialTargetHandle || userStore.id));
+	let isRevalidating = $state(false);
 	let error = $state<string | null>(null);
-	let todoIds = $state<string[]>([]);
-	let targetUser = $state<UserProfile | CurrentUserSession | null>(null);
+	let todoIds = $state<string[]>(initialData.todoIds);
+	let targetUser = $state<UserProfile | CurrentUserSession | null>(initialData.targetUser);
 	let targetHandle = $state<string | null>(initialTargetHandle || null);
 
 	const isMe = $derived.by(() => {
@@ -218,6 +281,12 @@ export function createMyTodosResource(initialTargetHandle?: string) {
 	function insertTop(id: string) {
 		if (!todoIds.includes(id)) {
 			todoIds = [id, ...todoIds];
+			if (targetUser?.id) {
+				userProfileRegistry.setUserTodoIds(targetUser.id, todoIds);
+			}
+			if (targetHandle) {
+				userProfileRegistry.setUserTodoIds(targetHandle, todoIds);
+			}
 		}
 	}
 
@@ -231,6 +300,12 @@ export function createMyTodosResource(initialTargetHandle?: string) {
 		const created = await todoMutations.createTodo(data);
 		if (created && !todoIds.includes(created.id)) {
 			todoIds = [created.id, ...todoIds];
+			if (targetUser?.id) {
+				userProfileRegistry.setUserTodoIds(targetUser.id, todoIds);
+			}
+			if (targetHandle) {
+				userProfileRegistry.setUserTodoIds(targetHandle, todoIds);
+			}
 		}
 		return created;
 	}
@@ -249,26 +324,53 @@ export function createMyTodosResource(initialTargetHandle?: string) {
 		}
 
 		const viewerId = userStore.id;
-		loading = true;
+		const cachedUser = handleToLoad ? userProfileRegistry.getProfile(handleToLoad) : (viewerId ? userStore.current : null);
+		const cachedTodoIds = handleToLoad
+			? userProfileRegistry.getUserTodoIds(handleToLoad)
+			: (viewerId ? userProfileRegistry.getUserTodoIds(viewerId) : undefined);
+		const hasValidCache = todoIds.length > 0 || (cachedUser && cachedTodoIds !== undefined);
+
+		if (hasValidCache) {
+			loading = false;
+			isRevalidating = true;
+		} else {
+			loading = true;
+			isRevalidating = false;
+		}
 		error = null;
 
 		try {
 			let targetAuthorId = viewerId;
 
 			if (handleToLoad) {
-				try {
-					const res = await api.getUserById(
-						handleToLoad,
-						viewerId ? { currentUserId: viewerId } : undefined
-					);
-					targetUser = res.user;
-					targetAuthorId = res.user.id;
-				} catch (uErr) {
-					console.error('Failed to load user profile for todolist:', uErr);
-					error = 'User not found';
-					todoIds = [];
-					targetUser = null;
-					return;
+				// 1. 若为当前登录用户本人，直接短路复用全局 userStore，0 网络往返
+				if (userStore.isAuthor(handleToLoad) && userStore.current) {
+					targetUser = userStore.current;
+					targetAuthorId = userStore.id;
+				} else {
+					// 2. 若全局用户注册表已有缓存档案，直接复用已登记的用户 ID，避免重复网络查询
+					const cachedProfile = userProfileRegistry.getProfile(handleToLoad);
+					if (cachedProfile) {
+						targetUser = cachedProfile;
+						targetAuthorId = cachedProfile.id;
+					} else {
+						// 3. 仅在首次冷启动且无缓存时，向后端查询用户 Profile
+						try {
+							const res = await api.getUserById(
+								handleToLoad,
+								viewerId ? { currentUserId: viewerId } : undefined
+							);
+							targetUser = res.user;
+							targetAuthorId = res.user.id;
+							userProfileRegistry.upsertProfile(res.user);
+						} catch (uErr) {
+							console.error('Failed to load user profile for todolist:', uErr);
+							error = 'User not found';
+							todoIds = [];
+							targetUser = null;
+							return;
+						}
+					}
 				}
 			} else {
 				if (!viewerId) {
@@ -293,18 +395,30 @@ export function createMyTodosResource(initialTargetHandle?: string) {
 			} while (cursor);
 
 			todoRegistry.upsertMany(fetched);
-			todoIds = [...new Set(fetched.map((t) => t.id))];
+			const uniqueIds = [...new Set(fetched.map((t) => t.id))];
+			todoIds = uniqueIds;
+
+			if (targetAuthorId) {
+				userProfileRegistry.setUserTodoIds(targetAuthorId, uniqueIds);
+			}
+			if (handleToLoad) {
+				userProfileRegistry.setUserTodoIds(handleToLoad, uniqueIds);
+			}
 		} catch (err) {
 			console.error('Failed to load todos for workbench:', err);
 			error = (err as Error).message || 'Failed to load todos';
 		} finally {
 			loading = false;
+			isRevalidating = false;
 		}
 	}
 
 	return {
 		get loading() {
 			return loading;
+		},
+		get isRevalidating() {
+			return isRevalidating;
 		},
 		get error() {
 			return error;

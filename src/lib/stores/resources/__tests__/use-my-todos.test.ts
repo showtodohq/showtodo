@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { createMyTodosResource } from '../use-my-todos.svelte';
 import { todoRegistry } from '$lib/stores/entities/todo-registry.svelte';
+import { userProfileRegistry } from '$lib/stores/entities/user-registry.svelte';
 import { userStore } from '$lib/stores/user.svelte';
 import { api } from '$lib/services/api';
 import type { Todo, TodoStatus } from '$lib/types/todo';
@@ -34,6 +35,7 @@ function mockTodo(id: string, status: TodoStatus = 'pending', content = '测试�
 describe('createMyTodosResource (TDD)', () => {
 	beforeEach(() => {
 		todoRegistry.clear();
+		userProfileRegistry.clear();
 		userStore.clearSession();
 		vi.restoreAllMocks();
 	});
@@ -180,7 +182,7 @@ describe('createMyTodosResource (TDD)', () => {
 		expect(resource.todos[0].content).toBe('Alex 的公开待办');
 	});
 
-	it('sets isMe to true when targetHandle matches current logged-in user', async () => {
+	it('bypasses api.getUserById and sets isMe to true when targetHandle matches current logged-in user', async () => {
 		userStore.setSession({
 			id: 'user-alex',
 			email: 'alex@example.com',
@@ -188,17 +190,7 @@ describe('createMyTodosResource (TDD)', () => {
 			handle: 'alex_dev'
 		});
 
-		vi.spyOn(api, 'getUserById').mockResolvedValueOnce({
-			user: {
-				id: 'user-alex',
-				handle: 'alex_dev',
-				nickname: 'Alex',
-				avatar: null,
-				createdAt: '2026-01-01',
-				updatedAt: '2026-01-01'
-			}
-		});
-
+		const getUserByIdSpy = vi.spyOn(api, 'getUserById');
 		vi.spyOn(api, 'getTodos').mockResolvedValueOnce({
 			todos: [],
 			nextCursor: null
@@ -207,7 +199,159 @@ describe('createMyTodosResource (TDD)', () => {
 		const resource = createMyTodosResource('alex_dev');
 		await resource.load();
 
+		// 断言完全不发起 getUserById 请求，直接短路复用 userStore
+		expect(getUserByIdSpy).not.toHaveBeenCalled();
 		expect(resource.targetUser?.handle).toBe('alex_dev');
 		expect(resource.isMe).toBe(true);
+	});
+
+	it('bypasses api.getUserById when target user is already cached in userProfileRegistry', async () => {
+		const cachedUser = {
+			id: 'user-bob',
+			handle: 'bob_dev',
+			nickname: 'Bob',
+			avatar: null,
+			createdAt: '2026-01-01',
+			updatedAt: '2026-01-01'
+		};
+		userProfileRegistry.upsertProfile(cachedUser);
+
+		const getUserByIdSpy = vi.spyOn(api, 'getUserById');
+		vi.spyOn(api, 'getTodos').mockResolvedValueOnce({
+			todos: [],
+			nextCursor: null
+		});
+
+		const resource = createMyTodosResource('bob_dev');
+		await resource.load();
+
+		expect(getUserByIdSpy).not.toHaveBeenCalled();
+		expect(resource.targetUser?.id).toBe('user-bob');
+		expect(resource.targetUser?.handle).toBe('bob_dev');
+	});
+
+	it('instantly hydrates from userProfileRegistry cache on creation (0ms initial render)', () => {
+		const cachedUser = {
+			id: 'user-alex',
+			handle: 'alex_dev',
+			nickname: 'Alex',
+			avatar: null,
+			createdAt: '2026-01-01',
+			updatedAt: '2026-01-01'
+		};
+		const t1 = mockTodo('t1', 'pending', '已缓存的任务');
+		t1.authorId = 'user-alex';
+
+		userProfileRegistry.upsertProfile(cachedUser);
+		todoRegistry.upsertMany([t1]);
+		userProfileRegistry.setUserTodoIds('alex_dev', ['t1']);
+
+		// 实例化阶段，未调用 load() 之前
+		const resource = createMyTodosResource('alex_dev');
+
+		expect(resource.loading).toBe(false);
+		expect(resource.targetUser?.handle).toBe('alex_dev');
+		expect(resource.todos.length).toBe(1);
+		expect(resource.todos[0].content).toBe('已缓存的任务');
+	});
+
+	it('performs SWR revalidation without setting loading to true when cached data exists', async () => {
+		const cachedUser = {
+			id: 'user-alex',
+			handle: 'alex_dev',
+			nickname: 'Alex',
+			avatar: null,
+			createdAt: '2026-01-01',
+			updatedAt: '2026-01-01'
+		};
+		const t1 = mockTodo('t1', 'pending', '已有任务');
+		t1.authorId = 'user-alex';
+
+		userProfileRegistry.upsertProfile(cachedUser);
+		todoRegistry.upsertMany([t1]);
+		userProfileRegistry.setUserTodoIds('alex_dev', ['t1']);
+
+		const resource = createMyTodosResource('alex_dev');
+		expect(resource.loading).toBe(false);
+
+		// 模拟后台更新返回了包含新任务的最新列表
+		const t2 = mockTodo('t2', 'done', '新任务');
+		t2.authorId = 'user-alex';
+
+		let resolveGetTodos: (res: any) => void;
+		const getTodosPromise = new Promise((resolve) => {
+			resolveGetTodos = resolve;
+		});
+
+		vi.spyOn(api, 'getUserById').mockResolvedValueOnce({ user: cachedUser });
+		vi.spyOn(api, 'getTodos').mockReturnValueOnce(getTodosPromise as any);
+
+		const loadPromise = resource.load();
+
+		// 请求在途时：loading 必须保持为 false（避免白屏/菊花），而 isRevalidating 为 true
+		expect(resource.loading).toBe(false);
+		expect(resource.isRevalidating).toBe(true);
+
+		// 模拟接口响应完成
+		resolveGetTodos!({
+			todos: [t1, t2],
+			nextCursor: null
+		});
+		await loadPromise;
+
+		expect(resource.loading).toBe(false);
+		expect(resource.isRevalidating).toBe(false);
+		expect(resource.todos.length).toBe(2);
+	});
+
+	it('sets loading to true when no cache exists (cold start)', async () => {
+		const resource = createMyTodosResource('non_cached_user');
+		expect(resource.loading).toBe(true);
+
+		vi.spyOn(api, 'getUserById').mockResolvedValueOnce({
+			user: {
+				id: 'user-new',
+				handle: 'non_cached_user',
+				nickname: 'Newbie',
+				avatar: null,
+				createdAt: '2026-01-01',
+				updatedAt: '2026-01-01'
+			}
+		});
+		vi.spyOn(api, 'getTodos').mockResolvedValueOnce({
+			todos: [],
+			nextCursor: null
+		});
+
+		await resource.load();
+		expect(resource.loading).toBe(false);
+		expect(resource.isRevalidating).toBe(false);
+	});
+
+	it('writes fetched todos and user profile back to userProfileRegistry after load', async () => {
+		const user = {
+			id: 'user-bob',
+			handle: 'bob_the_builder',
+			nickname: 'Bob',
+			avatar: null,
+			createdAt: '2026-01-01',
+			updatedAt: '2026-01-01'
+		};
+		const t1 = mockTodo('bob-t1', 'in_progress', '建造工棚');
+		t1.authorId = 'user-bob';
+
+		vi.spyOn(api, 'getUserById').mockResolvedValueOnce({ user });
+		vi.spyOn(api, 'getTodos').mockResolvedValueOnce({
+			todos: [t1],
+			nextCursor: null
+		});
+
+		const resource = createMyTodosResource('bob_the_builder');
+		await resource.load();
+
+		// 验证是否回写到了全局单一信源 userProfileRegistry
+		expect(userProfileRegistry.getProfile('bob_the_builder')?.nickname).toBe('Bob');
+		expect(userProfileRegistry.getUserTodoIds('bob_the_builder')).toEqual(['bob-t1']);
+		expect(userProfileRegistry.getUserTodoIds('user-bob')).toEqual(['bob-t1']);
 	});
 });

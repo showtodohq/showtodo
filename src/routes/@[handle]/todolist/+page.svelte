@@ -29,7 +29,7 @@
 	import Icon from '@iconify/svelte';
 
 	const handleParam = $derived(page.params.handle);
-	const resource = createMyTodosResource();
+	const resource = createMyTodosResource(page.params.handle);
 
 	// 同步 URL 参数中的 ?view=, ?q=, ?status=, ?category=
 	let isUrlInitialized = false;
