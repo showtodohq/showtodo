@@ -205,7 +205,6 @@
 			});
 
 			if (res) {
-				toast.success('Todo posted to square');
 				handleClose();
 			}
 		} catch (error) {

@@ -2,7 +2,7 @@
 	import type { Snippet } from 'svelte';
 	import type { UserProfile } from '$lib/types/user';
 	import { toast } from '$lib/stores/toast.svelte';
-	import { getAvatarUrl } from '$lib/services/avatar';
+	import { getAvatarUrl, generateRandomAvatarUrl } from '$lib/services/avatar';
 	import Avatar from '$lib/components/ui/Avatar.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
 	import Icon from '@iconify/svelte';
@@ -40,13 +40,12 @@
 	);
 
 	function generateRandomAvatar() {
-		const seeds = [
-			'Felix', 'Aneka', 'Milo', 'Bella', 'Jasper', 'Luna', 'Oliver', 'Cleo',
-			'Leo', 'Maya', 'Finn', 'Nova', 'Kai', 'Aria', 'Eli', 'Zoe'
-		];
-		const randomSeed = `${seeds[Math.floor(Math.random() * seeds.length)]}-${Math.floor(Math.random() * 1000)}`;
-		editAvatar = `https://api.dicebear.com/7.x/notionists/svg?seed=${randomSeed}&backgroundColor=f4f4f5,e4e4e7,d4d4d8`;
-		toast.info('Random avatar generated');
+		const baseSeed = editNickname.trim() || user.handle || user.nickname || 'user';
+		editAvatar = generateRandomAvatarUrl({
+			seed: baseSeed,
+			currentUrl: editAvatar.trim() || undefined
+		});
+		toast.info('Random avatar style generated');
 	}
 
 	function resetAvatar() {

@@ -111,6 +111,21 @@
 		}
 	});
 
+	function formatTooltipDate(dateStr: string): string {
+		try {
+			const d = parseLocalDate(dateStr);
+			if (isNaN(d.getTime())) return dateStr;
+			return d.toLocaleDateString('en-US', {
+				weekday: 'short',
+				month: 'short',
+				day: 'numeric',
+				year: 'numeric'
+			});
+		} catch {
+			return dateStr;
+		}
+	}
+
 	function handleMouseEnter(e: MouseEvent, day: HeatmapDayItem) {
 		hoveredDay = day;
 		const target = e.currentTarget as HTMLElement;
@@ -124,14 +139,21 @@
 		// 计算目标格子顶部相对于 rootEl 的 Y 轴距离
 		const targetTopY = targetRect.top - rootRect.top;
 
-		// 水平防溢出 Clamping：限制中心在 [70, rootWidth - 70] 避免两侧切边
-		const minX = 70;
-		const maxX = Math.max(minX, rootRect.width - 70);
+		// 水平防溢出 Clamping：Tooltip 宽度约 192px (w-48)，半宽取 96px + 4px 边距
+		const halfTooltipWidth = 96;
+		const minX = halfTooltipWidth + 4;
+		const maxX = Math.max(minX, rootRect.width - halfTooltipWidth - 4);
 		const clampedX = Math.max(minX, Math.min(maxX, targetCenterX));
 
-		// 垂直方向判断：若上方空间不足 88px 则翻转至格子下方
-		const showBelow = targetTopY < 88;
-		const y = showBelow ? targetTopY + targetRect.height + 6 : targetTopY - 6;
+		// 垂直方向判断：确保格子上方有充足空间容纳吸顶导航栏 (56px) + Tooltip 展开高度 (约 136px) + 安全间距 (18px) = 210px
+		// 若距离视口顶端不足 210px，向上弹出将会撞击或重叠吸顶导航栏，此时平滑翻转至下方
+		const NAVBAR_HEIGHT = 56;
+		const TOOLTIP_TOTAL_HEIGHT = 144;
+		const VIEWPORT_PADDING = 10;
+		const MIN_TOP_SPACE = NAVBAR_HEIGHT + TOOLTIP_TOTAL_HEIGHT + VIEWPORT_PADDING; // 210px
+
+		const showBelow = targetRect.top < MIN_TOP_SPACE;
+		const y = showBelow ? targetTopY + targetRect.height + 8 : targetTopY - 8;
 
 		tooltipPos = {
 			x: clampedX,
@@ -238,34 +260,34 @@
 	<!-- Tooltip popup -->
 	{#if hoveredDay}
 		<div
-			class="absolute z-50 pointer-events-none -translate-x-1/2 px-2.5 py-2 rounded-xl bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 text-xs shadow-xl border border-zinc-800 dark:border-zinc-200 transition-all duration-75 select-none min-w-[124px] {tooltipPos.showBelow ? 'translate-y-0' : '-translate-y-full'}"
+			class="absolute z-50 pointer-events-none -translate-x-1/2 w-48 px-3 py-2.5 rounded-xl bg-zinc-900/95 dark:bg-zinc-100/95 backdrop-blur-md text-white dark:text-zinc-900 text-xs shadow-xl ring-1 ring-zinc-800/80 dark:ring-zinc-200/80 transition-all duration-75 select-none whitespace-nowrap {tooltipPos.showBelow ? 'translate-y-0' : '-translate-y-full'}"
 			style="left: {tooltipPos.x}px; top: {tooltipPos.y}px;"
 		>
-			<div class="font-medium font-mono text-[11px] text-zinc-400 dark:text-zinc-500 pb-1.5 mb-1.5 border-b border-zinc-800/90 dark:border-zinc-200">
-				{hoveredDay.date}
+			<div class="flex items-center justify-between gap-2 pb-1.5 mb-2 border-b border-zinc-800 dark:border-zinc-200/90 font-mono text-[11px] text-zinc-400 dark:text-zinc-500">
+				<span>{formatTooltipDate(hoveredDay.date)}</span>
 			</div>
 			{#if hoveredDay.count === 0}
 				<div class="text-[11px] text-zinc-400 dark:text-zinc-500 py-0.5">
 					No {ACTIVITY_CONFIG.total.label.toLowerCase()}
 				</div>
 			{:else}
-				<div class="space-y-1 text-[11px]">
+				<div class="space-y-1.5 text-[11px]">
 					<div class="flex items-center justify-between gap-3">
-						<span class="text-zinc-300 dark:text-zinc-600">{ACTIVITY_CONFIG.total.label}</span>
-						<span class="font-mono font-semibold text-emerald-400 dark:text-emerald-600">{hoveredDay.count} {ACTIVITY_CONFIG.total.unit}</span>
+						<span class="text-zinc-300 dark:text-zinc-600 font-medium">{ACTIVITY_CONFIG.total.label}</span>
+						<span class="font-mono font-semibold text-emerald-400 dark:text-emerald-600 shrink-0">{hoveredDay.count} {ACTIVITY_CONFIG.total.unit}</span>
 					</div>
 					<div class="flex items-center justify-between gap-3">
 						<span class="text-zinc-400 dark:text-zinc-500">{ACTIVITY_CONFIG.created.label}</span>
-						<span class="font-mono text-zinc-200 dark:text-zinc-700">{hoveredDay.created} {ACTIVITY_CONFIG.created.unit}</span>
+						<span class="font-mono text-zinc-200 dark:text-zinc-700 shrink-0">{hoveredDay.created} {ACTIVITY_CONFIG.created.unit}</span>
 					</div>
 					<div class="flex items-center justify-between gap-3">
 						<span class="text-zinc-400 dark:text-zinc-500">{ACTIVITY_CONFIG.completed.label}</span>
-						<span class="font-mono text-zinc-200 dark:text-zinc-700">{hoveredDay.completed} {ACTIVITY_CONFIG.completed.unit}</span>
+						<span class="font-mono text-zinc-200 dark:text-zinc-700 shrink-0">{hoveredDay.completed} {ACTIVITY_CONFIG.completed.unit}</span>
 					</div>
 					{#if hoveredDay.notes > 0}
 						<div class="flex items-center justify-between gap-3">
 							<span class="text-zinc-400 dark:text-zinc-500">{ACTIVITY_CONFIG.notes.label}</span>
-							<span class="font-mono text-zinc-200 dark:text-zinc-700">{hoveredDay.notes} {ACTIVITY_CONFIG.notes.unit}</span>
+							<span class="font-mono text-zinc-200 dark:text-zinc-700 shrink-0">{hoveredDay.notes} {ACTIVITY_CONFIG.notes.unit}</span>
 						</div>
 					{/if}
 				</div>
