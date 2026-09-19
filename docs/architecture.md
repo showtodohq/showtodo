@@ -1,76 +1,99 @@
-# ptdl-alpha — 生产级后端架构与工程开发指南
+# ShowTodo — Backend Architecture & Engineering Guide
 
-> **文档状态**: 生产就绪 (Production Ready)  
-> **适用对象**: 全栈/后端工程师、系统架构师、DBA、DevOps/SRE 工程师  
-> **文档目标**: 提供 ptdl-alpha 系统的全景技术架构、物理数据模型字典、核心业务服务契约、并发安全机制、测试矩阵及 Serverless 数据库运维标准。
+> **Document Status**: Production Ready  
+> **Audience**: Fullstack/Backend Engineers, Software Architects, DBAs, DevOps/SREs  
+> **Core Purpose**: Comprehensive technical blueprint detailing ShowTodo's layered architecture, physical relational schemas, domain service contracts, content-addressable topic hashing, timezone safety, and test matrices.
 
 ---
 
-## 1. 系统架构总览
+## 1. System Architecture Overview
 
-### 1.1 技术选型矩阵
+### 1.1 Architectural Philosophy & Positioning
+`ShowTodo` is engineered as a **Public Todo & Walk-Together Platform** (同行 · 陪伴 · 监督 · 学习 · 模仿 · 围观 · Build in Public). 
 
-| 模块 / 维度 | 选用技术 / 工具 | 版本 | 架构选型理由 |
+The backend does not manage rigid organizational hierarchies, user roles, or approval workflows. Instead, it is built around:
+- **Decentralized Content Addressability**: Peer goals are indexed and aggregated by content hash (`topic_hash`), decoupling participants while enabling instant mutual discovery.
+- **Zero-Barrier Action**: Instant, passwordless profile provisioning via email.
+- **Radical Observability**: Efficient multi-view aggregation, 365-day contribution heatmaps, and global completion statistics.
+
+### 1.2 Technology Selection Matrix
+
+| Layer / Concern | Chosen Technology | Version | Rationale |
 |---|---|---|---|
-| **全栈框架** | SvelteKit (Node.js/Edge) | ^2.63.0 | API Route 与 SSR 深度整合，原生端点路由 (+server.ts) |
-| **编程语言** | TypeScript | ^6.0.3 | 严格类型检查 (`strict: true`)，端到端类型共享 |
-| **ORM 框架** | Drizzle ORM | ^0.45.2 | 零运行时开销、类型安全、原生 SQL 友好、极速冷启动 |
-| **数据库** | Neon Serverless PostgreSQL | PostgreSQL 16+ | 弹性扩缩容、计算存储分离、支持 HTTP Pipeline 查询 |
-| **数据库驱动** | `@neondatabase/serverless` | ^1.1.0 | `neon-http` 模式，无传统连接池耗尽限制，适配 Serverless |
-| **测试框架** | Vitest | ^4.1.8 | 多项目并发隔离测试、秒级执行 |
+| **Fullstack Framework** | SvelteKit (Node.js / Edge) | `^2.63.0` | Unified TypeScript runtime, seamless server endpoints (`+server.ts`), fast SSR/CSR |
+| **Programming Language** | TypeScript | `^6.0.3` | Strict type checking (`strict: true`), zero-cost contract sharing between backend and UI |
+| **ORM & Query Builder** | Drizzle ORM | `^0.45.2` | Type-safe SQL dialect, zero runtime bloat, transparent cold starts |
+| **Database Engine** | Neon Serverless PostgreSQL | PostgreSQL 16+ | Elastic auto-scaling, storage-compute separation, serverless branching |
+| **Database Driver** | `@neondatabase/serverless` | `^1.1.0` | HTTP pipelining driver without connection-pool exhaustion risks |
+| **Testing Framework** | Vitest | `^4.1.8` | Concurrent isolated test suites, sub-second execution |
 
 ---
 
-### 1.2 分层架构与数据流转
+### 1.3 Layered Architecture & Data Flow
 
-系统严格采用 **Controller-Service-Repository (Drizzle)** 三层解耦架构：
+The system adheres strictly to a decoupled **Controller — Service — Data Access (Drizzle)** design:
 
 ```
 ┌────────────────────────────────────────────────────────┐
 │                   Client Request                        │
 └───────────────────────────┬────────────────────────────┘
-                            │ HTTP JSON / Query Params
+                            │ HTTP JSON / Query Params / Headers (x-timezone, x-user-id)
                             ▼
 ┌────────────────────────────────────────────────────────┐
 │      1. Controller Layer (src/routes/api)              │
-│  - calendar/+server.ts : 周日历矩阵聚合入口 (User-First)│
-│  - todos/+server.ts    : 待办增删改查 & 状态流转       │
-│  - users/+server.ts    : 免密同步与资料维护             │
-│  - validation.ts       : 纯函数参数校验与白名单过滤     │
-│  - errors.ts           : 统一业务异常封装 (AppError)    │
+│  - todos/+server.ts         : Feed list & Todo creation│
+│  - todos/[id]/+server.ts    : Detail, patch, deletion  │
+│  - todos/[id]/reactions/    : Emoji cheers & counter   │
+│  - todos/[id]/topic/        : Topic info by todo       │
+│  - topics/+server.ts        : Goals discovery & ranks  │
+│  - topics/[hash]/+server.ts : Goal companions & detail │
+│  - daily/+server.ts         : Daily topic-hash cards   │
+│  - calendar/+server.ts      : Weekly user matrix       │
+│  - stats/+server.ts         : Platform metrics & heat  │
+│  - users/+server.ts         : Session initialization   │
+│  - users/[id]/+server.ts    : Profile get/patch        │
+│  - users/[id]/heatmap/      : 365-day user activity    │
+│  - health/+server.ts        : Liveness probe           │
+│  - validation.ts            : Pure input assertions    │
+│  - errors.ts                : Centralized AppError     │
 └───────────────────────────┬────────────────────────────┘
-                            │ DTO / Typed Arguments
+                            │ Typed DTOs / Primitive Arguments
                             ▼
 ┌────────────────────────────────────────────────────────┐
-│      2. Service Layer (src/lib/server/services)        │
-│  - user.service.ts     : 账号解析、按周活跃度去重检索  │
-│  - todo.service.ts     : 范围查询、shortId防碰撞、脱敏 │
-│  - reaction.service.ts : 表情防重、分组聚合、无N+1统计 │
+│      2. Domain Service Layer (src/lib/server/services) │
+│  - todo.service.ts          : CRUD, calendar, search   │
+│  - user.service.ts          : Auto-provision, privacy  │
+│  - activity.service.ts      : Event logging & timeline │
+│  - reaction.service.ts      : Reactions & non-N+1 aggr │
+│  - stats.service.ts         : Heatmaps, ratios, top-5  │
+│  - topic-hash.ts            : SHA-256 normalization    │
+│  - timezone.ts              : IANA validation & days   │
 └───────────────────────────┬────────────────────────────┘
                             │ Database Instance (DI)
                             ▼
 ┌────────────────────────────────────────────────────────┐
 │      3. Data Access Layer (src/lib/server/db)          │
-│  - schema.ts           : 物理表模型、枚举、Relations    │
-│  - index.ts            : Drizzle 客户端连接实例初始化   │
+│  - schema.ts                : Drizzle tables & enums   │
+│  - index.ts                 : Neon HTTP client init    │
 └───────────────────────────┬────────────────────────────┘
                             │ HTTP SQL Pipeline
                             ▼
 ┌────────────────────────────────────────────────────────┐
-│      4. Storage: Neon Serverless PostgreSQL            │
+│      4. Storage Engine: Neon Serverless PostgreSQL     │
 └────────────────────────────────────────────────────────┘
 ```
 
-**关键设计原则**：
-- **依赖注入 (Dependency Injection)**：所有 Service 函数均显式接收 `db: Database`，便于测试时注入 Mock 数据库或独立隔离的测试事务。
-- **纯函数校验 (Zero-Dependency Validation)**：自建 `validation.ts`，基于原生 TypeScript 严格断言，避免引入重量级 schema 库带来的冷启动开销。
-- **统一异常流 (Centralized Error Flow)**：自定义 `AppError` 显式承载业务错误码与 HTTP Status，Controller 统一通过 `handleError(e)` 输出标准 JSON 报文。
+#### Key Architecture Principles:
+1. **Dependency Injection (DI)**: Every domain service function explicitly takes `db: Database` as its first parameter, allowing effortless injection of mock databases or isolated test transactions.
+2. **Zero-Dependency Pure Validation**: `validation.ts` uses pure TypeScript functions with zero heavy schema libraries, maintaining near-instant cold-start speeds.
+3. **Structured Domain Exceptions**: `AppError` carries business codes and HTTP statuses, formatted uniformly by `handleError(e)`.
+4. **Privacy-Preserving Projections**: `toUserProfile` automatically redacts sensitive fields like `email` unless the request represents the authenticated owner (`isSelf: true`).
 
 ---
 
-## 2. 物理数据模型与数据字典
+## 2. Physical Data Models & Schema Dictionary
 
-### 2.1 ER 实体关系图
+### 2.1 Entity Relationship Diagram
 
 ```
 ┌──────────────────────────────┐                1:N                 ┌──────────────────────────────┐
@@ -78,181 +101,170 @@
 ├──────────────────────────────┤                                    ├──────────────────────────────┤
 │ id: uuid (PK)                │                                    │ id: uuid (PK)                │
 │ email: text (UK)             │                                    │ short_id: text (UK)          │
-│ handle: text (UK)            │                                    │ author_id: uuid (FK->users)  │
-│ nickname: text               │                                    │ content: text                │
-│ avatar: text (nullable)      │                                    │ note: text (nullable)        │
-│ created_at: timestamptz      │                                    │ is_note_public: boolean      │
-│ updated_at: timestamptz      │                                    │ category: text (nullable)    │
-│ last_todo_updated_at: tz     │                                    │ status: todo_status (enum)   │
-└──────────────────────────────┘                                    │ start_date: timestamptz      │
-        │               │                                           │ due_date: timestamptz (null) │
-        │ 1:N           │ 1:N                                       │ created_at: timestamptz      │
-        │               │                                           │ updated_at: timestamptz      │
-        ▼               ▼                                           └──────────────────────────────┘
-┌──────────────────────────────┐                                                   │       │
-│          reactions           │                                                   │       │ 1:N (Cascade Delete)
-├──────────────────────────────┤                                                   │       │
+│ handle: text (UK)            │                                    │ topic_hash: text (INDEX)     │
+│ nickname: text               │                                    │ author_id: uuid (FK->users)  │
+│ avatar: text (nullable)      │                                    │ content: text                │
+│ created_at: timestamptz      │                                    │ note: text (nullable)        │
+│ updated_at: timestamptz      │                                    │ is_note_public: boolean      │
+│ last_todo_updated_at: tz     │                                    │ category: text (nullable)    │
+└──────────────────────────────┘                                    │ status: todo_status (enum)   │
+        │               │                                           │ start_date: timestamptz      │
+        │ 1:N           │ 1:N                                       │ due_date: timestamptz (null) │
+        │               │                                           │ created_at: timestamptz      │
+        ▼               ▼                                           │ updated_at: timestamptz      │
+┌──────────────────────────────┐                                    └──────────────────────────────┘
+│          reactions           │                                                   │       │
+├──────────────────────────────┤                                                   │       │ 1:N (Cascade Delete)
 │ id: uuid (PK)                │                                                   │       ▼
 │ todo_id: uuid (FK->todos)    │<──────────────────────────────────────────────────┘ ┌──────────────────────────────┐
 │ user_id: uuid (FK->users)    │                                                     │       todo_activities        │
 │ emoji: text                  │                                                     ├──────────────────────────────┤
 │ created_at: timestamptz      │                                                     │ id: uuid (PK)                │
-├──────────────────────────────┤                                                     │ todo_id: uuid (FK->todos)    │
-│ UK: (todo_id,user_id,emoji)  │                                                     │ author_id: uuid (FK->users)  │
-└──────────────────────────────┘                                                     │ type: activity_type (enum)   │
-                                                                                     │ from_status: status (null)   │
-                                                                                     │ to_status: status (null)     │
-                                                                                     │ content: text (nullable)     │
-                                                                                     │ created_at: timestamptz      │
+{{ ... }}
                                                                                      └──────────────────────────────┘
 ```
 
 ---
 
-### 2.2 物理表结构字典 (`src/lib/server/db/schema.ts`)
+### 2.2 Physical Tables (`src/lib/server/db/schema.ts`)
 
-#### 1. `users` (用户账号表)
-| 字段名 | SQL 类型 | Drizzle 类型 | 约束与默认值 | 业务含义说明 |
+#### 1. `users` (User Account & Identity)
+| Column | SQL Type | Drizzle Type | Constraints / Defaults | Business Purpose |
 |---|---|---|---|---|
-| `id` | `uuid` | `uuid` | `PRIMARY KEY`, `defaultRandom()` | 用户全局唯一主键 |
-| `email` | `text` | `text` | `NOT NULL`, `UNIQUE` | 邮箱（唯一身份与登录标识） |
-| `handle` | `text` | `text` | `NOT NULL`, `UNIQUE` | 唯一英文用户名 (例如 alexchen) |
-| `nickname` | `text` | `text` | `NOT NULL` | 用户展示昵称（默认邮箱前缀） |
-| `avatar` | `text` | `text` | `NULL` | 自定义头像 URL（null 时前端用 DiceBear） |
-| `created_at` | `timestamptz` | `timestamp` | `NOT NULL`, `defaultNow()` | 账号创建时间 |
-| `updated_at` | `timestamptz` | `timestamp` | `NOT NULL`, `defaultNow()` | 账号资料最后修改时间 |
-| `last_todo_updated_at` | `timestamptz` | `timestamp` | `NULL` | 最近一次发待办或打卡时间（用于活跃排序） |
+| `id` | `uuid` | `uuid` | `PRIMARY KEY`, `defaultRandom()` | Global unique user identifier |
+| `email` | `text` | `text` | `NOT NULL`, `UNIQUE` | Email used for passwordless identity |
+| `handle` | `text` | `text` | `NOT NULL`, `UNIQUE` | Unique URL handle (e.g. `alexchen`) |
+| `nickname` | `text` | `text` | `NOT NULL` | Display name (defaults to email prefix) |
+| `avatar` | `text` | `text` | `NULL` | Custom avatar URL (fallback to DiceBear) |
+| `created_at` | `timestamptz` | `timestamp` | `NOT NULL`, `defaultNow()` | Profile creation time |
+| `updated_at` | `timestamptz` | `timestamp` | `NOT NULL`, `defaultNow()` | Last profile update time |
+| `last_todo_updated_at`| `timestamptz` | `timestamp` | `NULL` | Timestamp of latest todo action (for active ranking) |
 
-#### 2. `todos` (公开待办事项表)
-| 字段名 | SQL 类型 | Drizzle 类型 | 约束与默认值 | 业务含义说明 |
+#### 2. `todos` (Public Todo Commitments)
+| Column | SQL Type | Drizzle Type | Constraints / Defaults | Business Purpose |
 |---|---|---|---|---|
-| `id` | `uuid` | `uuid` | `PRIMARY KEY`, `defaultRandom()` | 待办唯一主键 |
-| `short_id` | `text` | `text` | `NOT NULL`, `UNIQUE` | 6~12 位短标识（用于短链接分享） |
-| `topic_hash` | `text` | `text` | `NOT NULL`, `INDEX(idx_todos_topic_hash)` | 正文内容寻址哈希（SHA-256 前16位，仅基于归一化 content） |
-| `content` | `text` | `text` | `NOT NULL` | 待办正文内容（1-1000 字符） |
-| `note` | `text` | `text` | `NULL` | 详细规划/备注（<=5000 字符） |
-| `is_note_public`| `boolean` | `boolean` | `NOT NULL`, `default(true)` | 备注是否全网公开（false 时脱敏） |
-| `category` | `text` | `text` | `NULL` | 分类 ID (`study`,`fitness`,`dev`等) |
-| `author_id` | `uuid` | `uuid` | `NOT NULL`, `REFERENCES users(id)` | 关联发布人外键 |
-| `status` | `todo_status` | `pgEnum` | `NOT NULL`, `default('pending')` | 状态机字段 (`pending`,`in_progress`等) |
-| `start_date` | `timestamptz` | `timestamp` | `NOT NULL`, `defaultNow()` | 计划开始时间戳（支持时分秒与时区，开闭区间索引聚合） |
-| `due_date` | `timestamptz` | `timestamp` | `NULL` | 计划截止时间戳（支持时分秒与时区） |
-| `created_at` | `timestamptz` | `timestamp` | `NOT NULL`, `defaultNow()` | 记录创建时间 |
-| `updated_at` | `timestamptz` | `timestamp` | `NOT NULL`, `defaultNow()` | 状态或内容最后更新时间 |
+| `id` | `uuid` | `uuid` | `PRIMARY KEY`, `defaultRandom()` | Todo primary key |
+| `short_id` | `text` | `text` | `NOT NULL`, `UNIQUE` | 6–12 character base62 identifier for clean links |
+| `topic_hash` | `text` | `text` | `NOT NULL`, `INDEX(idx_todos_topic_hash)` | Content-addressable hash (`SHA256` slice) |
+| `content` | `text` | `text` | `NOT NULL` | Todo commitment text (1–1000 chars) |
+| `note` | `text` | `text` | `NULL` | Detailed notes/planning (<=5000 chars) |
+| `is_note_public`| `boolean`| `boolean` | `NOT NULL`, `default(true)` | Privacy toggle for note field |
+| `category` | `text` | `text` | `NULL` | Category tag (`study`, `fitness`, `dev`, etc.) |
+| `author_id` | `uuid` | `uuid` | `NOT NULL`, `REFERENCES users(id)` | Foreign key referencing author |
+| `status` | `todo_status`| `pgEnum` | `NOT NULL`, `default('pending')` | State machine enum (`pending`, `in_progress`, etc.) |
+| `start_date` | `timestamptz`| `timestamp` | `NOT NULL`, `defaultNow()` | Scheduled start timestamp |
+| `due_date` | `timestamptz`| `timestamp` | `NULL` | Scheduled deadline |
+| `created_at` | `timestamptz`| `timestamp` | `NOT NULL`, `defaultNow()` | Creation timestamp |
+| `updated_at` | `timestamptz`| `timestamp` | `NOT NULL`, `defaultNow()` | Last modification timestamp |
 
-#### 3. `reactions` (围观表情反应表)
-| 字段名 | SQL 类型 | Drizzle 类型 | 约束与默认值 | 业务含义说明 |
+#### 3. `reactions` (Peer Cheering & Witnessing)
+| Column | SQL Type | Drizzle Type | Constraints / Defaults | Business Purpose |
 |---|---|---|---|---|
-| `id` | `uuid` | `uuid` | `PRIMARY KEY`, `defaultRandom()` | 主键 |
-| `todo_id` | `uuid` | `uuid` | `NOT NULL`, `FK(todos.id ON DELETE CASCADE)` | 关联 Todo（主待办删除时级联删除） |
-| `user_id` | `uuid` | `uuid` | `NOT NULL`, `REFERENCES users(id)` | 表态人用户 ID |
-| `emoji` | `text` | `text` | `NOT NULL` | 表情符号 (`👀`, `🔥`, `💪`, `👏`) |
-| `created_at` | `timestamptz` | `timestamp` | `NOT NULL`, `defaultNow()` | 表态时间 |
+| `id` | `uuid` | `uuid` | `PRIMARY KEY`, `defaultRandom()` | Reaction PK |
+| `todo_id` | `uuid` | `uuid` | `NOT NULL`, `FK(todos.id ON DELETE CASCADE)` | Associated Todo (cascades on delete) |
+| `user_id` | `uuid` | `uuid` | `NOT NULL`, `REFERENCES users(id)` | Cheering user |
+| `emoji` | `text` | `text` | `NOT NULL` | Emoji: `❤️`, `👍`, `🔥`, `💪`, `👏`, `🚀`, `🎉`, `👀` |
+| `created_at` | `timestamptz`| `timestamp` | `NOT NULL`, `defaultNow()` | Timestamp of reaction |
 
-#### 4. `todo_activities` (待办生命周期动态与进展日志表)
-| 字段名 | SQL 类型 | Drizzle 类型 | 约束与默认值 | 业务含义说明 |
+*Unique Constraint: `UNIQUE("todo_id", "user_id", "emoji")` prevents duplicate reaction by the same user.*
+
+#### 4. `todo_activities` (Growth Timeline & Check-in Logs)
+| Column | SQL Type | Drizzle Type | Constraints / Defaults | Business Purpose |
 |---|---|---|---|---|
-| `id` | `uuid` | `uuid` | `PRIMARY KEY`, `defaultRandom()` | 主键 |
-| `todo_id` | `uuid` | `uuid` | `NOT NULL`, `FK(todos.id ON DELETE CASCADE)` | 关联 Todo（主待办删除时级联删除） |
-| `author_id` | `uuid` | `uuid` | `NOT NULL`, `REFERENCES users(id)` | 操作人/作者 ID |
-| `type` | `todo_activity_type` | `pgEnum` | `NOT NULL`, `default('status_change')` | 动态类型：`created` \| `status_change` \| `progress_note` |
-| `from_status` | `todo_status` | `pgEnum` | `NULL` | 变更前状态（状态跃迁或打卡快照） |
-| `to_status` | `todo_status` | `pgEnum` | `NULL` | 变更后状态 |
-| `content` | `text` | `text` | `NULL` | 自定义进展打卡文本或状态流转原因（<=1000 字符） |
-| `created_at` | `timestamptz` | `timestamp` | `NOT NULL`, `defaultNow()` | 动态产生时间戳 |
+| `id` | `uuid` | `uuid` | `PRIMARY KEY`, `defaultRandom()` | Activity PK |
+| `todo_id` | `uuid` | `uuid` | `NOT NULL`, `FK(todos.id ON DELETE CASCADE)` | Associated Todo (cascades on delete) |
+| `author_id` | `uuid` | `uuid` | `NOT NULL`, `REFERENCES users(id)` | Author of the activity |
+| `type` | `todo_activity_type` | `pgEnum` | `NOT NULL`, `default('status_change')` | Event type: `created`, `status_change`, `progress_note` |
+| `from_status`| `todo_status` | `pgEnum` | `NULL` | Previous status snapshot |
+| `to_status` | `todo_status` | `pgEnum` | `NULL` | New status snapshot |
+| `content` | `text` | `text` | `NULL` | Optional check-in reflection or reason (<=1000 chars) |
+| `created_at` | `timestamptz` | `timestamp` | `NOT NULL`, `defaultNow()` | Event creation timestamp |
 
-##### 关键约束清单:
-1. `UNIQUE("todo_id", "user_id", "emoji")`: 数据库级强保证同一用户对同一 Todo 的同款表情绝对不重复。
-2. `CASCADE DELETE`: 删除待办时，自动在底层清除其关联的所有 reactions 与 activities，无孤儿数据。
-3. `INDEX("idx_todo_activities_todo_created")`: 按 `(todo_id, created_at ASC)` 建立复合索引，保障单条待办生命周期时间线毫秒级装配。
+*Composite Index: `idx_todo_activities_todo_created` on `(todo_id, created_at ASC)` guarantees sub-millisecond timeline assembly.*
 
 ---
 
-## 3. 核心业务服务契约 (Service Layer Contracts)
+## 3. Domain Service Contracts & Algorithms
 
 ---
 
-### 3.1 用户服务 (`user.service.ts`)
+### 3.1 Todo Service (`todo.service.ts`)
 
-#### 1. `findOrCreate(db, email): Promise<User>`
-- **业务职责**: WordPress 评论免密模式核心。根据传入的 `email` 检索用户，若存在直接返回；若不存在，提取 `email.split('@')[0]` 作为昵称，生成唯一 handle，写入数据库并返回新实体。
-- **并发防御**: 邮箱建有唯一索引，遇瞬时并发冲突时依赖 DB 唯一键报错或重试。
-
-#### 2. `listUsersWithTodosInWeek(db, options): Promise<{ users: User[], hasMore: boolean }>`
-- **业务职责**: 周日历矩阵用户检索核心。
-- **实现机制**:
-  ```sql
-  SELECT DISTINCT users.*
-  FROM users
-  INNER JOIN todos ON users.id = todos.author_id
-  WHERE todos.start_date >= :startDateFrom 
-    AND todos.start_date <= :startDateTo
-    [AND todos.category = :category]
-  ORDER BY users.last_todo_updated_at DESC, users.created_at DESC
-  LIMIT :limit + 1 OFFSET :offset;
-  ```
-- **价值**: 彻底杜绝全周 7 天皆为空白的无意义用户行，保证矩阵中每一行创作者都有当周待办。
+- `create(db, data)`: Creates new todo, generates collision-resistant `shortId`, calculates `topicHash`, records initial `created` activity event, and updates `users.last_todo_updated_at`.
+- `findByIdOrShortId(db, identifier, currentUserId?)`: Retrieves todo by UUID or shortId, enriches with author profile, non-N+1 reaction counts, personal reaction states, and chronologically ordered activities. Applies `sanitizeNote` privacy rules.
+- `list(db, filters)`: Multi-dimensional querying of the public feed with support for `category`, `status`, `authorId`, `startDate` and `dueDate` windows, and ISO cursor pagination.
+- `update(db, idOrShortId, authorEmail, data)`: Author-verified editing. Handles status transitions, logs `status_change` or `progress_note` activities, updates `topicHash` if content changes, and updates user activity timestamp.
+- `deleteTodo(db, idOrShortId, authorEmail)`: Author-verified deletion with database-level cascade cleanup.
+- `listTopics(db, options)`: Aggregates and ranks Walk-Together goals with participants count, completion rates, time filters (`today` vs `all`), and sorting strategies (`participants`, `recent`, `completion`).
+- `getTopicByHash(db, topicHash, currentUserId?, date?, startDateFrom?, startDateTo?, tz?)`: Deep goal inspection, returning both today's active peers and all-time companions.
+- `listDailyCards(db, options)`: Aggregates tasks on a given calendar day into unified multi-user cards using `topicHash`, ordered by Personal Effective Time.
+- `listForCalendar(db, options)`: Bulk fetches todos for the weekly creator grid, batch-aggregating reactions.
 
 ---
 
-### 3.2 待办服务 (`todo.service.ts`)
+### 3.2 Topic Hash Engine (`topic-hash.ts`)
 
-#### 1. `listForCalendar(db, options): Promise<Todo[]>`
-- **业务职责**: 批量提取指定用户群体在本周区间内的全部待办，并聚合 Reaction 点赞统计。
-- **消除 N+1 查询**:
-  1. 一次性批量查出 `inArray(todos.authorId, authorIds)` 且日期在 `[startDateFrom, startDateTo]` 内的 Todo；
-  2. 收集所有 `todoIds`，调用 `reactionService.getCountsByTodoIds(db, todoIds)` 执行一次 `GROUP BY todo_id, emoji` 聚合，拼装后返回。
+Decoupled content addressability relies on deterministic text normalization and cryptographic hashing:
 
-#### 2. `generateUniqueShortId(db): Promise<string>`
-- **业务职责**: 生成短链标识符。
-- **碰撞防护**:
-  - 先尝试生成 8 位短随机字符；
-  - 若遇碰撞循环重试最多 10 次；
-  - 10 次均碰撞则追加时间戳进制后缀兜底保证 100% 唯一。
+```typescript
+export function normalizeContent(content: string): string {
+  if (!content) return '';
+  let normalized = content.trim().toLowerCase().replace(/\s+/g, ' ');
+  // Strip trailing punctuation (English and CJK)
+  normalized = normalized.replace(/[.,!?;:。，！？；：…~～、]+$/g, '').trim();
+  return normalized;
+}
 
-#### 3. `sanitizeNote(todo): Todo`
-- **隐私脱敏规范**: 若 `is_note_public === false`，强制将 `note` 字段重置为 `null`，保护用户未公开的敏感规划。
+export function computeTopicHash(content: string): string {
+  const normalizedContent = normalizeContent(content);
+  return createHash('sha256').update(normalizedContent, 'utf8').digest('hex').substring(0, 16);
+}
+```
 
-#### 4. `update(db, idOrShortId, authorEmail, data): Promise<Todo>`
-- **业务职责**: 待办全量/增量编辑与状态流转核心。校验调用者身份是否为作者本人，处理 `topicHash` 变动，自动将状态变更或打卡记录同步写入 `todo_activities` 表，并刷新用户的 `last_todo_updated_at`。
-- **状态流转规则**:
-  - `pending` (待办中) $\leftrightarrow$ `in_progress` (推进中) $\leftrightarrow$ `done` (已达成) $\leftrightarrow$ `abandoned` (已放弃)；
-  - 达成状态（`done`）与放弃状态（`abandoned`）均支持反向流转重开回 `in_progress` 或 `pending`；
-  - 同状态流转（自指向）天然幂等放行。
-
----
-
-### 3.3 动态日志服务 (`activity.service.ts`)
-
-#### 1. `recordActivity(db, data): Promise<TodoActivity>`
-- **业务职责**: 记录单条待办生命周期事件，写入 `todo_activities` 表。
-- **动态类型契约**:
-  - `created`: 待办创建时的起点动态；
-  - `status_change`: 状态跨跃迁时记录，`content` 承载随状态附带的原因/心得；
-  - `progress_note`: 状态未变时的纯进展打卡，记录当时的 `from_status` / `to_status` 快照与笔记正文。
-
-#### 2. `listByTodoId(db, todoId): Promise<TodoActivity[]>`
-- **业务职责**: 按 `created_at ASC` 正序提取指定待办的完整成长故事时间线。
+#### Why Content Addressability Excels:
+1. **Zero Relationship Overhead**: No junction tables or join entities required.
+2. **Serendipitous Discovery**: Unacquainted users committing to the same goal (even with different categories) automatically join the same companion circle.
+3. **Sovereign Autonomy**: Deleting or modifying one's own todo never impacts other companions; altering content simply recalculates the hash and moves the creator to their new target.
 
 ---
 
-### 3.4 表情反应服务 (`reaction.service.ts`)
+### 3.3 Timezone Domain Utilities (`timezone.ts`)
 
-#### 1. `getCountsByTodoIds(db, todoIds): Promise<Record<string, Record<string, number>>>`
-- **聚合统计 SQL 原理**:
-  ```sql
-  SELECT todo_id, emoji, COUNT(*)::int AS count
-  FROM reactions
-  WHERE todo_id IN (:...todoIds)
-  GROUP BY todo_id, emoji;
-  ```
-- **输出格式**: Map 映射字典，例如 `{ "todo-1": { "🔥": 3, "👀": 1 } }`。
+Ensures multi-timezone resilience and prevents SQL injection:
+- `isValidTimezone(tz)`: Validates IANA timezone strings via regex whitelist and `Intl.DateTimeFormat` verification.
+- `resolveTimezone(paramTz, headerTz, fallbackTz)`: Priority resolution (`Query > Header > Default 'Asia/Shanghai'`).
+- `formatDateInTimezone(date, tz)`: Converts Date into `YYYY-MM-DD` in the target timezone without UTC shift distortion.
+- `getPastDaysList(daysCount, endDate, tz)`: Generates sequential `YYYY-MM-DD` day lists for heatmaps.
 
 ---
 
-## 4. 关键防御与业务逻辑规范
+### 3.4 Platform Observability Service (`stats.service.ts`)
 
-### 4.1 全连通自由流转状态机 (Full-Transition State Machine)
+- `getSiteOverview(db)`: High-performance parallel aggregation of total todos, completed, in-progress, completion percentages, total creators, and today's dynamic metrics.
+- `getCategoryStats(db)`: Computes volume and completion ratios grouped by category.
+- `getTrendStats(db, days)`: Daily creation vs completion timeline series.
+- `getHeatmapStats(db, days, tz)` / `getUserHeatmapStats(db, userId, days, tz)`: Generates continuous 365-day activity matrices. Levels:
+  - `Level 0`: 0 activities
+  - `Level 1`: 1–2 activities
+  - `Level 2`: 3–5 activities
+  - `Level 3`: 6–9 activities
+  - `Level 4`: 10+ activities
+- `getTopTopics(db, limit)` & `getTopUsers(db, limit)`: Top 5 most pursued companion goals and top 5 completed creators.
+
+---
+
+### 3.5 User Service (`user.service.ts`)
+
+- `findOrCreate(db, email)`: WordPress-style frictionless onboarding. Automatically generates sanitized URL handle and nickname on first appearance.
+- `findByIdOrHandle(db, identifier)`: Polymorphic lookup supporting either 36-char UUID or handle string.
+- `toUserProfile(user, { isSelf })`: Domain projection ensuring email address is only exposed to the author.
+- `listUsersWithTodosInWeek(db, options)`: Efficient user-first calendar query using `INNER JOIN todos` to eliminate inactive empty rows.
+
+---
+
+## 4. State Machine & Business Rules
+
+### 4.1 Fully-Connected Bidirectional Lifecycle
 
 ```
         ┌────────────────────────────────────────────────┐
@@ -261,19 +273,19 @@
         │      │   pending   │                           │
         │      └──────┬──────┘                           │
         │             ▲                                  │
-        │       重开  │  推进 / 达成 / 放弃             │
+        │      Reopen │  Start / Complete / Shelve       │
         │             ▼                                  │
         │      ┌─────────────┐                           │
         │      │ in_progress │                           │
         │      └──────┬──────┘                           │
         │             ▲                                  │
-        │   重开/推进 │  达成 / 放弃                     │
+        │      Reopen │  Complete / Shelve               │
         │             ▼                                  │
         │      ┌─────────────┐                           │
         │      │    done     │                           │
         │      └──────┬──────┘                           │
         │             ▲                                  │
-        │   重启/补记 │  搁置 / 放弃                     │
+        │      Reopen │  Retro / Shelve                  │
         │             ▼                                  │
         │      ┌─────────────┐                           │
         │      │  abandoned  │                           │
@@ -282,58 +294,57 @@
         └────────────────────────────────────────────────┘
 ```
 
-- **全连通自由流转法则**: `pending`、`in_progress`、`done`、`abandoned` 允许任意双向迁移。支持快捷重新激活（默认推荐 `in_progress`）与误触撤销。
-- **自指向幂等性 (Idempotency)**：当目标状态与当前状态相同时（`from === to`），校验直接放行，不产生状态跃迁事件。
-- **执行层防御**: 由 `validateStatusTransition(currentStatus, nextStatus)` 校验目标状态是否在合法状态枚举集合内。
-
-### 4.2 活跃时间戳维护机制
-每当用户**发布新待办**、**更新待办状态**或**打卡追加进展**时，后台自动触发更新该用户的 `users.last_todo_updated_at = NOW()`，使活跃打卡创作者在日历矩阵首屏保持优先展示。
+- **Reopening Freedom**: Both `done` and `abandoned` can transition back to `in_progress` or `pending` with one click.
+- **Idempotency**: Transitioning to the same status (`from === to`) is permitted as a no-op without emitting redundant state-change events.
 
 ---
 
-## 5. 测试矩阵与质量保障体系
+## 5. Automated Regression Test Matrix
 
-后端采用 **Vitest** 驱动自动化回归测试，测试文件位于 `src/lib/server/__tests__/` 与 `src/lib/utils/__tests__/`：
+All backend logic is rigorously verified with **Vitest**:
 
-| 测试模块 | 包含用例数 | 关键断言点与测试范围 |
-|---|---|---|
-| `validation.test.ts` | 77 Cases | 所有字段正则边界、XSS 特殊字符、16 种状态机迁移组合全覆盖 |
-| `user.service.test.ts`| 12 Cases | 免密首次建号、幂等查询、Handle 重名加随机后缀机制、越权修改防御 |
-| `todo.service.test.ts`| 27 Cases | CRUD 操作、shortId 碰撞重试、Note 私有脱敏断言、时间戳自增 |
-| `reaction.service.test.ts` | 15 Cases | 表情点赞、取消反选、重复点赞 409 拦截、批量 GROUP BY 无 N+1 计数 |
-| `calendar.test.ts` | 6 Cases | 周一至周日计算、跨年跨月日期区间格式化、状态优先级与时间排序 |
+| Test Suite File | Test Scope & Assertions |
+|---|---|
+| `validation.test.ts` | 77 test cases covering regex rules, handle sanitation, UUIDs, XSS payloads, and all 16 state machine permutations. |
+| `todo.service.test.ts` | 27 test cases verifying CRUD, shortId retries, note redaction, daily card aggregation, and cascade deletions. |
+| `user.service.test.ts` | 13 test cases covering auto-onboarding, handle suffix collisions, and authorization protections. |
+| `user.projection.test.ts` | Tests privacy projection verifying email redaction when `isSelf: false`. |
+| `stats.service.test.ts` | Verifies site overview arithmetic, category completion calculations, and activity heatmap level distributions. |
+| `topic-hash.test.ts` | Verifies CJK punctuation trimming, case insensitivity, whitespace collapse, and SHA-256 slicing. |
+| `timezone.test.ts` | Tests IANA timezone validation, daylight savings day boundaries, and SQL safety. |
+| `topics-query.test.ts` | Verifies multi-participant topic aggregation, sorting algorithms, and participant lists. |
+| `reaction.service.test.ts` | Verifies 8-emoji counters, single-query non-N+1 GROUP BY operations, and duplicate 409 prevention. |
 
 ---
 
-## 6. 本地开发与数据库运维 SOP
+## 6. Local Development & Operational SOP
 
-### 6.1 环境变量配置 (`.env`)
+### 6.1 Environment Configuration (`.env`)
 ```env
 DATABASE_URL="postgresql://<user>:<password>@<neon-host>/<db_name>?sslmode=require"
 ```
 
-### 6.2 常用工程与运维命令
-
+### 6.2 Standard Engineering Commands
 ```bash
-# 1. 启动本地全栈热重载服务
+# 1. Start local hot-reload fullstack server
 npm run dev
 
-# 2. 将 Drizzle Schema 变动直接推送到开发/测试库
+# 2. Push Drizzle schema updates to dev database
 npm run db:push
 
-# 3. 生产环境标准迁移生成与执行
+# 3. Generate and run production migrations
 npm run db:generate
 npm run db:migrate
 
-# 4. 启动 Drizzle Studio 可视化数据管理后台
+# 4. Open Drizzle Studio visual GUI
 npm run db:studio
 
-# 5. 执行全量类型与语法校验
+# 5. Type and syntax verification
 npm run check
 
-# 6. 执行全量测试套件
+# 6. Execute Vitest test suite
 npx vitest run
 
-# 7. 生产环境打包构建
+# 7. Production build
 npm run build
 ```

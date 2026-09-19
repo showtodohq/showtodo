@@ -1,304 +1,306 @@
-# ptdl-alpha — 前端架构设计与开发规范文档
+# ShowTodo — Frontend Architecture & Design System Specification
 
-> **文档状态**: 生产就绪 (Production Ready)  
-> **适用对象**: 前端开发工程师、UI/UX 设计师、全栈工程师  
-> **文档目标**: 记录与沉淀 ptdl-alpha 前端工程的整体技术选型、App Shell 统一布局标准、Svelte 5 响应式数据流范式、本地更新/乐观更新机制及原子 UI 组件规范。
-
----
-
-## 1. 产品定位与核心设计哲学
-
-我们的产品美学设计体系严格秉持五大核心支柱：**「极简、克制、高质感、内容为核心、可爱（灵动微动效）」**。
-
-1. **极简 (Minimalist)**：
-   - 界面无边界、无多余大边框、无生硬分割线；全屏背景、标题栏与内容流 100% 纯净统一，用优雅宽敞的留白（Whitespace）代替传统分割线；
-   - 任何人均可免密快速发布 Todo，所有待办全网公开可见，免去繁琐的注册与认证流程。
-2. **克制 (Restrained)**：
-   - 采用高级 Zinc（中性冷灰）单色系架构，主次对比分明；
-   - 弱化多人协同的冗余视觉噪音，分类仅以 6px 微圆点呼吸点缀，非参与者严格呈现清晰只读态。
-3. **高质感 (High Texture & Craftsmanship)**：
-   - 严格遵循 Linear / Apple 级别的精细化设计质感，毫米级精确把控深浅双主题下的文字可读性与 Hover 悬浮感知；
-   - 顶部 Header 半透明毛玻璃（`backdrop-blur-md`）与纯净卡片阴影相互衬托。
-4. **内容为核心 (Content-First)**：
-   - 待办正文为最高视觉优先级，去除一切干扰阅读的多余大标题与装饰；
-   - 专属多人协同元素在单人待办中完全隐匿，多人条目支持轻量行内折叠与展开。
-5. **可爱 · 灵动微动效 (Playful & Delightful Micro-interactions)**：
-   - 在严谨克制的单色系中注入“灵动可爱”的情感化设计：果冻弹性交互勾选框（`hover:scale-110`, `active:scale-85`）、鼠标悬停机敏弹出的微型 Tooltip 气泡、多人头像叠层扇形展开；
-   - 打勾完成瞬间爆发 300 颗高饱和 3D 物理纸屑与彩带，全天个人待办全部搞定时引爆三次全屏超级大礼炮狂欢！
-6. **本地就地响应优先 (Local-First Reactivity)**：
-   - 所有交互操作在成功后**一律纯本地就地变异更新，绝对不重新全量请求 API 刷新列表**，保证 0 抖动、0 延迟与丝滑体验。
+> **Document Status**: Production Ready  
+> **Audience**: Frontend Developers, UI/UX Designers, Fullstack Engineers  
+> **Core Ethos**: Built on the foundations of **Building in Public · Walking Together · Companionship · Mutual Accountability · Emulation & Learning · Social Witnessing**.
 
 ---
 
-## 2. 技术栈选型矩阵
+## 1. Product Positioning & Aesthetic Philosophy
 
-| 维度 | 选用技术 / 库 | 版本 | 选型理由 |
+`ShowTodo` is **not** a bureaucratic task delegation platform or collaborative workplace dashboard. It is a **public-first, companion-driven action space**. 
+
+Our design philosophy is anchored in six pillars:
+
+1. **High Signal-to-Noise Ratio (高信噪比)**:
+   - Every pixel serves the creator’s action and focus. No decorative fluff, no banner noise, and no aggressive promotional widgets.
+   - Tasks are front-and-center, using generous whitespace and subtle borders instead of heavy divider lines.
+2. **Progressive Disclosure (渐进式呈现)**:
+   - Simple tasks appear clean and unburdened. Multi-participant details, activity logs, notes, and reaction rosters are gracefully tucked into intuitive hover states, collapsible rows, or dedicated views.
+3. **Walk Together, Not Managing (同行而非管理)**:
+   - Creators doing identical goals are presented as equal companions. There are no "task owners" assigning work to "subordinates".
+4. **Radical Transparency & Building in Public (公开透明 · 围观见证)**:
+   - Todo commitments and progress timestamps are public by default. Public exposure transforms solitary anxiety into visible resolve.
+5. **Playful & Delightful Micro-interactions (灵动可爱的微交互)**:
+   - Jelly-bounce checkboxes (`hover:scale-110`, `active:scale-85`), smooth popovers, fan-out avatar clusters, and 3D physical confetti celebrations upon milestone completion.
+6. **Local-First Zero-Jitter Reactivity (本地就地变异优先)**:
+   - Every mutation updates local Svelte 5 `$state` instantaneously (0ms), avoiding full-page refetches, layout shift, or loading flashes.
+
+---
+
+## 2. Technology Stack
+
+| Layer | Chosen Technology | Version | Purpose |
 |---|---|---|---|
-| **全栈应用框架** | SvelteKit | ^2.63.0 | 极佳的 SSR/CSR 性能，轻量高效的路由与端点集成 |
-| **前端响应式引擎** | Svelte 5 (Runes) | ^5.56.1 | 采用 `$state`, `$derived`, `$props` 细粒度代理响应式，性能卓越 |
-| **样式与设计系统** | Tailwind CSS v4 | ^4.3.0 | 现代 CSS-first 配置、极小打包体积、原生深色模式支持 |
-| **编程语言** | TypeScript | ^6.0.3 | 严格类型检查 (`strict: true`)，与后端共享 DTO 契约 |
-| **通用图标库** | `@iconify/svelte` (Lucide) | ^5.2.2 | 按需加载的高质量 SVG 图标体系 |
-| **单元与逻辑测试** | Vitest | ^4.1.8 | 秒级测试执行，保障核心变异与工具函数质量 |
+| **Fullstack Framework** | [SvelteKit](https://kit.svelte.dev/) | `^2.63.0` | File-system routing, SSR/CSR, seamless endpoint bindings |
+| **Reactivity Engine** | [Svelte 5 (Runes)](https://svelte.dev/) | `^5.56.1` | Fine-grained proxy reactivity via `$state`, `$derived`, `$props`, `$effect` |
+| **Design System & Styling** | [Tailwind CSS v4](https://tailwindcss.com/) | `^4.3.0` | Modern CSS-first engine, dark mode tokens, `@tailwindcss/forms` |
+| **Language** | [TypeScript](https://www.typescriptlang.org/) | `^6.0.3` | Strict type safety, shared domain DTO contracts |
+| **Iconography** | `@iconify/svelte` (Lucide) | `^5.2.2` | Clean, customizable vector icons loaded on-demand |
+| **Test Framework** | [Vitest](https://vitest.dev/) | `^4.1.8` | Component and mutation unit test suites |
 
 ---
 
-## 3. 应用骨架与统一布局规范 (App Shell & Layout)
+## 3. Application Shell & Complete Route Matrix
 
-### 3.1 布局架构草图
+### 3.1 App Shell Layout Structure
 
 ```
 ┌───────────────────────────────────────────────────────────────────┐
 │ Header (h-14, sticky top-0, z-30, backdrop-blur-md, border-b)     │
-│ [ ⚡ Brand Logo & Title ]                      [ User Avatar/Menu ]│
+│ [ ⚡ Logo & Navigation Links ]                 [ UserPopover / Menu ]│
 └───────────────────────────────────────────────────────────────────┘
+│ TopProgressBar (fixed top-0 inset-x-0 h-0.5 z-50 during requests) │
 │                                                                   │
-│  Main Container (mx-auto, max-w-3xl sm:max-w-4xl, px-4, py-6~8)   │
+│  Main Container (mx-auto, max-w-4xl px-4 sm:px-6 py-6~8)          │
 │  min-h-[calc(100vh-3.5rem-5rem)]                                 │
 │                                                                   │
 │  ┌─────────────────────────────────────────────────────────────┐  │
 │  │ Page Content Slot ({@render children()})                    │  │
-│  │                                                             │  │
-│  │ (极简居中聚焦单列流，为内容展现与创作提供最舒适的阅读视线)  │  │
-│  │                                                             │  │
 │  └─────────────────────────────────────────────────────────────┘  │
 │                                                                   │
 ├───────────────────────────────────────────────────────────────────┤
 │ Footer (py-6, border-t, text-xs text-zinc-400, text-center)       │
-│ © 2026 ptdl-alpha · 全网公开协同 Todo · 任何人可发布 · 任何人可围观│
+│ © 2026 ShowTodo · Build in Public · Walk Together · Anyone can Join│
 └───────────────────────────────────────────────────────────────────┘
-│ Global Overlays (全局浮层):                                       │
+│ Global Overlays:                                                  │
 │ ├── ToastContainer (fixed top-4 left-1/2 -translate-x-1/2 z-50)   │
-│ ├── Modal / Dialog Portals (fixed inset-0 z-50)                   │
-│ └── Mobile Drawer (fixed inset-y-0 right-0 w-72 z-40)              │
+│ ├── CreateTodoModal (fixed inset-0 z-50)                          │
+│ └── Modal Dialog Portals (fixed inset-0 z-50)                     │
 └───────────────────────────────────────────────────────────────────┘
 ```
 
-### 3.2 区域详细规范
+### 3.2 Full Route Panorama
 
-1. **顶部导航栏 (`Header.svelte`)**:
-   - **尺寸与材质**: 高度固定 `h-14` (56px)，粘性置顶 `sticky top-0 z-30`，磨砂半透明背景 `bg-white/80 dark:bg-zinc-950/80 backdrop-blur-md`；
-   - **左侧**: 品牌 Logo 图标徽章 + 产品名称（`font-semibold tracking-tight`）；
-   - **右侧**: 嵌入 **Apple / Linear 风格的轻量悬浮气泡 (`UserPopover.svelte`)**，点击在头像下方自然下沉弹出。
-
-2. **用户身份与偏好悬浮面板 (`UserPopover.svelte`)**:
-   - **轻量透气**: 宽度 `w-72`，采用半透明毛玻璃材质（`backdrop-blur-md`），带 `zoom-in-95` 弹性微展开动效，点击外部或按 `ESC` 自动自然收回；
-   - **未绑定身份时**：直接展示极简邮箱输入框与保存按钮，回车即绑定；
-   - **已绑定身份时**：展示当前头像、昵称、邮箱，提供「更换邮箱」与「退出身份」功能；
-   - **原地无缝切换**：点击「更换邮箱」时，Popover 原地平滑切换为输入表单，无需嵌套弹窗；
-   - **外观偏好**：内嵌浅色 (Light)、深色 (Dark)、跟随系统 (System) 三挡一键切换分段按钮。
-
-3. **主工作区 Main (`+layout.svelte`)**:
-   - 居中单列流：`mx-auto w-full max-w-3xl sm:max-w-4xl px-4 sm:px-6 py-6 sm:py-8`；
-   - 弹性自适应高度：`min-h-[calc(100vh-3.5rem-5rem)]`，确保页面内容较少时 Footer 始终自然贴底。
-
-4. **底部栏 (`Footer.svelte`)**:
-   - 极简居中单行：展示版权信息与“全网公开协同 Todo · 任何人可发布 · 任何人可围观”核心理念。
+| Route Path | View / Component | Core Purpose & Data Requirements |
+|---|---|---|
+| `/` | `TodoStreamView` / `TodoKanbanView` / `TodoCalendarView` | Main Action Square: Triple-view todo feed, today check-ins, companion goals |
+| `/@handle` | `UserProfileCard`, `ActivityHeatmap`, `UserStatsGrid` | Public Creator Profile: 365-day contribution streak, stats overview, bio |
+| `/@handle/todolist` | `TodoItem` list, filters | Creator’s dedicated public action list |
+| `/goals` | `TopicCard` list, search, filters | Walk-Together Goals Directory: Leaderboard of active goals |
+| `/goals/[hash]` | `TopicHeaderCard`, `TopicParticipantList` | Companion Goal Detail: Participants roster, today vs all-time completions |
+| `/trending` | `TrendingTopicsWidget`, `TopicCard` | High-momentum goals leaderboard |
+| `/trending/[hash]` | Redirect / Goal Detail | Companion Goal Detail by trending link |
+| `/stats` | `SiteStatsWidget`, `CategoryDonutChart`, `ActivityHeatmap` | Platform Observability: Total todos, completion rate, global heatmap, top creators |
+| `/t/[id]` | `TodoDetailCard`, `TodoActivityTimeline` | Todo Detail & Companion Timeline: ShortId sharing link, growth story logs |
+| `/about` | Static content | Philosophy statement: Build in Public, Companionship, Supervision, Emulation |
+| `/privacy` | Static content | Privacy commitment: Email protection, public todo transparency |
+| `/(dev)/demo` | UI Showcase | Interactive showcase for atomic design tokens and components |
 
 ---
 
-## 4. 数据流、排序算法与本地变异架构 (Data Flow & Mutation)
+## 4. Svelte 5 Runes State Architecture
 
-### 4.1 核心原则：0ms 本地就地变异优先
-为了彻底避免传统 SPA “操作一次就全量 refetch 导致列表重绘、滚动跳跃、Spinner 闪烁”的糟糕体验，系统严格遵循：**服务端成功/客户端先行，纯本地就地变异响应**。
-- **发布待办 / 加入一起做**：0ms 立即在本地列表插入或并入多人聚合，绝不发起全量 Refetch；
-- **打勾完成 / 切换状态**：0ms 就地更新状态与统计数据，绝不发起全量 Refetch；
-- **精准隔离**：仅在用户真正切换日期或在抽屉里切换了不同账号时才会重新拉取服务端数据。
+The frontend state layer is decoupled into **Entity Registries**, **Resource Stores**, and **Global Runes Stores**:
+
+```
+src/lib/stores/
+├── entities/                   # Single Source of Truth Registries
+│   ├── todo-registry.svelte.ts # Reactive Map of Todo entities
+│   └── user-registry.svelte.ts # Reactive Map of User entities
+├── resources/                  # Svelte 5 Runes Resource Controllers
+│   ├── use-my-todos.svelte.ts  # Filtered personal todos stream
+│   ├── use-todo-detail.svelte.ts # Deep todo inspection with activities
+│   ├── use-topics.svelte.ts    # Walk-together goals directory & search
+│   ├── use-topic-detail.svelte.ts # Topic detail & companion list
+│   └── use-user-profile.svelte.ts # Creator profile & heatmap loader
+├── user.svelte.ts              # Passwordless session identity
+├── theme.svelte.ts             # Light / Dark / System theme switcher
+├── toast.svelte.ts             # Global notification queue
+├── progress.svelte.ts          # Top progress bar controller
+├── feed.svelte.ts              # Action square feed state
+├── today.svelte.ts             # Today action card state
+├── stats.svelte.ts             # Public platform analytics state
+├── trending.svelte.ts          # Trending goals state
+├── create-todo-modal.svelte.ts # Modal trigger & pre-filled category
+└── mutations.svelte.ts         # Local-first optimistic action engine
+```
+
+### 4.1 Single Source of Truth Entity Registry
+To avoid data divergence across views (e.g., ticking a todo in the Feed while the Kanban or Detail modal is open), `todoRegistry` maintains a normalized reactive store of entities:
+- Any update via `todoRegistry.upsert(todo)` updates the underlying `$state` proxy in place.
+- All components holding references to that todo reactively re-render with zero roundtrips.
+
+### 4.2 Local-First Mutation Sequence
 
 ```mermaid
 sequenceDiagram
     autonumber
-    actor User as 用户交互 (如发布/标记完成/点赞)
-    participant UI as Svelte 5 视图 ($state 响应式代理)
-    participant Mut as 本地变异层 (mutation.ts)
-    participant API as 后端接口 (http.ts)
-    
-    User->>Mut: 触发操作 (如 optimisticAction)
-    Mut->>Mut: 1. 自动记录状态快照 (Snapshot)
-    Mut->>UI: 2. 0ms 立即在本地就地修改数据 (界面即时响应)
-    Mut->>API: 3. 异步发送 HTTP 请求
-    alt 请求成功 (Success)
-        API-->>Mut: 返回服务端实体 / 生成的 ID / 时间戳
-        Mut->>UI: 4. 本地静默补充服务端字段
-    else 请求失败 (Error)
-        API-->>Mut: 抛出 HttpError
-        Mut->>UI: 5. 自动安全回滚快照至操作前状态
-        Mut->>User: 6. 弹出 Toast 错误反馈
+    actor User as Creator Interaction (Check / React / Create)
+    participant UI as Svelte 5 View ($state)
+    participant Reg as Todo Registry (Single Source)
+    participant Mut as Mutation Engine (mutations.svelte.ts)
+    participant API as Backend API (http.ts)
+
+    User->>Mut: Trigger optimistic action
+    Mut->>Mut: 1. Capture snapshot of affected entities
+    Mut->>Reg: 2. Immediately mutate state locally (0ms)
+    Reg->>UI: 3. UI updates instantly with smooth micro-animation
+    Mut->>API: 4. Dispatch asynchronous HTTP request
+    alt HTTP Success (200 / 201)
+        API-->>Mut: Returns confirmed entity / server timestamps
+        Mut->>Reg: 5. Silently reconcile server-assigned IDs/dates
+    else HTTP Failure (4xx / 5xx)
+        API-->>Mut: Throws HttpError
+        Mut->>Reg: 6. Revert to original snapshot
+        Reg->>UI: 7. UI rolls back smoothly
+        Mut->>User: 8. Surface Toast error notification
     end
 ```
 
-### 4.2 待办条目排序核心准则：【个人感知时间优先 (Personal Effective Time)】
-
-#### 决策背景与原因：
-1. **防跳动 (Anti-Jittering)**：Todo 类应用必须严格按「创建时间」而非「更新时间」排序，避免打勾或修改备注时列表条目上下剧烈跳动，破坏用户的空间视觉记忆；
-2. **个人心流对齐**：对于当前用户参与的目标，用户是在当下的时间点做出行动承诺的。若机械地按早上的首发时间排在最底，用户加入后会产生“任务丢失”的割裂感。
-
-#### 有效时间戳计算公式：
+### 4.3 Anti-Jitter Sorting: Personal Effective Time
+When aggregating companion cards, sorting strictly uses **Personal Effective Time**:
 $$\text{effectiveCreatedAt} = \begin{cases} 
-\text{myParticipant.createdAt} & \text{若当前用户已参与/发布} \\
-\min_{p \in \text{participants}}(\text{p.createdAt}) & \text{若当前用户未参与}
+\text{myParticipant.createdAt} & \text{if current user has joined} \\
+\min_{p \in \text{participants}}(\text{p.createdAt}) & \text{if viewing as observer}
 \end{cases}$$
 
-- **交互表现**：未参与的他人目标按全网首发时间排列；一旦当前用户点击「+ 加入一起做」，该条目在本地被赋予当下的最新时间戳，**0ms 顺畅自然地置顶到列表最上方**，让用户确信新任务已就绪；在“我的 (Mine)”视角下严格按个人加入时间倒序排列。
+- Joining a companion goal immediately sets your personal timestamp to `now`, smoothly floating the goal to the top of your personal list without shifting it unexpectedly for observers.
 
 ---
 
-## 5. 待办交互与设计系统规范 (Design System & Specs)
+## 5. View Architecture & Triple-View Engine
 
-### 5.1 待办 4 态生命周期与视觉映射标准 (4-State Status System)
+The Action Square (`src/routes/+page.svelte`) provides three fluid lenses onto the public todo data:
 
-系统支持完整的四态生命周期管理，定义全站统一的图形符号与排版视觉映射：
+### 5.1 Stream View (`TodoStreamView.svelte`)
+- **Focus**: High-efficiency, chronological feed.
+- **Features**: Inline `TodoComposer` at the top, category filter pill bar with URL synchronization, compact companion avatars, and fast check-off buttons.
 
-| 状态定义 | 状态代码 | 交互图标规范 | 文本排版规范 | 操作交互心智 |
-| :--- | :--- | :--- | :--- | :--- |
-| **待办中** | `pending` | 标准空心正圆 `○` (`stroke-[2.2]`) | `15px`，`text-zinc-900 dark:text-zinc-100 font-medium` | **单次点击**：流转为「已达成」并触发全屏彩屑；<br>**悬停**：呼出 4 态直达选择器 |
-| **推进中** | `in_progress` | 右上角 1/4 扇形填充圆 `◔` | `15px`，`text-zinc-900 dark:text-zinc-100 font-medium` | **单次点击**：流转为「已达成」；<br>**悬停**：呼出 4 态直达选择器 |
-| **已达成** | `done` | 纯黑实心底 + 加粗白勾 `✓` | `15px`，`text-zinc-500 dark:text-zinc-400 font-normal`，加深删除线 | **单次点击**：回退为「待办中」；<br>**悬停**：呼出 4 态直达选择器 |
-| **已放弃** | `abandoned` | 浅灰底 + 极简灰色斜叉 `✕` | `15px`，`text-zinc-400 dark:text-zinc-500 opacity-60 font-normal`，虚化删除线 | **单次点击**：回退为「待办中」；<br>**悬停**：呼出 4 态直达选择器 |
+### 5.2 Kanban View (`TodoKanbanView.svelte`)
+- **Focus**: Workflow organization across 3 swimlanes:
+  1. `pending` (待办中)
+  2. `in_progress` (推进中)
+  3. `done` (已达成)
+- **Features**: Drag/move quick actions, status counters, and companion tags.
 
-#### 状态机流转图与合法转移矩阵 (State Transition Model)
+### 5.3 Weekly Calendar View (`TodoCalendarView.svelte`)
+- **Focus**: Time-horizon alignment and multi-creator visibility.
+- **Features**: Natural calendar week grid (Monday to Sunday), user-first swimlanes showing only creators with active commitments that week, and current user pinned to the top.
 
-```mermaid
-stateDiagram-v2
-    [*] --> pending: 创建待办
-    
-    pending --> in_progress: 开始推进
-    pending --> done: 快速完成 / 标记达成
-    pending --> abandoned: 搁置 / 放弃目标
-    
-    in_progress --> done: 快速完成 / 标记达成
-    in_progress --> pending: 暂停 / 重新排期
-    in_progress --> abandoned: 搁置 / 放弃目标
-    
-    done --> pending: 重开待办
-    done --> in_progress: 重新推进
-    done --> abandoned: 修正状态
-    
-    abandoned --> pending: 重启待办
-    abandoned --> in_progress: 恢复推进
-    abandoned --> done: 补记达成
+---
+
+## 6. Design System & Component Registry
+
+### 6.1 Four-State Status Lifecycle & Visual Tokens
+
+| State | Code | Symbol | Styling & Interaction |
+|---|---|:---:|---|
+| **Pending** | `pending` | `○` | Hollow circle with `stroke-[2.2]`. Click to mark done (triggers confetti). Hover for 4-state popover. |
+| **In Progress** | `in_progress` | `◔` | 1/4 filled pie icon. High-contrast text. Click to mark done. |
+| **Completed** | `done` | `✓` | Solid black/white background with bold checkmark. Strikethrough text (`text-zinc-500 line-through`). Click to reopen. |
+| **Abandoned** | `abandoned` | `✕` | Subtle gray background with diagonal cross. Low opacity text. Click to reopen. |
+
+### 6.2 Reaction Emojis & Token Mappings
+
+| Emoji | Name | Active Token Class |
+|:---:|---|---|
+| `❤️` | Heart | `bg-rose-50 border-rose-300 text-rose-700 dark:bg-rose-950/50 dark:border-rose-700` |
+| `👍` | Like | `bg-blue-50 border-blue-300 text-blue-700 dark:bg-blue-950/50 dark:border-blue-700` |
+| `🔥` | Fire | `bg-orange-50 border-orange-300 text-orange-700 dark:bg-orange-950/50 dark:border-orange-700` |
+| `💪` | Strong | `bg-emerald-50 border-emerald-300 text-emerald-700 dark:bg-emerald-950/50 dark:border-emerald-700` |
+| `👏` | Clap | `bg-amber-50 border-amber-300 text-amber-700 dark:bg-amber-950/50 dark:border-amber-700` |
+| `🚀` | Rocket | `bg-indigo-50 border-indigo-300 text-indigo-700 dark:bg-indigo-950/50 dark:border-indigo-700` |
+| `🎉` | Party | `bg-yellow-50 border-yellow-300 text-yellow-700 dark:bg-yellow-950/50 dark:border-yellow-700` |
+| `👀` | Watching | `bg-zinc-100 border-zinc-300 text-zinc-700 dark:bg-zinc-800 dark:border-zinc-700` |
+
+### 6.3 Typography & Readability Hierarchy
+- **Todo Content**: `15px` (`text-[15px]`), `leading-snug`, high-contrast foreground (`text-zinc-900 dark:text-zinc-100`).
+- **Creator Nickname**: `12px` (`text-xs`), `font-semibold`.
+- **Timestamps & Deadlines**: `11px` (`text-[11px] font-mono text-zinc-400 dark:text-zinc-500`).
+  - Urgent countdown: highlights in warm amber (`text-amber-600 dark:text-amber-400 font-medium`) when deadline is within 2 hours.
+- **Category Badge**: `10px` (`text-[10px] font-medium tracking-wide`).
+
+---
+
+### 6.4 Component Directory (`src/lib/components/`)
+
+```
+src/lib/components/
+├── layout/
+│   ├── Header.svelte           # Top sticky header with Logo & UserPopover
+│   ├── Footer.svelte           # Clean bottom footer with philosophy tag
+│   └── UserPopover.svelte      # Apple-style floating account panel
+├── todo/
+│   ├── TodoItem.svelte         # Primary todo card with responsive actions
+│   ├── TodoStreamView.svelte   # Stream list view
+│   ├── TodoKanbanView.svelte   # Kanban 3-lane view
+│   ├── TodoCalendarView.svelte # Weekly creator calendar matrix
+│   ├── TodoDetailCard.svelte   # Deep detail card with metadata
+│   ├── TodoActivityTimeline.svelte # Check-in growth log timeline
+│   ├── TodoComposer.svelte     # Instant todo creation form
+│   ├── TodoStatusDropdown.svelte # 4-state selector dropdown
+│   ├── TodoStatusIcon.svelte   # Animated status icon
+│   ├── TodoCheckbox.svelte     # Jelly-bounce interactive check control
+│   ├── TodoContent.svelte      # Text content with tag parsing
+│   ├── TodoReactionsBar.svelte # 8-emoji cheering bar
+│   ├── ReactionButton.svelte   # Single animated reaction pill
+│   ├── CategoryBadge.svelte    # Dot & label category capsule
+│   └── CreateTodoModal.svelte  # Global quick-create modal
+├── topic/
+│   ├── TopicCard.svelte        # Companion goal summary card
+│   ├── TopicHeaderCard.svelte  # Goal detail hero header
+│   └── TopicParticipantList.svelte # Companion peers roster
+├── user/
+│   ├── UserProfileCard.svelte  # Creator profile card with stats
+│   ├── UserStatsGrid.svelte    # Streak & completion metric tiles
+│   └── UserAvatarTooltip.svelte # Hover tooltip with creator details
+├── stats/
+│   ├── ActivityHeatmap.svelte  # 365-day SVG contribution heatmap
+│   └── CategoryDonutChart.svelte # Category distribution SVG donut
+├── widgets/
+│   ├── MyTodayWidget.svelte    # Today's personal commitments widget
+│   ├── TrendingTopicsWidget.svelte # Top trending goals widget
+│   └── SiteStatsWidget.svelte  # Platform statistics summary widget
+├── skeleton/
+│   ├── FeedSkeleton.svelte
+│   ├── StatsSkeleton.svelte
+│   ├── TodoDetailSkeleton.svelte
+│   ├── TopicDetailSkeleton.svelte
+│   ├── TopicListSkeleton.svelte
+│   ├── UserProfileSkeleton.svelte
+│   └── WidgetSkeleton.svelte
+├── seo/
+│   └── SeoHead.svelte          # Dynamic OpenGraph and meta tags
+└── ui/
+    ├── Avatar.svelte           # DiceBear + image fallback avatar
+    ├── BackToSquare.svelte     # Breadcrumb back navigation button
+    ├── Badge.svelte            # Versatile tag badge
+    ├── BreadcrumbNav.svelte    # Breadcrumb trail navigation
+    ├── Button.svelte           # Multi-variant button
+    ├── Card.svelte             # Container card with slots
+    ├── Checkbox.svelte         # Styled form checkbox
+    ├── DataView.svelte         # Switcher container between views
+    ├── EmptyState.svelte       # Friendly empty illustration & copy
+    ├── ExpandableFilterBar.svelte # Responsive filter pill bar
+    ├── FilterChip.svelte       # Category filter toggle chip
+    ├── Input.svelte            # Controlled input field
+    ├── Modal.svelte            # Dialog modal with escape & backdrop
+    ├── Popover.svelte          # Floating positioning container
+    ├── SearchInput.svelte      # Debounced search bar
+    ├── Select.svelte           # Styled select control
+    ├── Skeleton.svelte         # Pulsing placeholder shape
+    ├── Spinner.svelte          # Lightweight loader indicator
+    ├── Tabs.svelte             # Segmented control tab bar
+    ├── Textarea.svelte         # Auto-resizing textarea
+    ├── Toast.svelte            # Notification message pill
+    ├── ToastContainer.svelte   # Floating notification viewport
+    └── TopProgressBar.svelte   # Top-edge network activity bar
 ```
 
-| 当前状态 \ 目标状态 | `pending` (待办中) | `in_progress` (推进中) | `done` (已达成) | `abandoned` (已放弃) |
-| :--- | :---: | :---: | :---: | :---: |
-| **`pending` (待办中)** | - | ✅ 允许 | ✅ 允许 (触发彩屑) | ✅ 允许 |
-| **`in_progress` (推进中)** | ✅ 允许 | - | ✅ 允许 (触发彩屑) | ✅ 允许 |
-| **`done` (已达成)** | ✅ 允许 (一键重开) | ✅ 允许 | - | ✅ 允许 |
-| **`abandoned` (已放弃)** | ✅ 允许 (一键重启) | ✅ 允许 | ✅ 允许 | - |
-
-#### 交互与呈现原则：
-1. **二元快速打卡（单击）**：未完成状态（`pending` / `in_progress`）单击直达「已达成」；结束状态（`done` / `abandoned`）单击快速重开为「待办中」；
-2. **多态自由直达（悬停 Pop）**：鼠标悬停于复选控制器上方呼出 4 态胶囊条，点击任意项直达目标状态；
-3. **只读降噪原则**：他人待办呈现静态只读状态，采用浅灰中性底与低饱和度图形，不响应点击交互。
-
 ---
 
-### 5.2 排版与字号设计规范 (Typography Hierarchy)
-
-信息流与待办卡片统一遵循清晰的字号与排版阶梯：
-
-* **核心待办正文**：统一采用 **`15px` (`text-[15px]`)**，行高 `leading-snug`，确保中文字符笔画饱满舒展，兼具桌面端高密度与阅读舒适度；
-* **作者昵称**：`12px` (`text-xs`)，`font-semibold`；
-* **时间范围、截止时刻与发布时间**：`11px` (`text-[11px]`)，等宽字体 `font-mono text-zinc-400 dark:text-zinc-500`；
-  - **当日具体时刻**：优先展示精简时分 `HH:mm`（如 `18:30 截止`）；
-  - **跨日时刻**：展示为 `MM-DD HH:mm`；
-  - **临期提示视觉**：距截止时间不足 2 小时未达成时，时间标签微高亮为琥珀暖色 (`text-amber-600 dark:text-amber-400 font-medium`)；
-* **分类徽标**：`10px` (`text-[10px]`)，`font-medium`；
-* **公开备注**：`12px` (`text-xs`)，行高 `leading-relaxed text-zinc-500`。
-
----
-
-### 5.3 分类即时流筛选与创作闭环 (Category Filter & Creation Loop)
-
-1. **即时无刷新过滤与 URL 同步**：
-   - 点击卡片上的分类胶囊即时过滤 Feed 流，URL 同步更新为 `/?category={id}`，支持浏览器历史导航与外链直达；
-2. **创作预选联动**：
-   - 当分类筛选处于激活态时，顶部发布框（`TodoComposer`）自动预选该分类，形成即看即写的创作闭环；
-3. **状态指示与快捷退出**：
-   - 动态流标题栏呈现 `[正在筛选: 分类名 ✕]` 状态胶囊，点击 `✕` 或再次点击卡片同分类可一键恢复全网总流。
-
----
-
-### 5.4 同行业务模型与文案规范 (Multiplayer "Together" Model)
-
-1. **参与状态互斥控制**：
-   - 当当前用户已加入该同行目标时（`hasJoined === true`），操作区呈现 **`已同行`** 翡翠绿状态徽标；
-   - 当用户尚未参与时，呈现 **`+ 一起做`** 快捷加入按钮；
-2. **文案词汇体系一致性**：
-   - 全局核心入口：**`同行广场`**（Header 一级导航、网页 Title、面包屑溯源）
-   - 筛选微交互：**`结伴同行`**（筛选已有 2 人及以上同行的目标）
-   - 侧边栏挂件：**`热门同行目标`**
-   - 参与度统计：**`N 人同行 · M 达成`**
-   - 个人参与态：**`已同行`**
-   - 详情卡片提示：**`已有 N 位伙伴正在并肩同行该目标！`**
-
----
-
-### 5.5 纯净沉浸流与灵动微动效 (Playful & Delightful Micro-interactions)
-- **背景统一与无边界留白**：全屏大背景、顶部标题栏与内容流统一为同一抹纯净白 (`bg-white`) / 深邃黑 (`dark:bg-zinc-950`)，采用行间距与内边距替代生硬分割线；
-- **全屏高饱和物理纸屑 (Canvas Confetti Engine)**：单次达成打卡喷发 300 颗高饱和 3D 纸片、彩带与星形粒子；当日全部达成触发连续三次全屏超级大礼炮 (800+ 颗) 狂欢。
-
----
-
-### 5.6 待办动态时间线与打卡契约 (Activity Timeline & Check-in Contract)
-
-待办详情建立基于 `activities` 序列的生命周期动态流，维护目标推进的成长轨迹：
-
-1. **动态事件语义分级**：
-   * **起点创建 (`created`)**：待办初始化基准事件；
-   * **状态跃迁 (`status_change`)**：记录跨状态迁移轨迹，承载随状态流转附带的说明或原因；
-   * **进展打卡 (`progress_note`)**：记录在当前状态下追加的阶段性进展、心得或复盘，保留当时的状态阶段快照。
-2. **本地变异契约 (Local-First Mutation)**：
-   * 追加打卡与状态跃迁严格遵循 4.1 节就地变异原则，由客户端在本地时间线直接执行乐观插入，无需全量重新拉取待办详情；遇到网络异常时自动回滚快照。
-
----
-
-## 6. 通用原子 UI 组件库规范 (`src/lib/components/ui/`)
-
-所有组件严格基于 **Svelte 5 Runes** 与 **Tailwind CSS v4** 编写，属性严格类型化：
-
-| 组件名称 | 核心 Props / 特性 | 说明 |
-|---|---|---|
-| `Button.svelte` | `variant`, `size`, `loading`, `disabled`, `leftIcon`, `rightIcon` | 支持 primary, secondary, outline, ghost, danger 等样式 |
-| `Input.svelte` | `bind:value`, `type`, `label`, `error`, `helperText`, `size`, `leftIcon`, `rightIcon` | 受控文本输入框，支持错误高亮与图标插槽 |
-| `Textarea.svelte` | `bind:value`, `label`, `error`, `rows`, `maxLength` | 自适应多行文本输入，支持字符计数 |
-| `Select.svelte` | `bind:value`, `options`, `label`, `error`, `size` | 统一美观的下拉选择框 |
-| `Checkbox.svelte` | `bind:checked`, `label`, `disabled` | 优雅的复选框控件 |
-| `Badge.svelte` | `variant`, `size`, `dot` | 状态与分类胶囊徽章（neutral, primary, success, warning, danger, purple, pink） |
-| `Card.svelte` | `hoverable`, `header`, `children`, `footer`, `onclick` | 基础卡片容器，支持头部/主体/尾部插槽 |
-| `Avatar.svelte` | `src`, `name`, `size`, `status` | 支持图片 URL、DiceBear 动态算法 Fallback 与首字母缩写 Fallback |
-| `Modal.svelte` | `bind:open`, `title`, `description`, `size`, `header`, `children`, `footer` | 通用弹窗，支持 ESC 关闭、点击遮罩关闭与平滑过渡动效 |
-| `Spinner.svelte` | `size`, `class` | 统一的轻量旋转 Loading 指示器 |
-| `EmptyState.svelte` | `title`, `description`, `icon`, `actions` | 通用空状态占位展示 |
-| `Toast.svelte` | `item: ToastItem` | 单条浮动通知消息（success, error, info, warning） |
-| `ToastContainer.svelte`| 全局自动监听 `toast` Store | 顶部居中浮动通知堆叠容器 |
-
----
-
-## 7. 网络与全局状态管理
-
-### 7.1 网络层 (`src/lib/services/http.ts`)
-- 封装统一的 `http.get`, `http.post`, `http.patch`, `http.put`, `http.delete`；
-- 结构化异常类 `HttpError`，自动解析服务端标准错误报文 `{ error: { code, message } }`；
-- 自动集成全局 `toast.error` 提醒（支持 `silent: true` 静默模式）。
-
-### 7.2 状态管理层 (`src/lib/stores/`)
-- `toast.svelte.ts`: 全局通知 Store（支持 `toast.success()`, `toast.error()`, `toast.info()`, `toast.warning()`）；
-- `theme.svelte.ts`: 全局明暗模式 Store（支持 `light`, `dark`, `system` 切换与本地持久化，监听 OS 色彩变更）；
-- `user.svelte.ts`: 用户免密 Session 与服务端档案同步管理。
-
----
-
-## 8. 质量保证与测试体系
+## 7. Quality Assurance & Verification SOP
 
 ```bash
-# 1. 运行全量 TypeScript 严格类型与 Svelte 5 Runes 检查
+# 1. Run full Svelte 5 and TypeScript type verification
 npm run check
 
-# 2. 运行前端工具与本地变异函数自动化测试
-npx vitest run src/lib/utils/__tests__/
+# 2. Run Vitest component, store, and utility tests
+npx vitest run src/lib/components/ src/lib/stores/ src/lib/utils/
 
-# 3. 执行生产构建打包
+# 3. Production build test
 npm run build
 ```
+
 
