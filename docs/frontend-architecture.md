@@ -12,18 +12,18 @@
 
 Our design philosophy is anchored in six pillars:
 
-1. **High Signal-to-Noise Ratio (高信噪比)**:
+1. **High Signal-to-Noise Ratio**:
    - Every pixel serves the creator’s action and focus. No decorative fluff, no banner noise, and no aggressive promotional widgets.
    - Tasks are front-and-center, using generous whitespace and subtle borders instead of heavy divider lines.
-2. **Progressive Disclosure (渐进式呈现)**:
+2. **Progressive Disclosure**:
    - Simple tasks appear clean and unburdened. Multi-participant details, activity logs, notes, and reaction rosters are gracefully tucked into intuitive hover states, collapsible rows, or dedicated views.
-3. **Walk Together, Not Managing (同行而非管理)**:
+3. **Walk Together, Not Managing**:
    - Creators doing identical goals are presented as equal companions. There are no "task owners" assigning work to "subordinates".
-4. **Radical Transparency & Building in Public (公开透明 · 围观见证)**:
+4. **Public Transparency & Building in Public**:
    - Todo commitments and progress timestamps are public by default. Public exposure transforms solitary anxiety into visible resolve.
-5. **Playful & Delightful Micro-interactions (灵动可爱的微交互)**:
+5. **Playful & Delightful Micro-interactions**:
    - Jelly-bounce checkboxes (`hover:scale-110`, `active:scale-85`), smooth popovers, fan-out avatar clusters, and 3D physical confetti celebrations upon milestone completion.
-6. **Local-First Zero-Jitter Reactivity (本地就地变异优先)**:
+6. **Local-First Zero-Jitter Reactivity**:
    - Every mutation updates local Svelte 5 `$state` instantaneously (0ms), avoiding full-page refetches, layout shift, or loading flashes.
 
 ---
@@ -48,7 +48,7 @@ Our design philosophy is anchored in six pillars:
 ```
 ┌───────────────────────────────────────────────────────────────────┐
 │ Header (h-14, sticky top-0, z-30, backdrop-blur-md, border-b)     │
-│ [ ⚡ Logo & Navigation Links ]                 [ UserPopover / Menu ]│
+│ [ ShowTodo Logo & Navigation Links ]                 [ UserPopover / Menu ]│
 └───────────────────────────────────────────────────────────────────┘
 │ TopProgressBar (fixed top-0 inset-x-0 h-0.5 z-50 during requests) │
 │                                                                   │
@@ -104,7 +104,7 @@ src/lib/stores/
 │   ├── use-topics.svelte.ts    # Walk-together goals directory & search
 │   ├── use-topic-detail.svelte.ts # Topic detail & companion list
 │   └── use-user-profile.svelte.ts # Creator profile & heatmap loader
-├── user.svelte.ts              # Passwordless session identity
+├── user.svelte.ts              # User session identity
 ├── theme.svelte.ts             # Light / Dark / System theme switcher
 ├── toast.svelte.ts             # Global notification queue
 ├── progress.svelte.ts          # Top progress bar controller
@@ -169,9 +169,9 @@ The Action Square (`src/routes/+page.svelte`) provides three fluid lenses onto t
 
 ### 5.2 Kanban View (`TodoKanbanView.svelte`)
 - **Focus**: Workflow organization across 3 swimlanes:
-  1. `pending` (待办中)
-  2. `in_progress` (推进中)
-  3. `done` (已达成)
+  1. `pending`
+  2. `in_progress`
+  3. `done`
 - **Features**: Drag/move quick actions, status counters, and companion tags.
 
 ### 5.3 Weekly Calendar View (`TodoCalendarView.svelte`)
@@ -186,23 +186,23 @@ The Action Square (`src/routes/+page.svelte`) provides three fluid lenses onto t
 
 | State | Code | Symbol | Styling & Interaction |
 |---|---|:---:|---|
-| **Pending** | `pending` | `○` | Hollow circle with `stroke-[2.2]`. Click to mark done (triggers confetti). Hover for 4-state popover. |
-| **In Progress** | `in_progress` | `◔` | 1/4 filled pie icon. High-contrast text. Click to mark done. |
-| **Completed** | `done` | `✓` | Solid black/white background with bold checkmark. Strikethrough text (`text-zinc-500 line-through`). Click to reopen. |
-| **Abandoned** | `abandoned` | `✕` | Subtle gray background with diagonal cross. Low opacity text. Click to reopen. |
+| **Pending** | `pending` | `hollow-circle` | Hollow circle with `stroke-[2.2]`. Click to mark done (triggers confetti). Hover for 4-state popover. |
+| **In Progress** | `in_progress` | `quarter-pie` | 1/4 filled pie icon. High-contrast text. Click to mark done. |
+| **Completed** | `done` | `checkmark` | Solid black/white background with bold checkmark. Strikethrough text (`text-zinc-500 line-through`). Click to reopen. |
+| **Abandoned** | `abandoned` | `cross` | Subtle gray background with diagonal cross. Low opacity text. Click to reopen. |
 
 ### 6.2 Reaction Emojis & Token Mappings
 
 | Emoji | Name | Active Token Class |
 |:---:|---|---|
-| `❤️` | Heart | `bg-rose-50 border-rose-300 text-rose-700 dark:bg-rose-950/50 dark:border-rose-700` |
-| `👍` | Like | `bg-blue-50 border-blue-300 text-blue-700 dark:bg-blue-950/50 dark:border-blue-700` |
-| `🔥` | Fire | `bg-orange-50 border-orange-300 text-orange-700 dark:bg-orange-950/50 dark:border-orange-700` |
-| `💪` | Strong | `bg-emerald-50 border-emerald-300 text-emerald-700 dark:bg-emerald-950/50 dark:border-emerald-700` |
-| `👏` | Clap | `bg-amber-50 border-amber-300 text-amber-700 dark:bg-amber-950/50 dark:border-amber-700` |
-| `🚀` | Rocket | `bg-indigo-50 border-indigo-300 text-indigo-700 dark:bg-indigo-950/50 dark:border-indigo-700` |
-| `🎉` | Party | `bg-yellow-50 border-yellow-300 text-yellow-700 dark:bg-yellow-950/50 dark:border-yellow-700` |
-| `👀` | Watching | `bg-zinc-100 border-zinc-300 text-zinc-700 dark:bg-zinc-800 dark:border-zinc-700` |
+| `heart` | Heart | `bg-rose-50 border-rose-300 text-rose-700 dark:bg-rose-950/50 dark:border-rose-700` |
+| `like` | Like | `bg-blue-50 border-blue-300 text-blue-700 dark:bg-blue-950/50 dark:border-blue-700` |
+| `fire` | Fire | `bg-orange-50 border-orange-300 text-orange-700 dark:bg-orange-950/50 dark:border-orange-700` |
+| `strong` | Strong | `bg-emerald-50 border-emerald-300 text-emerald-700 dark:bg-emerald-950/50 dark:border-emerald-700` |
+| `clap` | Clap | `bg-amber-50 border-amber-300 text-amber-700 dark:bg-amber-950/50 dark:border-amber-700` |
+| `rocket` | Rocket | `bg-indigo-50 border-indigo-300 text-indigo-700 dark:bg-indigo-950/50 dark:border-indigo-700` |
+| `party` | Party | `bg-yellow-50 border-yellow-300 text-yellow-700 dark:bg-yellow-950/50 dark:border-yellow-700` |
+| `eyes` | Watching | `bg-zinc-100 border-zinc-300 text-zinc-700 dark:bg-zinc-800 dark:border-zinc-700` |
 
 ### 6.3 Typography & Readability Hierarchy
 - **Todo Content**: `15px` (`text-[15px]`), `leading-snug`, high-contrast foreground (`text-zinc-900 dark:text-zinc-100`).
@@ -233,7 +233,7 @@ src/lib/components/
 │   ├── TodoStatusIcon.svelte   # Animated status icon
 │   ├── TodoCheckbox.svelte     # Jelly-bounce interactive check control
 │   ├── TodoContent.svelte      # Text content with tag parsing
-│   ├── TodoReactionsBar.svelte # 8-emoji cheering bar
+│   ├── TodoReactionsBar.svelte # 8-reaction cheering bar
 │   ├── ReactionButton.svelte   # Single animated reaction pill
 │   ├── CategoryBadge.svelte    # Dot & label category capsule
 │   └── CreateTodoModal.svelte  # Global quick-create modal

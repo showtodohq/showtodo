@@ -9,11 +9,11 @@
 ## 1. System Architecture Overview
 
 ### 1.1 Architectural Philosophy & Positioning
-`ShowTodo` is engineered as a **Public Todo & Walk-Together Platform** (同行 · 陪伴 · 监督 · 学习 · 模仿 · 围观 · Build in Public). 
+`ShowTodo` is engineered as a **Public Todo & Walk-Together Platform** (Action, Companionship, Accountability, Emulation, Observation, Building in Public). 
 
 The backend does not manage rigid organizational hierarchies, user roles, or approval workflows. Instead, it is built around:
 - **Decentralized Content Addressability**: Peer goals are indexed and aggregated by content hash (`topic_hash`), decoupling participants while enabling instant mutual discovery.
-- **Zero-Barrier Action**: Instant, passwordless profile provisioning via email.
+- **Zero-Barrier Action**: Instant profile provisioning via email.
 - **Radical Observability**: Efficient multi-view aggregation, 365-day contribution heatmaps, and global completion statistics.
 
 ### 1.2 Technology Selection Matrix
@@ -38,7 +38,7 @@ The system adheres strictly to a decoupled **Controller — Service — Data Acc
 │                   Client Request                        │
 └───────────────────────────┬────────────────────────────┘
                             │ HTTP JSON / Query Params / Headers (x-timezone, x-user-id)
-                            ▼
+                            v
 ┌────────────────────────────────────────────────────────┐
 │      1. Controller Layer (src/routes/api)              │
 │  - todos/+server.ts         : Feed list & Todo creation│
@@ -58,7 +58,7 @@ The system adheres strictly to a decoupled **Controller — Service — Data Acc
 │  - errors.ts                : Centralized AppError     │
 └───────────────────────────┬────────────────────────────┘
                             │ Typed DTOs / Primitive Arguments
-                            ▼
+                            v
 ┌────────────────────────────────────────────────────────┐
 │      2. Domain Service Layer (src/lib/server/services) │
 │  - todo.service.ts          : CRUD, calendar, search   │
@@ -70,14 +70,14 @@ The system adheres strictly to a decoupled **Controller — Service — Data Acc
 │  - timezone.ts              : IANA validation & days   │
 └───────────────────────────┬────────────────────────────┘
                             │ Database Instance (DI)
-                            ▼
+                            v
 ┌────────────────────────────────────────────────────────┐
 │      3. Data Access Layer (src/lib/server/db)          │
 │  - schema.ts                : Drizzle tables & enums   │
 │  - index.ts                 : Neon HTTP client init    │
 └───────────────────────────┬────────────────────────────┘
                             │ HTTP SQL Pipeline
-                            ▼
+                            v
 ┌────────────────────────────────────────────────────────┐
 │      4. Storage Engine: Neon Serverless PostgreSQL     │
 └────────────────────────────────────────────────────────┘
@@ -111,11 +111,11 @@ The system adheres strictly to a decoupled **Controller — Service — Data Acc
         │               │                                           │ start_date: timestamptz      │
         │ 1:N           │ 1:N                                       │ due_date: timestamptz (null) │
         │               │                                           │ created_at: timestamptz      │
-        ▼               ▼                                           │ updated_at: timestamptz      │
+        v               v                                           │ updated_at: timestamptz      │
 ┌──────────────────────────────┐                                    └──────────────────────────────┘
 │          reactions           │                                                   │       │
 ├──────────────────────────────┤                                                   │       │ 1:N (Cascade Delete)
-│ id: uuid (PK)                │                                                   │       ▼
+│ id: uuid (PK)                │                                                   │       v
 │ todo_id: uuid (FK->todos)    │<──────────────────────────────────────────────────┘ ┌──────────────────────────────┐
 │ user_id: uuid (FK->users)    │                                                     │       todo_activities        │
 │ emoji: text                  │                                                     ├──────────────────────────────┤
@@ -132,7 +132,7 @@ The system adheres strictly to a decoupled **Controller — Service — Data Acc
 | Column | SQL Type | Drizzle Type | Constraints / Defaults | Business Purpose |
 |---|---|---|---|---|
 | `id` | `uuid` | `uuid` | `PRIMARY KEY`, `defaultRandom()` | Global unique user identifier |
-| `email` | `text` | `text` | `NOT NULL`, `UNIQUE` | Email used for passwordless identity |
+| `email` | `text` | `text` | `NOT NULL`, `UNIQUE` | Email used for user identity |
 | `handle` | `text` | `text` | `NOT NULL`, `UNIQUE` | Unique URL handle (e.g. `alexchen`) |
 | `nickname` | `text` | `text` | `NOT NULL` | Display name (defaults to email prefix) |
 | `avatar` | `text` | `text` | `NULL` | Custom avatar URL (fallback to DiceBear) |
@@ -163,7 +163,7 @@ The system adheres strictly to a decoupled **Controller — Service — Data Acc
 | `id` | `uuid` | `uuid` | `PRIMARY KEY`, `defaultRandom()` | Reaction PK |
 | `todo_id` | `uuid` | `uuid` | `NOT NULL`, `FK(todos.id ON DELETE CASCADE)` | Associated Todo (cascades on delete) |
 | `user_id` | `uuid` | `uuid` | `NOT NULL`, `REFERENCES users(id)` | Cheering user |
-| `emoji` | `text` | `text` | `NOT NULL` | Emoji: `❤️`, `👍`, `🔥`, `💪`, `👏`, `🚀`, `🎉`, `👀` |
+| `emoji` | `text` | `text` | `NOT NULL` | Reaction code: `heart`, `like`, `fire`, `strong`, `clap`, `rocket`, `party`, `eyes` |
 | `created_at` | `timestamptz`| `timestamp` | `NOT NULL`, `defaultNow()` | Timestamp of reaction |
 
 *Unique Constraint: `UNIQUE("todo_id", "user_id", "emoji")` prevents duplicate reaction by the same user.*
@@ -255,7 +255,7 @@ Ensures multi-timezone resilience and prevents SQL injection:
 
 ### 3.5 User Service (`user.service.ts`)
 
-- `findOrCreate(db, email)`: WordPress-style frictionless onboarding. Automatically generates sanitized URL handle and nickname on first appearance.
+- `findOrCreate(db, email)`: Email-based onboarding. Automatically generates sanitized URL handle and nickname on first appearance.
 - `findByIdOrHandle(db, identifier)`: Polymorphic lookup supporting either 36-char UUID or handle string.
 - `toUserProfile(user, { isSelf })`: Domain projection ensuring email address is only exposed to the author.
 - `listUsersWithTodosInWeek(db, options)`: Efficient user-first calendar query using `INNER JOIN todos` to eliminate inactive empty rows.
@@ -272,21 +272,21 @@ Ensures multi-timezone resilience and prevents SQL injection:
         │      ┌─────────────┐                           │
         │      │   pending   │                           │
         │      └──────┬──────┘                           │
-        │             ▲                                  │
+        │             ^                                  │
         │      Reopen │  Start / Complete / Shelve       │
-        │             ▼                                  │
+        │             v                                  │
         │      ┌─────────────┐                           │
         │      │ in_progress │                           │
         │      └──────┬──────┘                           │
-        │             ▲                                  │
+        │             ^                                  │
         │      Reopen │  Complete / Shelve               │
-        │             ▼                                  │
+        │             v                                  │
         │      ┌─────────────┐                           │
         │      │    done     │                           │
         │      └──────┬──────┘                           │
-        │             ▲                                  │
+        │             ^                                  │
         │      Reopen │  Retro / Shelve                  │
-        │             ▼                                  │
+        │             v                                  │
         │      ┌─────────────┐                           │
         │      │  abandoned  │                           │
         │      └─────────────┘                           │
@@ -313,7 +313,7 @@ All backend logic is rigorously verified with **Vitest**:
 | `topic-hash.test.ts` | Verifies CJK punctuation trimming, case insensitivity, whitespace collapse, and SHA-256 slicing. |
 | `timezone.test.ts` | Tests IANA timezone validation, daylight savings day boundaries, and SQL safety. |
 | `topics-query.test.ts` | Verifies multi-participant topic aggregation, sorting algorithms, and participant lists. |
-| `reaction.service.test.ts` | Verifies 8-emoji counters, single-query non-N+1 GROUP BY operations, and duplicate 409 prevention. |
+| `reaction.service.test.ts` | Verifies 8-reaction counters, single-query non-N+1 GROUP BY operations, and duplicate 409 prevention. |
 
 ---
 

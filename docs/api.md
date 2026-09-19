@@ -65,36 +65,36 @@ On failure, endpoints respond with HTTP 4xx or 5xx status codes and a structured
 ### 3.1 Todo Lifecycle Status (`status`)
 | Status Code | Label | Description | Allowed Next States |
 |---|---|---|---|
-| `pending` | Pending (待办) | Newly created or planned | `in_progress`, `done`, `abandoned` |
-| `in_progress` | In Progress (推进中) | Actively being worked on | `pending`, `done`, `abandoned` |
-| `done` | Completed (已达成) | Finished successfully (supports reopening) | `pending`, `in_progress`, `abandoned` |
-| `abandoned` | Abandoned (已放弃) | Shelved or canceled (supports reopening) | `pending`, `in_progress`, `done` |
+| `pending` | Pending | Newly created or planned | `in_progress`, `done`, `abandoned` |
+| `in_progress` | In Progress | Actively being worked on | `pending`, `done`, `abandoned` |
+| `done` | Completed | Finished successfully (supports reopening) | `pending`, `in_progress`, `abandoned` |
+| `abandoned` | Abandoned | Shelved or canceled (supports reopening) | `pending`, `in_progress`, `done` |
 
 *Note: The state machine is fully connected and bidirectional. Same-state transitions (`from === to`) are idempotent no-ops.*
 
 ### 3.2 Categories (`category`)
 | ID | Display Label | Semantic Purpose |
 |---|---|---|
-| `study` | Study (学习) | Reading, certifications, academic research, note-taking |
-| `fitness` | Fitness (健身) | Running, gym, sports, diet and health targets |
-| `finance` | Finance (理财) | Budgeting, investing, financial management |
-| `dev` | Dev (开发) | Coding, side projects, releases, technical writing |
-| `life` | Life (生活) | Chores, daily routines, social gatherings |
-| `other` | Other (其他) | General unclassified aspirations |
+| `study` | Study | Reading, certifications, academic research, note-taking |
+| `fitness` | Fitness | Running, gym, sports, diet and health targets |
+| `finance` | Finance | Budgeting, investing, financial management |
+| `dev` | Dev | Coding, side projects, releases, technical writing |
+| `life` | Life | Chores, daily routines, social gatherings |
+| `other` | Other | General unclassified aspirations |
 
-### 3.3 Reaction Emojis (`emoji`)
-The platform supports 8 expressive reaction emojis for peer cheering and witnessing:
+### 3.3 Reaction Indicators (`emoji`)
+The platform supports 8 reaction indicators for peer cheering and witnessing:
 
-| Emoji | Name | Semantic Intent | Active Color Scheme |
-|:---:|---|---|---|
-| `❤️` | Heart | Love, care, solidarity | Rose tint (`border-rose-300 text-rose-700`) |
-| `👍` | Like | Endorsement, agreement | Blue tint (`border-blue-300 text-blue-700`) |
-| `🔥` | Fire | Momentum, hyped, rooting | Orange tint (`border-orange-300 text-orange-700`) |
-| `💪` | Strong | Determination, persistence | Emerald tint (`border-emerald-300 text-emerald-700`) |
-| `👏` | Clap | Celebration, applause | Amber tint (`border-amber-300 text-amber-700`) |
-| `🚀` | Rocket | Accelerated progress, shipping | Indigo tint (`border-indigo-300 text-indigo-700`) |
-| `🎉` | Party | Milestone triumph, victory | Yellow tint (`border-yellow-300 text-yellow-700`) |
-| `👀` | Watching | Witnessing, keeping an eye on | Zinc tint (`border-zinc-300 text-zinc-700`) |
+| Code | Name | Semantic Intent | Active Color Scheme |
+|---|---|---|---|
+| `heart` | Heart | Care and solidarity | Rose tint (`border-rose-300 text-rose-700`) |
+| `like` | Like | Endorsement and agreement | Blue tint (`border-blue-300 text-blue-700`) |
+| `fire` | Fire | Momentum and encouragement | Orange tint (`border-orange-300 text-orange-700`) |
+| `strong` | Strong | Determination and persistence | Emerald tint (`border-emerald-300 text-emerald-700`) |
+| `clap` | Clap | Celebration and applause | Amber tint (`border-amber-300 text-amber-700`) |
+| `rocket` | Rocket | Accelerated progress | Indigo tint (`border-indigo-300 text-indigo-700`) |
+| `party` | Party | Milestone celebration | Yellow tint (`border-yellow-300 text-yellow-700`) |
+| `eyes` | Watching | Witnessing and observation | Zinc tint (`border-zinc-300 text-zinc-700`) |
 
 ---
 
@@ -145,8 +145,8 @@ Retrieve a paginated stream of public todos with rich filtering options.
         "handle": "alexchen",
         "avatar": null
       },
-      "reactions": { "❤️": 0, "👍": 2, "🔥": 5, "💪": 3, "👏": 1, "🚀": 4, "🎉": 0, "👀": 7 },
-      "myReactions": ["🔥", "🚀"],
+      "reactions": { "heart": 0, "like": 2, "fire": 5, "strong": 3, "clap": 1, "rocket": 4, "party": 0, "eyes": 7 },
+      "myReactions": ["fire", "rocket"],
       "topicParticipantCount": 3,
       "myJoinedTodo": null
     }
@@ -158,7 +158,7 @@ Retrieve a paginated stream of public todos with rich filtering options.
 ---
 
 #### `POST /api/todos` — Publish a Public Todo
-Publish a new public commitment. Adopts passwordless onboarding: providing an email automatically finds or provisions a user profile.
+Publish a new public commitment. Providing an email automatically finds or provisions a user profile.
 
 ##### Request Body
 | Field | Type | Required | Default | Constraints | Description |
@@ -188,7 +188,7 @@ Publish a new public commitment. Adopts passwordless onboarding: providing an em
     "dueDate": null,
     "createdAt": "2026-08-26T08:00:00.000Z",
     "updatedAt": "2026-08-26T08:00:00.000Z",
-    "reactions": { "❤️": 0, "👍": 0, "🔥": 0, "💪": 0, "👏": 0, "🚀": 0, "🎉": 0, "👀": 0 },
+    "reactions": { "heart": 0, "like": 0, "fire": 0, "strong": 0, "clap": 0, "rocket": 0, "party": 0, "eyes": 0 },
     "myReactions": []
   },
   "author": {
@@ -235,8 +235,8 @@ Fetch single todo by UUID or 8-character `shortId`. Returns author info, reactio
       "handle": "alexchen",
       "avatar": null
     },
-    "reactions": { "❤️": 1, "👍": 4, "🔥": 2, "💪": 0, "👏": 0, "🚀": 1, "🎉": 0, "👀": 3 },
-    "myReactions": ["🔥"],
+    "reactions": { "heart": 1, "like": 4, "fire": 2, "strong": 0, "clap": 0, "rocket": 1, "party": 0, "eyes": 3 },
+    "myReactions": ["fire"],
     "activities": [
       {
         "id": "11c946e3-f661-4fa3-9f5b-1662991ddf01",
@@ -428,8 +428,8 @@ Retrieve deep companion metrics and full participant lists for a specific goal h
         "dueDate": null,
         "createdAt": "2026-08-26T08:00:00.000Z",
         "isMe": true,
-        "reactions": { "❤️": 1, "👍": 2, "🔥": 4, "💪": 0, "👏": 0, "🚀": 0, "🎉": 0, "👀": 1 },
-        "myReactions": ["🔥"],
+        "reactions": { "heart": 1, "like": 2, "fire": 4, "strong": 0, "clap": 0, "rocket": 0, "party": 0, "eyes": 1 },
+        "myReactions": ["fire"],
         "user": {
           "id": "a9bf1c17-646e-4401-9f93-5c026e64ec64",
           "nickname": "Alex Chen",
@@ -533,7 +533,7 @@ User-first calendar matrix returning active creators with commitments in `[start
       "dueDate": null,
       "createdAt": "2026-08-26T08:00:00.000Z",
       "updatedAt": "2026-08-26T08:30:00.000Z",
-      "reactions": { "❤️": 0, "👍": 0, "🔥": 2, "💪": 1, "👏": 0, "🚀": 1, "🎉": 0, "👀": 3 }
+      "reactions": { "heart": 0, "like": 0, "fire": 2, "strong": 1, "clap": 0, "rocket": 1, "party": 0, "eyes": 3 }
     }
   ],
   "hasMoreUsers": false
@@ -551,7 +551,7 @@ Cheer and witness a todo using one of the 8 emojis. Automatically creates an acc
 ```json
 {
   "email": "supporter@example.com",
-  "emoji": "🔥"
+  "emoji": "fire"
 }
 ```
 
@@ -562,7 +562,7 @@ Cheer and witness a todo using one of the 8 emojis. Automatically creates an acc
     "id": "3bb62c64-41d6-444a-992a-8cf8feccefa7",
     "todoId": "78c946e3-f661-4fa3-9f5b-1662991ddf31",
     "userId": "b1234567-1111-2222-3333-444455556666",
-    "emoji": "🔥",
+    "emoji": "fire",
     "createdAt": "2026-08-26T10:20:00.000Z"
   }
 }
@@ -577,7 +577,7 @@ Remove an existing reaction for the given email and emoji.
 ```json
 {
   "email": "supporter@example.com",
-  "emoji": "🔥"
+  "emoji": "fire"
 }
 ```
 
@@ -598,7 +598,7 @@ Returns detailed emoji counts and participant profiles.
 {
   "reactions": [
     {
-      "emoji": "🔥",
+      "emoji": "fire",
       "count": 1,
       "users": [
         {
@@ -616,7 +616,7 @@ Returns detailed emoji counts and participant profiles.
 
 ### 4.5 User Profiles & Observability (`/api/users`)
 
-#### `POST /api/users` — Synchronize / Passwordless Login
+#### `POST /api/users` — Synchronize User Account
 Authenticate or initialize a user account with email.
 
 ##### Request Body
@@ -818,7 +818,7 @@ Monitors uptime and basic service availability.
 | **TC-TODO-08** | `GET /api/todos` | Query feed with category and cursor | `200 OK` | Returns `todos` array and `nextCursor` |
 | **TC-TOPIC-01**| `GET /api/topics` | Discover trending goals | `200 OK` | Returns `topics` with participants and completionRate |
 | **TC-TOPIC-02**| `GET /api/topics/:hash` | Query specific goal hash | `200 OK` | `topic.topicHash == :hash` |
-| **TC-REACT-01**| `POST /api/todos/:id/reactions` | React with `🚀` | `201 Created` | Reaction recorded |
+| **TC-REACT-01**| `POST /api/todos/:id/reactions` | React with `rocket` | `201 Created` | Reaction recorded |
 | **TC-REACT-02**| `POST /api/todos/:id/reactions` | Duplicate reaction with same emoji | `409 Conflict` | `error.code == "DUPLICATE_REACTION"` |
 | **TC-REACT-03**| `DELETE /api/todos/:id/reactions` | Remove previously placed reaction | `200 OK` | `success == true` |
 | **TC-USER-01** | `GET /api/users/:id` | Fetch user profile by handle | `200 OK` | `user.handle` matches, email redacted |
