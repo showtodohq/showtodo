@@ -3,6 +3,7 @@
 	import type { CategoryId } from '$lib/types/todo';
 	import TodoItem from '$lib/components/todo/TodoItem.svelte';
 	import DataView from '$lib/components/ui/DataView.svelte';
+	import FeedSkeleton from '$lib/components/skeleton/FeedSkeleton.svelte';
 
 	interface Props {
 		resource: ReturnType<typeof createMyTodosResource>;
@@ -26,6 +27,10 @@
 		loading={resource.loading}
 		empty={resource.streamFilteredTodos.length === 0}
 	>
+		{#snippet skeleton()}
+			<FeedSkeleton count={3} />
+		{/snippet}
+
 		{#snippet emptyView()}
 			<div
 				class="rounded-3xl border border-dashed border-zinc-200 dark:border-zinc-800/80 py-20 text-center text-xs text-zinc-400 space-y-2"

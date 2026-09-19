@@ -21,9 +21,13 @@ function getInitialWorkbenchData(handle?: string | null): {
 	todoIds: string[];
 	hasCache: boolean;
 } {
-	if (!handle) {
+	// 1. 若没有 handle 或匹配当前登录用户
+	if (!handle || userStore.isAuthor(handle)) {
 		const currentUser = userStore.current;
-		const cachedTodoIds = userStore.id ? userProfileRegistry.getUserTodoIds(userStore.id) : undefined;
+		const cachedTodoIds =
+			(handle ? userProfileRegistry.getUserTodoIds(handle) : undefined) ||
+			(userStore.id ? userProfileRegistry.getUserTodoIds(userStore.id) : undefined);
+
 		if (currentUser && cachedTodoIds !== undefined) {
 			return {
 				targetUser: currentUser,
@@ -31,13 +35,17 @@ function getInitialWorkbenchData(handle?: string | null): {
 				hasCache: true
 			};
 		}
-		return {
-			targetUser: currentUser,
-			todoIds: [],
-			hasCache: false
-		};
+
+		if (currentUser) {
+			return {
+				targetUser: currentUser,
+				todoIds: cachedTodoIds || [],
+				hasCache: Boolean(cachedTodoIds !== undefined)
+			};
+		}
 	}
 
+	// 2. 外部用户工作台：从全局注册表检索
 	const cachedUser = userProfileRegistry.getProfile(handle);
 	const cachedTodoIds = userProfileRegistry.getUserTodoIds(handle);
 
@@ -54,16 +62,6 @@ function getInitialWorkbenchData(handle?: string | null): {
 			targetUser: cachedUser,
 			todoIds: cachedTodoIds || [],
 			hasCache: Boolean(cachedTodoIds !== undefined)
-		};
-	}
-
-	if (userStore.isAuthor(handle)) {
-		const currentUser = userStore.current;
-		const userTodoIds = userStore.id ? userProfileRegistry.getUserTodoIds(userStore.id) : undefined;
-		return {
-			targetUser: currentUser,
-			todoIds: userTodoIds || [],
-			hasCache: Boolean(userTodoIds !== undefined)
 		};
 	}
 
@@ -355,6 +353,15 @@ export function createMyTodosResource(initialTargetHandle?: string) {
 				if (userStore.isAuthor(handleToLoad) && userStore.current) {
 					targetUser = userStore.current;
 					targetAuthorId = userStore.id;
+					if (userStore.id) {
+						userProfileRegistry.upsertProfile({
+							id: userStore.id,
+							handle: userStore.handle,
+							nickname: userStore.nickname,
+							avatar: userStore.avatar,
+							email: userStore.email
+						});
+					}
 				} else {
 					// 2. 若全局用户注册表已有缓存档案，直接复用已登记的用户 ID，避免重复网络查询
 					const cachedProfile = userProfileRegistry.getProfile(handleToLoad);
@@ -411,6 +418,12 @@ export function createMyTodosResource(initialTargetHandle?: string) {
 			}
 			if (handleToLoad) {
 				userProfileRegistry.setUserTodoIds(handleToLoad, uniqueIds);
+			}
+			if (targetUser?.id) {
+				userProfileRegistry.setUserTodoIds(targetUser.id, uniqueIds);
+			}
+			if (targetUser?.handle) {
+				userProfileRegistry.setUserTodoIds(targetUser.handle, uniqueIds);
 			}
 		} catch (err) {
 			console.error('Failed to load todos for workbench:', err);

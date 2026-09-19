@@ -230,6 +230,36 @@ describe('createMyTodosResource (TDD)', () => {
 		expect(resource.targetUser?.handle).toBe('bob_dev');
 	});
 
+	it('persists todos and instantly hydrates when user navigates away and returns', async () => {
+		userStore.setSession({
+			id: 'user-alex',
+			email: 'alex@example.com',
+			nickname: 'Alex',
+			handle: 'alex_dev'
+		});
+
+		const t1 = mockTodo('t1', 'pending', '真实待办');
+		t1.authorId = 'user-alex';
+
+		vi.spyOn(api, 'getTodos').mockResolvedValueOnce({
+			todos: [t1],
+			nextCursor: null
+		});
+
+		// 1. 用户首次进入 Todolist 页面
+		const page1Resource = createMyTodosResource('alex_dev');
+		await page1Resource.load();
+		expect(page1Resource.todos.length).toBe(1);
+
+		// 2. 用户进入详情页并返回 Todolist 页面 (组件重新挂载，重新实例化)
+		const page2Resource = createMyTodosResource('alex_dev');
+
+		// 必须 0ms 瞬间恢复，绝不能为 loading: true 或空列表！
+		expect(page2Resource.loading).toBe(false);
+		expect(page2Resource.todos.length).toBe(1);
+		expect(page2Resource.todos[0].content).toBe('真实待办');
+	});
+
 	it('instantly hydrates from userProfileRegistry cache on creation (0ms initial render)', () => {
 		const cachedUser = {
 			id: 'user-alex',

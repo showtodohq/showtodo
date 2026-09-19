@@ -50,10 +50,13 @@ class UserProfileRegistry {
 	 * 登记用户的所有待办 ID 序列
 	 */
 	setUserTodoIds(identifier: string, todoIds: string[]) {
-		const realId = this.getRealUserId(identifier);
-		if (realId) {
-			this.userTodoIdsMap[realId] = [...todoIds];
-		}
+		if (!identifier) return;
+		const clean = identifier.startsWith('@') ? identifier.slice(1).toLowerCase() : identifier.toLowerCase();
+		const realId = this.getRealUserId(identifier) || clean;
+		const idsCopy = [...todoIds];
+		this.userTodoIdsMap[realId] = idsCopy;
+		this.userTodoIdsMap[clean] = idsCopy;
+		this.userTodoIdsMap[identifier] = idsCopy;
 	}
 
 	/**
@@ -62,7 +65,10 @@ class UserProfileRegistry {
 	getRealUserId(identifier?: string | null): string | undefined {
 		if (!identifier) return undefined;
 		const clean = identifier.startsWith('@') ? identifier.slice(1).toLowerCase() : identifier.toLowerCase();
-		return this.handleMap[clean] || (this.profiles[identifier] ? identifier : undefined);
+		if (this.handleMap[clean]) return this.handleMap[clean];
+		if (this.profiles[identifier]) return identifier;
+		if (this.profiles[clean]) return clean;
+		return undefined;
 	}
 
 	/**
@@ -70,14 +76,21 @@ class UserProfileRegistry {
 	 */
 	getProfile(identifier?: string | null): UserProfile | undefined {
 		if (!identifier) return undefined;
-		const realId = this.getRealUserId(identifier) || identifier;
-		return this.profiles[realId];
+		const clean = identifier.startsWith('@') ? identifier.slice(1).toLowerCase() : identifier.toLowerCase();
+		const realId = this.getRealUserId(identifier) || clean;
+		return this.profiles[realId] || this.profiles[clean] || this.profiles[identifier];
 	}
 
+	/**
+	 * 获取已缓存的用户待办 ID 列表
+	 */
 	getUserTodoIds(identifier?: string | null): string[] | undefined {
 		if (!identifier) return undefined;
-		const realId = this.getRealUserId(identifier) || identifier;
-		return this.userTodoIdsMap[realId];
+		const clean = identifier.startsWith('@') ? identifier.slice(1).toLowerCase() : identifier.toLowerCase();
+		const realId = this.getRealUserId(identifier);
+		if (realId && this.userTodoIdsMap[realId]) return this.userTodoIdsMap[realId];
+		if (this.userTodoIdsMap[clean]) return this.userTodoIdsMap[clean];
+		return this.userTodoIdsMap[identifier];
 	}
 
 	/**
