@@ -13,6 +13,8 @@
 	import Button from '$lib/components/ui/Button.svelte';
 	import TodoDetailCard from '$lib/components/todo/TodoDetailCard.svelte';
 	import TodoActivityTimeline from '$lib/components/todo/TodoActivityTimeline.svelte';
+	import { getTodoDetailSeo } from '$lib/constants/seo';
+	import SeoHead from '$lib/components/seo/SeoHead.svelte';
 	import Icon from '@iconify/svelte';
 
 	const detailRes = createTodoDetailResource(page.params.id);
@@ -47,11 +49,22 @@
 		await detailRes.handleStatusChange(TODO_STATUS.ABANDONED);
 		toast.success('Todo marked as abandoned');
 	}
+
+	const todoSeo = $derived(
+		getTodoDetailSeo(
+			detailRes.todo
+				? {
+						id: detailRes.todo.id,
+						shortId: detailRes.todo.shortId,
+						content: detailRes.todo.content,
+						author: detailRes.todo.author
+					}
+				: undefined
+		)
+	);
 </script>
 
-<svelte:head>
-	<title>{detailRes.todo ? `${detailRes.todo.content.slice(0, 24)}${detailRes.todo.content.length > 24 ? '...' : ''} · Todo Details · ShowTodo` : 'Todo Details · ShowTodo'}</title>
-</svelte:head>
+<SeoHead seo={todoSeo} />
 
 <div class="w-full space-y-6 sm:space-y-8">
 	<DataView

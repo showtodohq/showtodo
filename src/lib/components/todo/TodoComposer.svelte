@@ -21,7 +21,7 @@
 	let {
 		onsubmit,
 		selectedCategory = $bindable<CategoryId | null>(null),
-		placeholder = 'Write down a goal for today...',
+		placeholder = 'What are you going to do today? Show your todo...',
 		class: className = ''
 	}: Props = $props();
 

@@ -14,6 +14,8 @@
 	import UserProfileCard from '$lib/components/user/UserProfileCard.svelte';
 	import UserStatsGrid from '$lib/components/user/UserStatsGrid.svelte';
 	import ActivityHeatmap from '$lib/components/stats/ActivityHeatmap.svelte';
+	import { getUserProfileSeo } from '$lib/constants/seo';
+	import SeoHead from '$lib/components/seo/SeoHead.svelte';
 	import Icon from '@iconify/svelte';
 
 	const profileRes = createUserProfileResource(page.params.handle);
@@ -94,11 +96,21 @@
 			goto(`/@${updatedUser.handle}`, { replaceState: true, noScroll: true });
 		}
 	}
+
+	const profileSeo = $derived(
+		getUserProfileSeo(
+			profileRes.user
+				? {
+						nickname: profileRes.user.nickname,
+						handle: profileRes.user.handle,
+						avatar: profileRes.user.avatar
+					}
+				: undefined
+		)
+	);
 </script>
 
-<svelte:head>
-	<title>{profileRes.user ? `${profileRes.user.nickname} (@${profileRes.user.handle}) · Profile · ShowTodo` : 'User Profile · ShowTodo'}</title>
-</svelte:head>
+<SeoHead seo={profileSeo} />
 
 <div class="w-full space-y-6 sm:space-y-8">
 	<DataView

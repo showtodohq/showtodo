@@ -284,7 +284,7 @@
 				onkeydown={handleKeydown}
 				oncompositionstart={handleCompositionStart}
 				oncompositionend={handleCompositionEnd}
-				placeholder="What are you planning to do today? e.g. Read 50 pages, ship feature..."
+				placeholder="What are you going to do today? Show your todo (e.g. Ship feature, read 30 mins)..."
 				rows="3"
 				class="w-full resize-none bg-transparent text-sm sm:text-base font-medium placeholder:font-normal placeholder:text-zinc-400 dark:placeholder:text-zinc-500 text-zinc-900 dark:text-zinc-100 focus:outline-hidden leading-relaxed py-1"
 			></textarea>

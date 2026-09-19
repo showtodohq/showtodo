@@ -23,6 +23,8 @@
 	import Tabs from '$lib/components/ui/Tabs.svelte';
 	import FilterChip from '$lib/components/ui/FilterChip.svelte';
 	import { TRENDING_SCOPE_TABS, type TrendingScopeMode } from '$lib/constants/tabs';
+	import { getTrendingSeo } from '$lib/constants/seo';
+	import SeoHead from '$lib/components/seo/SeoHead.svelte';
 
 	const topicsRes = createTopicsResource();
 
@@ -173,14 +175,14 @@
 		return parts.join(' · ');
 	});
 
+	const trendingSeo = $derived(getTrendingSeo(searchInput));
+
 	onMount(() => {
 		topicsRes.load(true);
 	});
 </script>
 
-<svelte:head>
-	<title>Trending · ShowTodo</title>
-</svelte:head>
+<SeoHead seo={trendingSeo} />
 
 <div class="w-full space-y-5 sm:space-y-6">
 	<!-- Page title bar -->

@@ -26,6 +26,8 @@
 	import Tabs from '$lib/components/ui/Tabs.svelte';
 	import FilterChip from '$lib/components/ui/FilterChip.svelte';
 	import { TODOLIST_VIEW_MODES, type TodoListViewMode } from '$lib/constants/tabs';
+	import { getUserWorkbenchSeo } from '$lib/constants/seo';
+	import SeoHead from '$lib/components/seo/SeoHead.svelte';
 	import Icon from '@iconify/svelte';
 
 	const handleParam = $derived(page.params.handle);
@@ -157,11 +159,21 @@
 			});
 		}
 	});
+
+	const listSeo = $derived(
+		getUserWorkbenchSeo(
+			resource.targetUser
+				? {
+						nickname: resource.targetUser.nickname,
+						handle: resource.targetUser.handle,
+						avatar: resource.targetUser.avatar
+					}
+				: undefined
+		)
+	);
 </script>
 
-<svelte:head>
-	<title>{resource.targetUser ? `${resource.targetUser.nickname}'s Todolist · ShowTodo` : 'Todolist · ShowTodo'}</title>
-</svelte:head>
+<SeoHead seo={listSeo} />
 
 <div class="w-full space-y-6 sm:space-y-8">
 	<!-- Breadcrumbs -->

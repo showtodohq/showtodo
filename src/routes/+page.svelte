@@ -14,12 +14,16 @@
 	import MyTodayWidget from '$lib/components/widgets/MyTodayWidget.svelte';
 	import TrendingTopicsWidget from '$lib/components/widgets/TrendingTopicsWidget.svelte';
 	import SiteStatsWidget from '$lib/components/widgets/SiteStatsWidget.svelte';
+	import { getHomeSeo } from '$lib/constants/seo';
+	import SeoHead from '$lib/components/seo/SeoHead.svelte';
 	import Icon from '@iconify/svelte';
 
 	// 分类筛选与顶部发布框联动
 	let activeCategoryFilter = $state<CategoryId | null>(null);
 	let composerCategory = $state<CategoryId | null>(null);
 	// URL 与当前身份是加载依赖；store 内部的 loading/loaded 不应成为 effect 依赖。
+
+	const homeSeo = $derived(getHomeSeo(activeCategoryFilter));
 
 	function handleCategoryFilter(catId: string) {
 		if (activeCategoryFilter === catId) {
@@ -55,9 +59,7 @@
 	}
 </script>
 
-<svelte:head>
-	<title>ShowTodo · Public Collaborative Todos</title>
-</svelte:head>
+<SeoHead seo={homeSeo} />
 
 <div class="w-full space-y-6 sm:space-y-8">
 	<!-- Top composer -->
