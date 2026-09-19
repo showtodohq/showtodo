@@ -41,7 +41,6 @@ export interface StatusConfig {
 	bgClass: string;
 	textClass: string;
 	borderClass: string;
-	dotClass: string;
 	actionColorClass: string;
 	actionButtonClass: string;
 	// 详情弹窗专用的状态按钮样式
@@ -71,7 +70,6 @@ export const TODO_STATUSES: StatusConfig[] = [
 		bgClass: 'bg-zinc-100 dark:bg-zinc-800',
 		textClass: 'text-zinc-700 dark:text-zinc-300',
 		borderClass: 'border-zinc-200 dark:border-zinc-700',
-		dotClass: 'bg-zinc-400',
 		actionColorClass: 'text-zinc-400 dark:text-zinc-500',
 		actionButtonClass:
 			'bg-zinc-100 text-zinc-700 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700',
@@ -89,7 +87,6 @@ export const TODO_STATUSES: StatusConfig[] = [
 		bgClass: 'bg-blue-50 dark:bg-blue-950/40',
 		textClass: 'text-blue-700 dark:text-blue-300',
 		borderClass: 'border-blue-200 dark:border-blue-800/60',
-		dotClass: 'bg-blue-500',
 		actionColorClass: 'text-blue-600 dark:text-blue-400',
 		actionButtonClass:
 			'bg-blue-50 text-blue-700 hover:bg-blue-100 dark:bg-blue-950/60 dark:text-blue-300 dark:hover:bg-blue-900/60',
@@ -106,7 +103,6 @@ export const TODO_STATUSES: StatusConfig[] = [
 		bgClass: 'bg-emerald-50 dark:bg-emerald-950/40',
 		textClass: 'text-emerald-700 dark:text-emerald-300',
 		borderClass: 'border-emerald-200 dark:border-emerald-800/60',
-		dotClass: 'bg-emerald-500',
 		actionColorClass: 'text-emerald-600 dark:text-emerald-400',
 		actionButtonClass:
 			'bg-emerald-50 text-emerald-700 hover:bg-emerald-100 dark:bg-emerald-950/60 dark:text-emerald-300 dark:hover:bg-emerald-900/60',
@@ -123,7 +119,6 @@ export const TODO_STATUSES: StatusConfig[] = [
 		bgClass: 'bg-zinc-100 dark:bg-zinc-800/60',
 		textClass: 'text-zinc-600 dark:text-zinc-400',
 		borderClass: 'border-zinc-200 dark:border-zinc-700',
-		dotClass: 'bg-zinc-400',
 		actionColorClass: 'text-zinc-500 dark:text-zinc-400',
 		actionButtonClass:
 			'bg-zinc-100 text-zinc-600 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-700',
@@ -148,7 +143,6 @@ export function getStatusConfig(status: TodoStatus | string): StatusConfig {
 			bgClass: 'bg-zinc-100',
 			textClass: 'text-zinc-700',
 			borderClass: 'border-zinc-200',
-			dotClass: 'bg-zinc-400',
 			actionColorClass: 'text-zinc-400',
 			actionButtonClass: 'bg-zinc-100 text-zinc-700',
 			activeButtonClass: 'bg-zinc-900 text-white border-zinc-900',

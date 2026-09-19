@@ -27,7 +27,6 @@
 		TODO_STATUSES.map((st) => ({
 			status: st.id,
 			label: st.label,
-			dotClass: st.dotClass,
 			actionColorClass: st.actionColorClass,
 			todos: resource.kanbanColumns[st.id] || []
 		}))

@@ -98,12 +98,14 @@ describe('Constants Domain Ubiquitous Language (TDD)', () => {
 		expect(TODO_STATUS_ICON_SIZES.lg).toBe('h-5 w-5');
 	});
 
-	it('ensures StatusConfig does not contain legacy icon string properties', () => {
+	it('ensures StatusConfig does not contain legacy icon and dot string properties', () => {
 		for (const st of TODO_STATUSES) {
 			// @ts-expect-error icon should no longer exist
 			expect(st.icon).toBeUndefined();
 			// @ts-expect-error actionIcon should no longer exist
 			expect(st.actionIcon).toBeUndefined();
+			// @ts-expect-error dotClass should no longer exist
+			expect(st.dotClass).toBeUndefined();
 		}
 	});
 });
