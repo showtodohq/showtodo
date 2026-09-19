@@ -39,6 +39,16 @@ describe('about.ts constants', () => {
 		}
 	});
 
+	it('contains accurate highlights including shared goals auto-clustering without hashtag fiction', () => {
+		const highlightIds = ABOUT_CONTENT.highlights.map((h) => h.id);
+		expect(highlightIds).toContain('shared-goals');
+		expect(highlightIds).not.toContain('topic-spaces');
+
+		const sharedGoals = ABOUT_CONTENT.highlights.find((h) => h.id === 'shared-goals');
+		expect(sharedGoals?.description).toContain('clusters them into shared goals');
+		expect(sharedGoals?.description).not.toContain('#');
+	});
+
 	it('generates valid Schema.org JSON-LD string with SoftwareApplication and FAQPage', () => {
 		const jsonLdStr = generateAboutJsonLd(ABOUT_CONTENT);
 		expect(jsonLdStr).toBeTruthy();

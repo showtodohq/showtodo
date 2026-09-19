@@ -131,7 +131,7 @@ export const ABOUT_CONTENT: AboutContent = {
 				'No toxic comment sections, no rage-bait algorithms, and no vanity metrics. ShowTodo provides lightweight emoji reactions that let peers signal respect, cheer, and solidarity when you cross off a meaningful task.',
 			icon: 'lucide:sparkles',
 			points: [
-				'Distraction-free reactions (👀, 🔥, 💪, 👏) celebrating real effort',
+				'Distraction-free reactions (🔥, 💪, 👏, ❤️, 🚀, 👀) celebrating real effort',
 				'Delightful completion micro-interactions that spark joy with every checkbox',
 				'A positive, healthy feedback loop built around tangible execution'
 			]
@@ -183,13 +183,13 @@ export const ABOUT_CONTENT: AboutContent = {
 			icon: 'lucide:globe'
 		},
 		{
-			id: 'topic-spaces',
-			title: 'Topic & Goal Clustering',
-			subtitle: 'Explore by shared passions',
-			badge: '#Topics',
+			id: 'shared-goals',
+			title: 'Shared Goals & Companionship',
+			subtitle: 'Journey together on the same path',
+			badge: 'Trending Goals',
 			description:
-				'Group todos by tags like #dev, #fitness, #reading, or custom sprint hashtags. Discover others pursuing the exact same aspirations.',
-			icon: 'lucide:hash'
+				'When different people pursue similar intentions, ShowTodo automatically clusters them into shared goals. Discover peers with matching ambitions and join the journey with one click.',
+			icon: 'lucide:sparkles'
 		},
 		{
 			id: 'visual-heatmaps',
@@ -240,18 +240,19 @@ export const ABOUT_CONTENT: AboutContent = {
 			shortAnswer:
 				'By observing real task breakdown patterns, time allocations, and consistency habits across diverse domains.',
 			details: [
-				'You can filter feeds by categories (such as Development, Study, Fitness, or Life) or search specific topics.',
-				'You will see firsthand how seasoned developers schedule their sprints, how students organize study intervals, and how creators maintain streaks over months.'
+				'You can filter feeds by categories (Dev, Study, Fitness, Finance, Life, or Other) or search trending goals.',
+				'You will see firsthand how seasoned developers schedule their daily goals, how students organize study intervals, and how creators maintain streaks over months.'
 			]
 		},
 		{
-			id: 'can-i-delete-todos',
-			question: 'Can I edit, delete, or export my todos whenever I want?',
+			id: 'can-i-edit-or-delete-todos',
+			question: 'Can I edit or delete my todos after posting?',
 			shortAnswer:
-				'Yes, absolutely. You retain full ownership of your contributions.',
+				'Yes, absolutely. As the author, you retain complete ownership and control over your tasks.',
 			details: [
-				'As the author, you can update task statuses, edit content, or permanently delete your tasks at any moment.',
-				'Our Privacy Policy guarantees your full data rights, including complete account and task erasure upon request.'
+				'You can edit your todo content and optional note directly from the todo detail view at any time.',
+				'You can transition statuses, post progress check-in notes along your activity timeline, or adjust start and due dates.',
+				'You can permanently delete your todo at any moment with a single confirmation.'
 			]
 		}
 	],
