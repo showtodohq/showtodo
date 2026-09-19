@@ -3,15 +3,12 @@
 	import type { Todo, TodoStatus } from '$lib/types/todo';
 	import {
 		TODO_STATUSES,
-		getStatusConfig,
-		getAllowedNextStatuses,
 		isStatusDone,
 		isStatusAbandoned
 	} from '$lib/constants/status';
 	import { getCategoryConfig } from '$lib/constants/categories';
 	import EmptyState from '$lib/components/ui/EmptyState.svelte';
-	import Popover from '$lib/components/ui/Popover.svelte';
-	import { POPOVER_PLACEMENT, POPOVER_TRIGGER, POPOVER_ROLE } from '$lib/constants/popover';
+	import TodoStatusDropdown from '$lib/components/todo/TodoStatusDropdown.svelte';
 	import { formatRelativeTime } from '$lib/utils/format';
 	import Icon from '@iconify/svelte';
 	import TodoStatusIcon from '$lib/components/todo/TodoStatusIcon.svelte';
@@ -77,7 +74,6 @@
 						</div>
 					{:else}
 						{#each col.todos as todo (todo.id)}
-							{@const currentStatusConfig = getStatusConfig(todo.status)}
 							{@const catConfig = getCategoryConfig(todo.category)}
 							<div
 								class="group/card relative rounded-2xl p-4 shadow-2xs hover:shadow-xs transition-all duration-150 space-y-3 {catConfig
@@ -114,55 +110,10 @@
 										{formatRelativeTime(todo.createdAt)}
 									</span>
 
-									<Popover
-										placement={POPOVER_PLACEMENT.TOP_END}
-										trigger={POPOVER_TRIGGER.CLICK}
-										role={POPOVER_ROLE.MENU}
-										offset={6}
-									>
-										{#snippet triggerSnippet({ triggerProps })}
-											<button
-												type="button"
-												{...triggerProps}
-												class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs font-medium bg-white/80 dark:bg-zinc-800/80 text-zinc-700 dark:text-zinc-300 hover:bg-white dark:hover:bg-zinc-700 transition-colors cursor-pointer shadow-2xs"
-												title="Change status"
-											>
-												<TodoStatusIcon status={todo.status} size="xs" class={currentStatusConfig.actionColorClass} />
-												<span>{currentStatusConfig.label}</span>
-												<svg class="h-3 w-3 text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-													<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-												</svg>
-											</button>
-										{/snippet}
-
-										{#snippet children({ close })}
-											<div
-												class="w-32 rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-1.5 shadow-xl text-xs animate-in fade-in zoom-in-95 duration-100 space-y-0.5"
-											>
-												<div class="px-2 py-1 text-[10px] text-zinc-400 font-medium">
-													Move to
-												</div>
-												{#each TODO_STATUSES as targetSt}
-													<button
-														type="button"
-														onclick={(e) => {
-															resource.changeStatus(todo.id, targetSt.id, e);
-															close();
-														}}
-														class="w-full text-left px-2.5 py-1.5 rounded-xl hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-700 dark:text-zinc-300 transition-colors cursor-pointer flex items-center justify-between {todo.status === targetSt.id ? 'font-semibold bg-zinc-50 dark:bg-zinc-800/50' : ''}"
-													>
-														<span class="flex items-center gap-2">
-															<TodoStatusIcon status={targetSt.id} size="xs" class={targetSt.actionColorClass} />
-															<span>{targetSt.label}</span>
-														</span>
-														{#if todo.status === targetSt.id}
-															<Icon icon="lucide:check" class="h-3.5 w-3.5 text-zinc-400" />
-														{/if}
-													</button>
-												{/each}
-											</div>
-										{/snippet}
-									</Popover>
+									<TodoStatusDropdown
+										status={todo.status}
+										onchange={(nextSt, e) => resource.changeStatus(todo.id, nextSt, e)}
+									/>
 								</div>
 							</div>
 						{/each}
