@@ -52,7 +52,7 @@
 
 <form
 	onsubmit={handleSubmit}
-	class="p-4 rounded-2xl border border-zinc-200/80 dark:border-zinc-800 bg-white/60 dark:bg-zinc-900/60 backdrop-blur-xs space-y-3"
+	class="p-4 sm:p-5 rounded-2xl bg-zinc-50/60 dark:bg-zinc-900/40 space-y-3"
 >
 	<div class="flex items-center justify-between flex-wrap gap-2">
 		<div class="flex items-center gap-1.5 text-xs font-semibold text-zinc-900 dark:text-zinc-100">

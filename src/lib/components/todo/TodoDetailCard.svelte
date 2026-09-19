@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { Todo, TodoStatus, ReactionEmoji } from '$lib/types/todo';
-	import { getStatusConfig, isStatusDone } from '$lib/constants/status';
+	import { getStatusConfig } from '$lib/constants/status';
 	import { getCategoryConfig } from '$lib/constants/categories';
 	import { formatRelativeTime, formatScheduleRange } from '$lib/utils/format';
 	import { toast } from '$lib/stores/toast.svelte';
@@ -8,6 +8,7 @@
 	import Button from '$lib/components/ui/Button.svelte';
 	import CategoryBadge from '$lib/components/todo/CategoryBadge.svelte';
 	import TodoCheckbox from '$lib/components/todo/TodoCheckbox.svelte';
+	import TodoContent from '$lib/components/todo/TodoContent.svelte';
 	import TodoReactionsBar from '$lib/components/todo/TodoReactionsBar.svelte';
 	import Icon from '@iconify/svelte';
 
@@ -76,11 +77,9 @@
 	}
 </script>
 
-<div
-	class="p-6 sm:p-8 rounded-3xl border border-zinc-200/80 dark:border-zinc-800 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-md shadow-xs space-y-6"
->
+<div class="space-y-6 sm:space-y-7">
 	<!-- Author header & checkbox -->
-	<div class="flex items-start justify-between gap-4">
+	<div class="flex items-start justify-between gap-4 pb-1">
 		<a
 			href="/@{todo.author?.handle || todo.authorId}"
 			class="flex items-center gap-3 group/author"
@@ -94,7 +93,7 @@
 			<div>
 				<div class="flex items-center gap-1.5">
 					<span
-						class="text-sm font-semibold text-zinc-900 dark:text-zinc-100 group-hover/author:text-blue-600 transition-colors"
+						class="text-sm font-semibold text-zinc-900 dark:text-zinc-100 group-hover/author:text-zinc-600 dark:group-hover/author:text-zinc-300 transition-colors"
 					>
 						{todo.author?.nickname || 'Unknown'}
 					</span>
@@ -113,7 +112,7 @@
 		</a>
 
 		<!-- Right status badge & interactive checkbox -->
-		<div class="flex items-center gap-2">
+		<div class="flex items-center gap-2.5 shrink-0 pt-0.5">
 			<span
 				class="px-2.5 py-1 rounded-full text-xs font-medium {currentStatusCfg.bgClass} {currentStatusCfg.textClass} border {currentStatusCfg.borderClass}"
 			>
@@ -180,19 +179,16 @@
 		</form>
 	{:else}
 		<div class="space-y-3">
-			<h1
-				class="text-xl sm:text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100 leading-snug break-words {isStatusDone(
-				todo.status
-			)
-					? 'line-through text-zinc-400 dark:text-zinc-500'
-					: ''}"
-			>
-				{todo.content}
-			</h1>
+			<TodoContent
+				content={todo.content}
+				status={todo.status}
+				size="lg"
+				as="h1"
+			/>
 
 			{#if todo.note}
 				<div
-					class="p-4 rounded-2xl bg-zinc-50/80 dark:bg-zinc-800/40 border border-zinc-200/50 dark:border-zinc-800 text-xs sm:text-sm text-zinc-600 dark:text-zinc-300 leading-relaxed break-words"
+					class="relative pl-3.5 sm:pl-4 py-2 text-xs sm:text-sm text-zinc-600 dark:text-zinc-300 leading-relaxed break-words border-l-2 border-zinc-300 dark:border-zinc-700 bg-zinc-50/60 dark:bg-zinc-900/40 rounded-r-xl pr-3"
 				>
 					{todo.note}
 				</div>
