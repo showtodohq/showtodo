@@ -51,6 +51,13 @@ ShowTodo is an open, public-first todo network for creators, learners, and build
 │   │   ├── server/                     # Backend domain services and database schema
 │   │   └── utils/                      # Formatting, calendar, and mutation utilities
 │   └── routes/                         # Application routes and API endpoints
+├── static/                             # Public static assets, crawler & LLM discoverability
+│   ├── .well-known/llms.txt            # RFC-compliant LLM discoverability mirror
+│   ├── favicon.svg                     # Site icon
+│   ├── llms.txt                        # Standard LLM context index (llmstxt.org)
+│   ├── llms-full.txt                   # Complete system specs & schemas for LLMs
+│   ├── robots.txt                      # Search engine & AI crawler access rules
+│   └── sitemap.xml                     # Search engine XML sitemap
 ├── drizzle.config.ts                   # Drizzle ORM configuration
 ├── playwright.config.ts                # E2E test configuration
 └── vite.config.ts                      # Vite and Vitest configuration

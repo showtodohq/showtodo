@@ -9,6 +9,8 @@
 			<a href="/trending" class="hover:text-zinc-700 dark:hover:text-zinc-200 transition-colors">Trending</a>
 			<span>·</span>
 			<a href="/privacy" class="hover:text-zinc-700 dark:hover:text-zinc-200 transition-colors">Privacy</a>
+			<span>·</span>
+			<a href="/llms.txt" class="hover:text-zinc-700 dark:hover:text-zinc-200 transition-colors">llms.txt</a>
 		</div>
 	</div>
 </footer>

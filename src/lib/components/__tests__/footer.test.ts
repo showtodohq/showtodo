@@ -17,6 +17,10 @@ describe('Footer component test', () => {
 		// 3. Existing Stats and Trending
 		expect(rendered.body).toContain('href="/stats"');
 		expect(rendered.body).toContain('href="/trending"');
+
+		// 4. LLM Discoverability
+		expect(rendered.body).toContain('href="/llms.txt"');
+		expect(rendered.body).toContain('llms.txt');
 	});
 
 	it('renders the accurate tagline representing the public task network', () => {

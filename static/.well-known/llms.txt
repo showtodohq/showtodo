@@ -1,0 +1,39 @@
+# ShowTodo
+
+> ShowTodo is an open, public-first todo network for creators, learners, and builders to share their daily journey, overcome procrastination through social accountability, and build in public.
+
+ShowTodo transforms isolated personal todo lists into an open stream of real-time progress across the open web. It enables quiet companionship, workflow discovery, and transparent achievement tracking without the toxic vanity metrics of traditional social networks.
+
+## Core Value Pillars
+
+- **Social Accountability**: Publishing daily tasks turns private procrastination into visible public commitment.
+- **Shared Goals & Topic Hashing**: Tasks sharing identical content or topic hashes automatically cluster together, connecting people working toward the same ambitions.
+- **Workflow Discovery**: Observers can witness authentic daily breakdowns, study practical focus habits, and emulate effective execution patterns from active peers.
+- **Quiet Encouragement**: Peers celebrate finished milestones using distraction-free emoji reaction signals (Cheer, Salute, Fire, Rock, Celebrate, Heart) without noisy comment threads.
+- **Build in Public**: Public todo profiles, chronological milestone feeds, and 365-day activity heatmaps create verifiable proof of consistency.
+
+## Public Web Pages
+
+- [Home Feed](https://showtodo.com/): Real-time public stream of todos, filtered by status (all, active, done) and category (dev, study, fitness, finance, life).
+- [What is ShowTodo](https://showtodo.com/about): Comprehensive explanation of transparency, design ethos, and why public accountability works.
+- [Trending Goals](https://showtodo.com/trending): Popular shared tasks and communal goals aggregated by content-addressable topic hash.
+- [Goals Directory](https://showtodo.com/goals): Full directory of shared objectives and participant networks.
+- [Stats Dashboard](https://showtodo.com/stats): Global platform metrics, activity distributions, and completion velocity.
+- [Privacy Policy](https://showtodo.com/privacy): Privacy standards, transparent data handling, GDPR/CCPA rights, and user data ownership policies.
+
+## Public REST API Endpoints for Agents
+
+ShowTodo provides clean JSON endpoints for programmatic discovery and AI agents:
+
+- [Public Daily Feed](https://showtodo.com/api/daily): `GET /api/daily?limit=20&cursor=...&category=...` - Returns daily public task cards grouped by date and topic.
+- [Trending Topics](https://showtodo.com/api/topics): `GET /api/topics?limit=10` - Returns trending shared goals and participant counts.
+- [Topic Detail](https://showtodo.com/api/topics/{hash}): `GET /api/topics/{hash}` - Returns todos and participants associated with a topic hash.
+- [Todo Details](https://showtodo.com/api/todos/{id}): `GET /api/todos/{id}` - Returns full details, reactions, and timeline for a single public task.
+- [User Profile](https://showtodo.com/api/users/{id}): `GET /api/users/{id}` - Returns user nickname, handle, bio, and total stats.
+- [User Heatmap](https://showtodo.com/api/users/{id}/heatmap): `GET /api/users/{id}/heatmap` - Returns 365-day activity density for verifiable proof of work.
+- [Platform Stats](https://showtodo.com/api/stats): `GET /api/stats` - Returns global task totals and category breakdowns.
+
+## Full Context & Specifications
+
+- [Full LLM Context](https://showtodo.com/llms-full.txt): Complete system manual, schema definitions, domain models, and API parameters for LLM ingestion.
+- [Sitemap](https://showtodo.com/sitemap.xml): XML index of all canonical public routes.

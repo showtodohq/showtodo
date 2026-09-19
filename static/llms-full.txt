@@ -1,0 +1,216 @@
+# ShowTodo - Comprehensive Context for LLMs & AI Agents
+
+> ShowTodo is an open, public-first todo network for creators, learners, and builders to share their daily journey, gain social accountability, and build in public.
+
+Canonical URL: https://showtodo.com
+Robots Policy: https://showtodo.com/robots.txt
+Sitemap: https://showtodo.com/sitemap.xml
+Summary LLMs Context: https://showtodo.com/llms.txt
+
+---
+
+## 1. Product Philosophy & Domain Architecture
+
+### 1.1 Core Principles
+- **Public-First**: All tasks created on ShowTodo are published to the open web by design to foster genuine accountability.
+- **Content-Addressable Topic Hashing**: Tasks sharing identical normalized text or topic hashes are clustered into shared goals, allowing peers worldwide to pace each other silently.
+- **Distraction-Free Interaction**: ShowTodo eliminates toxic comment threads, spam, and algorithmic doom-scrolling. Engagement is focused on lightweight emoji reactions (cheer, salute, fire, rock, celebrate, heart).
+- **Verifiable Proof of Consistency**: Profiles feature 365-day heatmaps and milestone feeds that reflect authentic daily execution.
+
+### 1.2 Domain Taxonomy & State Lifecycle
+
+#### Todo Status Lifecycle
+- `pending`: Task created and waiting to be started.
+- `in_progress`: Task currently being worked on.
+- `completed`: Task successfully finished.
+- `abandoned`: Task deliberately dropped or deprioritized.
+
+#### Category Taxonomy
+- `dev`: Software engineering, open-source shipping, architecture, and coding projects.
+- `study`: Academic research, book reading, course completion, and skill acquisition.
+- `fitness`: Workouts, running, athletics, and physical health milestones.
+- `finance`: Budgeting, investment research, financial planning, and business goals.
+- `life`: Daily life organization, journaling, creative hobbies, and habits.
+
+#### Reaction Types
+- `cheer` (🎉)
+- `salute` (🫡)
+- `fire` (🔥)
+- `rock` (🚀)
+- `celebrate` (👏)
+- `heart` (❤️)
+
+---
+
+## 2. Public Routing Structure
+
+- `/`: Home feed displaying real-time public tasks, filterable by status (`all`, `active`, `done`) and category (`dev`, `study`, `fitness`, `finance`, `life`).
+- `/about`: Philosophy, value pillars, frequently asked questions, and mission statement.
+- `/trending`: Trending public goals and shared ambitions aggregated by topic hash.
+- `/trending/[hash]`: Detailed view of a specific trending goal with participant list.
+- `/goals`: Directory of shared objectives and topics.
+- `/goals/[hash]`: Shared goal view.
+- `/@{handle}`: Public profile of a creator, including bio, stats, and 365-day activity heatmap.
+- `/@{handle}/todolist`: Interactive workbench for a user's tasks with Stream, Kanban, and Calendar views.
+- `/t/{id}` or `/t/{shortId}`: Dedicated public detail page for an individual task with reaction counts and timeline.
+- `/stats`: Platform-wide productivity metrics and distribution charts.
+- `/privacy`: Official privacy policy, GDPR/CCPA compliance, and user data rights.
+
+---
+
+## 3. Public REST API Specification for Agents & Integrations
+
+All API responses follow standard JSON formatting.
+
+### 3.1 `GET /api/daily`
+Fetches grouped daily task cards for the public feed.
+- **Query Parameters**:
+  - `limit` (number, default: 20): Number of records per page.
+  - `cursor` (string, optional): Pagination cursor.
+  - `category` (string, optional): Filter by category (`dev`, `study`, `fitness`, `finance`, `life`).
+  - `status` (string, optional): Filter by status (`active`, `done`, or omitted for all).
+- **Response Format**:
+  ```json
+  {
+    "items": [
+      {
+        "id": "uuid",
+        "shortId": "abc12345",
+        "date": "2026-09-19",
+        "category": "dev",
+        "type": "solo | multiplayer",
+        "topic": { "hash": "abc", "content": "Ship MVP", "participantCount": 5 },
+        "todos": [
+          {
+            "id": "uuid",
+            "content": "Implement robots.txt and llms.txt",
+            "status": "completed",
+            "category": "dev",
+            "reactions": { "cheer": 3, "fire": 5 },
+            "user": { "id": "uuid", "handle": "builder", "nickname": "Builder" }
+          }
+        ]
+      }
+    ],
+    "nextCursor": "string | null"
+  }
+  ```
+
+### 3.2 `GET /api/topics`
+Lists active and trending shared topics.
+- **Query Parameters**:
+  - `limit` (number, default: 10)
+  - `query` (string, optional): Search query matching topic content.
+- **Response Format**:
+  ```json
+  {
+    "topics": [
+      {
+        "hash": "b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9",
+        "content": "100 Days of Code",
+        "category": "dev",
+        "participantCount": 42,
+        "activeTodoCount": 88
+      }
+    ]
+  }
+  ```
+
+### 3.3 `GET /api/topics/{hash}`
+Retrieves details and participants for a specific topic hash.
+- **Response Format**:
+  ```json
+  {
+    "topic": {
+      "hash": "string",
+      "content": "string",
+      "category": "string",
+      "participants": [
+        { "id": "uuid", "handle": "string", "nickname": "string", "avatar": "string" }
+      ],
+      "todos": [ ... ]
+    }
+  }
+  ```
+
+### 3.4 `GET /api/todos/{id}`
+Retrieves a single public task by its UUID or shortId.
+- **Response Format**:
+  ```json
+  {
+    "todo": {
+      "id": "uuid",
+      "shortId": "string",
+      "content": "string",
+      "status": "pending | in_progress | completed | abandoned",
+      "category": "dev | study | fitness | finance | life",
+      "createdAt": "ISO8601",
+      "updatedAt": "ISO8601",
+      "completedAt": "ISO8601 | null",
+      "author": {
+        "id": "uuid",
+        "handle": "string",
+        "nickname": "string",
+        "avatar": "string"
+      },
+      "reactions": { "cheer": 2, "fire": 4 }
+    }
+  }
+  ```
+
+### 3.5 `GET /api/users/{id}`
+Retrieves public profile information by user ID or handle.
+- **Response Format**:
+  ```json
+  {
+    "user": {
+      "id": "uuid",
+      "handle": "string",
+      "nickname": "string",
+      "bio": "string | null",
+      "avatar": "string | null",
+      "stats": {
+        "totalTodos": 120,
+        "completedTodos": 95,
+        "activeStreak": 14
+      }
+    }
+  }
+  ```
+
+### 3.6 `GET /api/users/{id}/heatmap`
+Retrieves daily activity counts for a user over the past 365 days.
+- **Response Format**:
+  ```json
+  {
+    "heatmap": [
+      { "date": "2026-09-18", "count": 4 },
+      { "date": "2026-09-19", "count": 2 }
+    ]
+  }
+  ```
+
+### 3.7 `GET /api/stats`
+Retrieves global platform statistics.
+- **Response Format**:
+  ```json
+  {
+    "totalTodos": 15420,
+    "totalCompleted": 11200,
+    "totalUsers": 2150,
+    "categoryBreakdown": {
+      "dev": 5400,
+      "study": 3200,
+      "fitness": 2800,
+      "finance": 1520,
+      "life": 2500
+    }
+  }
+  ```
+
+---
+
+## 4. Metadata & Legal
+- License: MIT (c) 2026 ShowTodo
+- Privacy & Data Governance: https://showtodo.com/privacy
+- Security Contact: security@showtodo.com

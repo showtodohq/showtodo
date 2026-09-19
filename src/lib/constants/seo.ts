@@ -11,6 +11,17 @@ export const SITE_NAME = 'ShowTodo';
 export const SITE_DEFAULT_IMAGE = `${SITE_BASE_URL}/og-image.png`;
 
 /**
+ * Standard crawler and agent discoverability document paths
+ */
+export const CRAWLER_DOCS = {
+	ROBOTS: '/robots.txt',
+	LLMS: '/llms.txt',
+	LLMS_FULL: '/llms-full.txt',
+	SITEMAP: '/sitemap.xml',
+	WELL_KNOWN_LLMS: '/.well-known/llms.txt'
+} as const;
+
+/**
  * Core Target SEO Keywords categorized by intent
  */
 export const SEO_KEYWORDS = {
