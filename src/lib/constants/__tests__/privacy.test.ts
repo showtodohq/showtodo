@@ -5,7 +5,7 @@ describe('privacy.ts constants', () => {
 	it('contains valid policy metadata', () => {
 		expect(PRIVACY_POLICY.meta.title).toContain('Privacy Policy');
 		expect(PRIVACY_POLICY.meta.version).toBe('1.0.0');
-		expect(PRIVACY_POLICY.meta.contactEmail).toBe('privacy@showtodo.io');
+		expect(PRIVACY_POLICY.meta.contactEmail).toBe('privacy@showtodo.com');
 		expect(PRIVACY_POLICY.meta.effectiveDate).toBeTruthy();
 	});
 

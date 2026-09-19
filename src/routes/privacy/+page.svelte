@@ -25,7 +25,7 @@
 <svelte:head>
 	<title>{PRIVACY_POLICY.meta.title}</title>
 	<meta name="description" content={PRIVACY_POLICY.meta.description} />
-	<link rel="canonical" href="https://showtodo.io/privacy" />
+	<link rel="canonical" href="https://showtodo.com/privacy" />
 	<meta property="og:title" content={PRIVACY_POLICY.meta.title} />
 	<meta property="og:description" content={PRIVACY_POLICY.meta.description} />
 	<meta property="og:type" content="website" />

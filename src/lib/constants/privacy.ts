@@ -41,7 +41,7 @@ export const PRIVACY_POLICY: PrivacyPolicyData = {
 		effectiveDate: 'September 1, 2026',
 		lastUpdated: 'September 19, 2026',
 		version: '1.0.0',
-		contactEmail: 'privacy@showtodo.io'
+		contactEmail: 'privacy@showtodo.com'
 	},
 	quickHighlights: [
 		{
@@ -140,7 +140,7 @@ export const PRIVACY_POLICY: PrivacyPolicyData = {
 			],
 			callout: {
 				type: 'important',
-				text: 'To exercise any of your data rights, simply email privacy@showtodo.io. We process verification and complete erasure requests within 14 business days.'
+				text: 'To exercise any of your data rights, simply email privacy@showtodo.com. We process verification and complete erasure requests within 14 business days.'
 			}
 		},
 		{
@@ -173,7 +173,7 @@ export const PRIVACY_POLICY: PrivacyPolicyData = {
 				'If you have questions, inquiries, or feedback concerning this Privacy Policy, please contact our Data Protection desk:'
 			],
 			listItems: [
-				'Email: privacy@showtodo.io',
+				'Email: privacy@showtodo.com',
 				'Subject Line: [Privacy Inquiry] - ShowTodo Legal Desk',
 				'Response Commitment: We respond to all formal inquiries within 48 business hours.'
 			]

@@ -65,7 +65,7 @@ export const ABOUT_CONTENT: AboutContent = {
 		title: "What's ShowTodo · The Public Todo Network",
 		description:
 			'ShowTodo is an open public task network for creators, learners, and builders. Share your daily journey, gain social accountability, learn from others workflows, and build in public.',
-		canonical: 'https://showtodo.io/about',
+		canonical: 'https://showtodo.com/about',
 		keywords: [
 			'ShowTodo',
 			'public todo list',
@@ -272,7 +272,7 @@ export function generateAboutJsonLd(content: AboutContent = ABOUT_CONTENT): stri
 		'@context': 'https://schema.org',
 		'@type': 'WebApplication',
 		name: 'ShowTodo',
-		url: 'https://showtodo.io',
+		url: 'https://showtodo.com',
 		applicationCategory: 'ProductivityApplication',
 		operatingSystem: 'Any (Web-based)',
 		description: content.entityDefinition.statement,
@@ -295,8 +295,8 @@ export function generateAboutJsonLd(content: AboutContent = ABOUT_CONTENT): stri
 		'@context': 'https://schema.org',
 		'@type': 'Organization',
 		name: 'ShowTodo',
-		url: 'https://showtodo.io',
-		logo: 'https://showtodo.io/favicon.svg',
+		url: 'https://showtodo.com',
+		logo: 'https://showtodo.com/favicon.svg',
 		description: content.meta.description
 	};
 

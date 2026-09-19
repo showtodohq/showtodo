@@ -5,7 +5,7 @@ describe('about.ts constants', () => {
 	it('contains complete metadata for SEO', () => {
 		expect(ABOUT_CONTENT.meta.title).toContain("What's ShowTodo");
 		expect(ABOUT_CONTENT.meta.description.length).toBeGreaterThan(30);
-		expect(ABOUT_CONTENT.meta.canonical).toBe('https://showtodo.io/about');
+		expect(ABOUT_CONTENT.meta.canonical).toBe('https://showtodo.com/about');
 		expect(ABOUT_CONTENT.meta.keywords.length).toBeGreaterThanOrEqual(5);
 	});
 
