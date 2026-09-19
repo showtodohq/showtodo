@@ -3,6 +3,8 @@
 	import Button from '$lib/components/ui/Button.svelte';
 	import Input from '$lib/components/ui/Input.svelte';
 	import Popover from '$lib/components/ui/Popover.svelte';
+	import Tabs from '$lib/components/ui/Tabs.svelte';
+	import { THEME_MODE_TABS } from '$lib/constants/tabs';
 	import { POPOVER_PLACEMENT, POPOVER_TRIGGER, POPOVER_ROLE } from '$lib/constants/popover';
 	import { userStore } from '$lib/stores/user.svelte';
 	import { theme } from '$lib/stores/theme.svelte';
@@ -239,38 +241,12 @@
 					<span class="text-xs font-medium text-zinc-600 dark:text-zinc-400 shrink-0">
 						Appearance
 					</span>
-					<div class="flex items-center bg-zinc-100 dark:bg-zinc-800/80 p-0.5 rounded-lg text-[11px]">
-						<button
-							type="button"
-							onclick={() => theme.setMode('light')}
-							class="px-2 py-0.5 rounded-md font-medium transition-all cursor-pointer {theme.mode ===
-							'light'
-								? 'bg-white text-zinc-900 shadow-xs dark:bg-zinc-700 dark:text-zinc-100 font-semibold'
-								: 'text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100'}"
-						>
-							Light
-						</button>
-						<button
-							type="button"
-							onclick={() => theme.setMode('dark')}
-							class="px-2 py-0.5 rounded-md font-medium transition-all cursor-pointer {theme.mode ===
-							'dark'
-								? 'bg-white text-zinc-900 shadow-xs dark:bg-zinc-700 dark:text-zinc-100 font-semibold'
-								: 'text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100'}"
-						>
-							Dark
-						</button>
-						<button
-							type="button"
-							onclick={() => theme.setMode('system')}
-							class="px-2 py-0.5 rounded-md font-medium transition-all cursor-pointer {theme.mode ===
-							'system'
-								? 'bg-white text-zinc-900 shadow-xs dark:bg-zinc-700 dark:text-zinc-100 font-semibold'
-								: 'text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100'}"
-						>
-							System
-						</button>
-					</div>
+					<Tabs
+						options={THEME_MODE_TABS}
+						value={theme.mode}
+						onchange={(val) => theme.setMode(val)}
+						size="xs"
+					/>
 				</div>
 			</div>
 

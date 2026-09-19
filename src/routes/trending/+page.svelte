@@ -20,6 +20,9 @@
 		type TrendingSortBy
 	} from '$lib/constants/search';
 	import ExpandableFilterBar from '$lib/components/ui/ExpandableFilterBar.svelte';
+	import Tabs from '$lib/components/ui/Tabs.svelte';
+	import FilterChip from '$lib/components/ui/FilterChip.svelte';
+	import { TRENDING_SCOPE_TABS, type TrendingScopeMode } from '$lib/constants/tabs';
 
 	const topicsRes = createTopicsResource();
 
@@ -204,36 +207,14 @@
 		onclearall={handleClearAllTrendingFilters}
 	>
 		{#snippet leading()}
-			<!-- Left: Primary scope tabs (All / Today / Mine) - 与工作台切换器严格统一规格 -->
-			<div class="inline-flex items-center rounded-2xl bg-zinc-100/90 dark:bg-zinc-800/80 p-1 text-xs font-medium shadow-2xs shrink-0">
-				<button
-					type="button"
-					onclick={() => handleTabSwitch('all')}
-					class="inline-flex items-center justify-center p-2 sm:px-3.5 sm:py-1.5 rounded-xl font-medium transition-all cursor-pointer {activeTab === 'all'
-						? 'bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 shadow-2xs font-semibold'
-						: 'text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100'}"
-				>
-					All
-				</button>
-				<button
-					type="button"
-					onclick={() => handleTabSwitch('today')}
-					class="inline-flex items-center justify-center p-2 sm:px-3.5 sm:py-1.5 rounded-xl font-medium transition-all cursor-pointer {activeTab === 'today'
-						? 'bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 shadow-2xs font-semibold'
-						: 'text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100'}"
-				>
-					Today
-				</button>
-				<button
-					type="button"
-					onclick={() => handleTabSwitch('mine')}
-					class="inline-flex items-center justify-center p-2 sm:px-3.5 sm:py-1.5 rounded-xl font-medium transition-all cursor-pointer {activeTab === 'mine'
-						? 'bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 shadow-2xs font-semibold'
-						: 'text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100'}"
-				>
-					Mine
-				</button>
-			</div>
+			<!-- Left: Primary scope tabs (All / Today / Mine) - 使用统一规范 Tabs 组件 -->
+			<Tabs
+				options={TRENDING_SCOPE_TABS}
+				value={activeTab}
+				onchange={(val) => handleTabSwitch(val)}
+				size="sm"
+				class="shrink-0"
+			/>
 		{/snippet}
 
 		{#snippet filters()}
@@ -241,32 +222,28 @@
 				<!-- 维度 1: 门槛/人群 -->
 				<div class="flex items-center gap-1.5 flex-wrap">
 					<span class="text-[11px] text-zinc-400 dark:text-zinc-500 font-medium shrink-0">Filter:</span>
-					<button
-						type="button"
+					<FilterChip
+						selected={topicsRes.minParticipants > 1}
 						onclick={handleToggleMinParticipants}
-						class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium transition-all cursor-pointer {topicsRes.minParticipants > 1
-							? 'bg-zinc-900 text-white dark:bg-white dark:text-zinc-900 shadow-2xs font-semibold'
-							: 'text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800'}"
 						title="Filter goals with 2 or more participants"
 					>
-						<Icon icon="lucide:users" class="h-3.5 w-3.5" />
-						<span>2+ People</span>
-					</button>
+						{#snippet leading()}
+							<Icon icon="lucide:users" class="h-3.5 w-3.5" />
+						{/snippet}
+						2+ People
+					</FilterChip>
 				</div>
 
 				<!-- 维度 2: 排序方式 (平铺微胶囊) -->
 				<div class="flex items-center gap-1.5 flex-wrap pt-1.5 border-t border-zinc-100 dark:border-zinc-800/60">
 					<span class="text-[11px] text-zinc-400 dark:text-zinc-500 font-medium shrink-0">Sort:</span>
 					{#each TRENDING_SORT_OPTIONS as opt}
-						<button
-							type="button"
+						<FilterChip
+							selected={topicsRes.sortBy === opt.id}
 							onclick={() => handleSortChange(opt.id)}
-							class="px-2.5 py-1 rounded-lg text-xs font-medium transition-all cursor-pointer {topicsRes.sortBy === opt.id
-								? 'bg-zinc-900 text-white dark:bg-white dark:text-zinc-900 shadow-2xs font-semibold'
-								: 'text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800'}"
 						>
 							{opt.label}
-						</button>
+						</FilterChip>
 					{/each}
 				</div>
 			</div>

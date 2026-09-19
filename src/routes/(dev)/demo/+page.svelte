@@ -5,6 +5,7 @@
 	import { api } from '$lib/services/api';
 	import { userStore } from '$lib/stores/user.svelte';
 	import Avatar from '$lib/components/ui/Avatar.svelte';
+	import TodoStatusIcon from '$lib/components/todo/TodoStatusIcon.svelte';
 	import { getLocalDayAsUtcRange } from '$lib/utils/format';
 	import {
 		TODO_STATUS,
@@ -779,7 +780,7 @@
 											onclick={() => (openStatusMenuTodoId = openStatusMenuTodoId === myParticipant.todoId ? null : myParticipant.todoId)}
 											class="flex items-center gap-1.5 rounded-lg border px-2.5 py-1 text-xs font-semibold transition {isStatusDone(myParticipant.status) ? 'border-zinc-900 bg-zinc-900 text-white dark:border-white dark:bg-white dark:text-zinc-900' : isStatusInProgress(myParticipant.status) ? 'border-zinc-900 text-zinc-900 dark:border-white dark:text-white' : isStatusAbandoned(myParticipant.status) ? 'border-zinc-300 bg-zinc-100 text-zinc-500 line-through dark:border-zinc-700 dark:bg-zinc-800' : 'border-zinc-300 bg-zinc-50 text-zinc-700 hover:bg-zinc-100 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300'}"
 										>
-											<Icon icon={currentConfig.icon} class="h-3.5 w-3.5" />
+											<TodoStatusIcon status={myParticipant.status} size="sm" />
 											<span>{currentConfig.label}</span>
 											<Icon icon="lucide:chevron-down" class="h-3 w-3 opacity-60" />
 										</button>
@@ -795,7 +796,7 @@
 														class="flex w-full items-center justify-between rounded-lg px-2 py-1.5 text-xs transition {isCurrent ? 'bg-zinc-100 font-bold text-zinc-900 dark:bg-zinc-800 dark:text-white' : 'text-zinc-600 hover:bg-zinc-50 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800/60 dark:hover:text-zinc-200'}"
 													>
 														<div class="flex items-center gap-1.5">
-															<Icon icon={st.icon} class="h-3.5 w-3.5" />
+															<TodoStatusIcon status={st.id} size="sm" />
 															<span>{st.label}</span>
 														</div>
 														{#if isCurrent}

@@ -1,7 +1,6 @@
 <script lang="ts">
 	import type { createMyTodosResource, CalendarDayCell } from '$lib/stores/resources/use-my-todos.svelte';
 	import {
-		getStatusConfig,
 		isStatusDone,
 		isStatusCompletedOrAbandoned
 	} from '$lib/constants/status';
@@ -147,17 +146,15 @@
 					<!-- Todo items list -->
 					<div class="space-y-1 flex-1 w-full overflow-hidden">
 						{#each cell.todos.slice(0, 3) as todo (todo.id)}
-							{@const stConfig = getStatusConfig(todo.status)}
 							<div
-								class="w-full px-2 py-0.5 rounded-lg text-[11px] font-medium truncate flex items-center gap-1.5 bg-white/90 dark:bg-zinc-800/90 text-zinc-700 dark:text-zinc-300 shadow-2xs transition-all {isStatusCompletedOrAbandoned(
+								class="w-full px-2 py-0.5 rounded-lg text-[11px] font-medium truncate block bg-white/90 dark:bg-zinc-800/90 text-zinc-700 dark:text-zinc-300 shadow-2xs transition-all {isStatusCompletedOrAbandoned(
 									todo.status
 								)
 									? 'line-through text-zinc-400 dark:text-zinc-500 opacity-60'
 									: ''}"
 								title={todo.content}
 							>
-								<span class="h-1.5 w-1.5 rounded-full shrink-0 {stConfig.dotClass}"></span>
-								<span class="truncate">{todo.content}</span>
+								<span class="truncate block">{todo.content}</span>
 							</div>
 						{/each}
 

@@ -3,6 +3,7 @@
 	import { TODO_STATUS, TODO_STATUSES, getStatusConfig } from '$lib/constants/status';
 	import { POPOVER_PLACEMENT, POPOVER_TRIGGER, POPOVER_ROLE } from '$lib/constants/popover';
 	import Popover from '$lib/components/ui/Popover.svelte';
+	import TodoStatusIcon from '$lib/components/todo/TodoStatusIcon.svelte';
 
 	interface Props {
 		status?: TodoStatus | string;
@@ -130,24 +131,7 @@
 								: 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-zinc-100'}"
 							title="{st.label}: {st.description}"
 						>
-							{#if st.id === TODO_STATUS.PENDING}
-								<svg class="h-2.5 w-2.5 stroke-[2.2]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-									<circle cx="12" cy="12" r="9" />
-								</svg>
-							{:else if st.id === TODO_STATUS.IN_PROGRESS}
-								<svg class="h-2.5 w-2.5" viewBox="0 0 24 24" fill="none">
-									<circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2.2" />
-									<path d="M12 12 L12 3 A9 9 0 0 1 21 12 Z" fill="currentColor" />
-								</svg>
-							{:else if st.id === TODO_STATUS.DONE}
-								<svg class="h-2.5 w-2.5 stroke-[3]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-									<path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
-								</svg>
-							{:else if st.id === TODO_STATUS.ABANDONED}
-								<svg class="h-2.5 w-2.5 stroke-[2.5]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-									<path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-								</svg>
-							{/if}
+							<TodoStatusIcon status={st.id} size="xs" />
 							<span class="text-[11px] leading-none">{st.shortActionLabel}</span>
 						</button>
 					{/each}

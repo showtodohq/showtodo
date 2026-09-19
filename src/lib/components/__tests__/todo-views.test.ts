@@ -62,6 +62,8 @@ describe('Todo Views (Stream, Kanban, Calendar) SSR Rendering', () => {
 		expect(rendered.body).toContain('Abandoned');
 		expect(rendered.body).toContain('Pending Column Task');
 		expect(rendered.body).toContain('Progress Column Task');
+		// 校验列头已收敛使用 TodoStatusIcon (包含空心圆与饼图)
+		expect(rendered.body).toContain('d="M12 12 L12 3 A9 9 0 0 1 21 12 Z"');
 	});
 
 	it('renders TodoCalendarView correctly with 7-column matrix and weekday headers', () => {
@@ -75,6 +77,8 @@ describe('Todo Views (Stream, Kanban, Calendar) SSR Rendering', () => {
 		expect(rendered.body).toContain('Sun');
 		expect(rendered.body).toContain('Today');
 		expect(rendered.body).toContain('Calendar Test Todo');
+		// 校验日历单元格内为纯文字呈现，不渲染前导状态图标
+		expect(rendered.body).not.toContain('d="M5 13l4 4L19 7"');
 	});
 
 	it('renders TodoKanbanView EmptyState when no todos exist', () => {

@@ -33,6 +33,7 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte';
 	import { cn } from '$lib/utils/cn';
+	import Button from './Button.svelte';
 
 	interface Props {
 		open?: boolean;
@@ -135,16 +136,19 @@
 						{/if}
 					</div>
 
-					<button
-						type="button"
+					<Button
+						variant="ghost"
+						size="xs"
+						iconOnly
+						touchExpanded
 						onclick={handleClose}
-						class="rounded-lg p-1 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-700 dark:hover:bg-zinc-800 dark:hover:text-zinc-200 transition-colors"
-						aria-label="Close modal"
+						ariaLabel="Close modal"
+						class="text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200"
 					>
 						<svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
 							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
 						</svg>
-					</button>
+					</Button>
 				</div>
 			{/if}
 

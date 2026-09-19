@@ -15,6 +15,7 @@
 	import { POPOVER_PLACEMENT, POPOVER_TRIGGER, POPOVER_ROLE } from '$lib/constants/popover';
 	import { formatRelativeTime } from '$lib/utils/format';
 	import Icon from '@iconify/svelte';
+	import TodoStatusIcon from '$lib/components/todo/TodoStatusIcon.svelte';
 
 	interface Props {
 		resource: ReturnType<typeof createMyTodosResource>;
@@ -27,6 +28,7 @@
 			status: st.id,
 			label: st.label,
 			dotClass: st.dotClass,
+			actionColorClass: st.actionColorClass,
 			todos: resource.kanbanColumns[st.id] || []
 		}))
 	);
@@ -57,7 +59,7 @@
 				<!-- 列头 (无下划线硬分割，宽裕留白) -->
 				<div class="flex items-center justify-between px-1 py-0.5">
 					<div class="flex items-center gap-2">
-						<span class="h-2.5 w-2.5 rounded-full {col.dotClass}"></span>
+						<TodoStatusIcon status={col.status} size="sm" class={col.actionColorClass} />
 						<span class="text-xs font-bold text-zinc-900 dark:text-zinc-100 tracking-tight">{col.label}</span>
 						<span
 							class="text-[11px] font-mono font-medium px-2 py-0.5 rounded-full bg-zinc-200/50 dark:bg-zinc-800/60 text-zinc-500"
@@ -132,7 +134,7 @@
 												class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs font-medium bg-zinc-100/70 dark:bg-zinc-800/70 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200/80 dark:hover:bg-zinc-700/80 transition-colors cursor-pointer"
 												title="Change status"
 											>
-												<span class="h-1.5 w-1.5 rounded-full {currentStatusConfig.dotClass}"></span>
+												<TodoStatusIcon status={todo.status} size="xs" class={currentStatusConfig.actionColorClass} />
 												<span>{currentStatusConfig.label}</span>
 												<svg class="h-3 w-3 text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
 													<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
@@ -157,7 +159,7 @@
 														class="w-full text-left px-2.5 py-1.5 rounded-xl hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-700 dark:text-zinc-300 transition-colors cursor-pointer flex items-center justify-between {todo.status === targetSt.id ? 'font-semibold bg-zinc-50 dark:bg-zinc-800/50' : ''}"
 													>
 														<span class="flex items-center gap-2">
-															<span class="h-1.5 w-1.5 rounded-full {targetSt.dotClass}"></span>
+															<TodoStatusIcon status={targetSt.id} size="xs" class={targetSt.actionColorClass} />
 															<span>{targetSt.label}</span>
 														</span>
 														{#if todo.status === targetSt.id}

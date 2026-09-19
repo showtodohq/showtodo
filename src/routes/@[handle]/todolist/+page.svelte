@@ -13,6 +13,7 @@
 	import TodoStreamView from '$lib/components/todo/TodoStreamView.svelte';
 	import TodoKanbanView from '$lib/components/todo/TodoKanbanView.svelte';
 	import TodoCalendarView from '$lib/components/todo/TodoCalendarView.svelte';
+	import TodoStatusIcon from '$lib/components/todo/TodoStatusIcon.svelte';
 	import {
 		SEARCH_URL_QUERY_PARAM,
 		SEARCH_STATUS_QUERY_PARAM,
@@ -23,6 +24,9 @@
 	import { CATEGORIES, getCategoryConfig } from '$lib/constants/categories';
 	import type { TodoStatus } from '$lib/types/todo';
 	import ExpandableFilterBar from '$lib/components/ui/ExpandableFilterBar.svelte';
+	import Tabs from '$lib/components/ui/Tabs.svelte';
+	import FilterChip from '$lib/components/ui/FilterChip.svelte';
+	import { TODOLIST_VIEW_MODES, type TodoListViewMode } from '$lib/constants/tabs';
 	import Icon from '@iconify/svelte';
 
 	const handleParam = $derived(page.params.handle);
@@ -249,110 +253,86 @@
 				onclearall={handleClearAllFilters}
 			>
 				{#snippet leading()}
-					<!-- View switcher pills (Stream / Kanban / Calendar) -->
-					<div class="inline-flex items-center rounded-2xl bg-zinc-100/90 dark:bg-zinc-800/80 p-1 text-xs font-medium shadow-2xs shrink-0">
-						<!-- Stream view -->
-						<button
-							type="button"
-							onclick={() => handleViewSwitch('stream')}
-							class="inline-flex items-center gap-1.5 p-2 sm:px-3.5 sm:py-1.5 rounded-xl font-medium transition-all cursor-pointer {resource.activeView === 'stream'
-								? 'bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 shadow-2xs font-semibold'
-								: 'text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100'}"
-							title="Stream view"
-							aria-label="Stream view"
-						>
-							<svg class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7" />
-							</svg>
-							<span class="hidden sm:inline">Stream</span>
-						</button>
+					{#snippet streamIcon()}
+						<svg class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7" />
+						</svg>
+					{/snippet}
 
-						<!-- Kanban view -->
-						<button
-							type="button"
-							onclick={() => handleViewSwitch('kanban')}
-							class="inline-flex items-center gap-1.5 p-2 sm:px-3.5 sm:py-1.5 rounded-xl font-medium transition-all cursor-pointer {resource.activeView === 'kanban'
-								? 'bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 shadow-2xs font-semibold'
-								: 'text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100'}"
-							title="Kanban view"
-							aria-label="Kanban view"
-						>
-							<svg class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2" />
-							</svg>
-							<span class="hidden sm:inline">Kanban</span>
-						</button>
+					{#snippet kanbanIcon()}
+						<svg class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2" />
+						</svg>
+					{/snippet}
 
-						<!-- Calendar view -->
-						<button
-							type="button"
-							onclick={() => handleViewSwitch('calendar')}
-							class="inline-flex items-center gap-1.5 p-2 sm:px-3.5 sm:py-1.5 rounded-xl font-medium transition-all cursor-pointer {resource.activeView === 'calendar'
-								? 'bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 shadow-2xs font-semibold'
-								: 'text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100'}"
-							title="Calendar view"
-							aria-label="Calendar view"
-						>
-							<svg class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-							</svg>
-							<span class="hidden sm:inline">Calendar</span>
-						</button>
-					</div>
+					{#snippet calendarIcon()}
+						<svg class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+						</svg>
+					{/snippet}
+
+					{@const viewTabs = [
+						{ id: TODOLIST_VIEW_MODES.STREAM, label: 'Stream', icon: streamIcon, hideLabelOnMobile: true },
+						{ id: TODOLIST_VIEW_MODES.KANBAN, label: 'Kanban', icon: kanbanIcon, hideLabelOnMobile: true },
+						{ id: TODOLIST_VIEW_MODES.CALENDAR, label: 'Calendar', icon: calendarIcon, hideLabelOnMobile: true }
+					]}
+					<Tabs
+						options={viewTabs}
+						value={resource.activeView}
+						onchange={(val) => handleViewSwitch(val)}
+						size="sm"
+						class="shrink-0"
+					/>
 				{/snippet}
 
 				{#snippet filters()}
 					<!-- 状态微胶囊组 (全部 / 待办 / 进行中 / 完成 / 放弃) -->
 					<div class="flex items-center gap-1.5 flex-wrap text-xs">
 						<span class="text-[11px] text-zinc-400 dark:text-zinc-500 font-medium shrink-0">Status:</span>
-						<button
-							type="button"
+						<FilterChip
+							selected={resource.streamTab === 'all'}
 							onclick={() => handleStatusChange('all')}
-							class="px-2.5 py-1 rounded-lg text-xs font-medium transition-all cursor-pointer {resource.streamTab === 'all'
-								? 'bg-zinc-900 text-white dark:bg-white dark:text-zinc-900 shadow-2xs font-semibold'
-								: 'text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800'}"
+							badge={resource.totalCount}
 						>
-							All ({resource.totalCount})
-						</button>
+							All
+						</FilterChip>
 						{#each TODO_STATUSES as st}
-							<button
-								type="button"
+							<FilterChip
+								selected={resource.streamTab === st.id}
+								badge={resource.statusCounts[st.id] || 0}
 								onclick={() => handleStatusChange(st.id)}
-								class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium transition-all cursor-pointer {resource.streamTab === st.id
-									? 'bg-zinc-900 text-white dark:bg-white dark:text-zinc-900 shadow-2xs font-semibold'
-									: 'text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800'}"
 							>
-								<span class="h-1.5 w-1.5 rounded-full {st.dotClass}"></span>
-								<span>{st.label}</span>
-								<span class="opacity-60 text-[10px]">({resource.statusCounts[st.id] || 0})</span>
-							</button>
+								{#snippet leading()}
+									<TodoStatusIcon
+										status={st.id}
+										size="sm"
+										class={resource.streamTab === st.id
+											? 'text-current'
+											: st.actionColorClass}
+									/>
+								{/snippet}
+								{st.label}
+							</FilterChip>
 						{/each}
 					</div>
 
 					<!-- 分类微胶囊组 (全部 / 学习 / 健身 / 工作 / 生活 等) -->
 					<div class="flex items-center gap-1.5 flex-wrap text-xs pt-1.5 border-t border-zinc-100 dark:border-zinc-800/60">
 						<span class="text-[11px] text-zinc-400 dark:text-zinc-500 font-medium shrink-0">Category:</span>
-						<button
-							type="button"
+						<FilterChip
+							selected={resource.activeCategory === null}
 							onclick={() => handleCategoryChange(null)}
-							class="px-2.5 py-1 rounded-lg text-xs font-medium transition-all cursor-pointer {resource.activeCategory === null
-								? 'bg-zinc-900 text-white dark:bg-white dark:text-zinc-900 shadow-2xs font-semibold'
-								: 'text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800'}"
 						>
 							All
-						</button>
+						</FilterChip>
 						{#each CATEGORIES as cat}
-							{@const isSelected = resource.activeCategory === cat.id}
-							<button
-								type="button"
+							<FilterChip
+								selected={resource.activeCategory === cat.id}
+								dotColor={cat.color}
 								onclick={() => handleCategoryChange(cat.id)}
-								class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium transition-all cursor-pointer {isSelected
-									? 'bg-zinc-900 text-white dark:bg-white dark:text-zinc-900 shadow-2xs font-semibold'
-									: 'text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800'}"
 							>
-								<span class="h-1.5 w-1.5 rounded-full shrink-0" style="background-color: {cat.color};"></span>
-								<span>{cat.name}</span>
-							</button>
+								{cat.name}
+							</FilterChip>
 						{/each}
 					</div>
 				{/snippet}

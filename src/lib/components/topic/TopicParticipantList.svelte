@@ -4,6 +4,7 @@
 	import { formatRelativeTime } from '$lib/utils/format';
 	import Avatar from '$lib/components/ui/Avatar.svelte';
 	import TodoCheckbox from '$lib/components/todo/TodoCheckbox.svelte';
+	import Tabs from '$lib/components/ui/Tabs.svelte';
 	import Icon from '@iconify/svelte';
 
 	interface Props {
@@ -48,6 +49,11 @@
 		(allParticipants.length > 0 && allParticipants.length !== participants.length)
 	);
 
+	const participantTabs = $derived([
+		{ id: 'today' as const, label: `Today (${todayCount})` },
+		{ id: 'all' as const, label: `All (${totalCount})` }
+	]);
+
 	const activeList = $derived(
 		activeTab === 'today'
 			? participants
@@ -82,22 +88,12 @@
 			</h2>
 
 			{#if hasHistoryDiff}
-				<div class="inline-flex items-center p-0.5 rounded-lg bg-zinc-100 dark:bg-zinc-800 text-[11px] font-medium text-zinc-500 dark:text-zinc-400">
-					<button
-						type="button"
-						class="px-2 py-0.5 rounded-md transition-colors cursor-pointer {activeTab === 'today' ? 'bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 shadow-2xs font-semibold' : 'hover:text-zinc-700 dark:hover:text-zinc-200'}"
-						onclick={() => (activeTab = 'today')}
-					>
-						Today ({todayCount})
-					</button>
-					<button
-						type="button"
-						class="px-2 py-0.5 rounded-md transition-colors cursor-pointer {activeTab === 'all' ? 'bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 shadow-2xs font-semibold' : 'hover:text-zinc-700 dark:hover:text-zinc-200'}"
-						onclick={() => (activeTab = 'all')}
-					>
-						All ({totalCount})
-					</button>
-				</div>
+				<Tabs
+					options={participantTabs}
+					value={activeTab}
+					onchange={(val) => (activeTab = val)}
+					size="xs"
+				/>
 			{:else}
 				<span class="text-xs text-zinc-400 font-mono">({todayCount})</span>
 			{/if}

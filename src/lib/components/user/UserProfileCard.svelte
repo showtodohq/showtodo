@@ -6,6 +6,7 @@
 	import Avatar from '$lib/components/ui/Avatar.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
 	import Icon from '@iconify/svelte';
+	import { PROFILE_ACTIONS } from '$lib/constants/profile';
 
 	interface Props {
 		user: UserProfile;
@@ -116,69 +117,69 @@
 >
 	{#if !isEditing}
 		<!-- Profile view mode -->
-		<div class="flex items-start justify-between gap-4 flex-wrap">
-			<div class="flex items-center gap-4.5">
-				<Avatar
-					src={user.avatar}
-					name={user.nickname}
-					alt={user.nickname}
-					size="xl"
-					class="ring-4 ring-zinc-100 dark:ring-zinc-800/80 shadow-xs"
-				/>
-				<div class="space-y-1">
-					<div class="flex items-center gap-2 flex-wrap">
-						<h1
-							class="text-xl sm:text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100 leading-none"
+		<div class="flex items-center gap-3.5 sm:gap-4.5">
+			<Avatar
+				src={user.avatar}
+				name={user.nickname}
+				alt={user.nickname}
+				size="xl"
+				class="ring-4 ring-zinc-100 dark:ring-zinc-800/80 shadow-xs shrink-0"
+			/>
+			<div class="flex-1 min-w-0 space-y-1 sm:space-y-1.5">
+				<div class="flex items-center justify-between gap-2">
+					<h1
+						class="text-xl sm:text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100 leading-none truncate"
+					>
+						{user.nickname}
+					</h1>
+
+					<div class="flex items-center gap-1.5 sm:gap-2 shrink-0">
+						<Button
+							href={`/@${user.handle}/todolist`}
+							variant="outline"
+							size="xs"
+							title={PROFILE_ACTIONS.TODOLIST.TITLE}
+							ariaLabel={PROFILE_ACTIONS.TODOLIST.TITLE}
+							class="w-7 sm:w-auto p-0 sm:px-2"
 						>
-							{user.nickname}
-						</h1>
+							{#snippet leftIcon()}
+								<Icon icon={PROFILE_ACTIONS.TODOLIST.ICON} class="h-3.5 w-3.5 text-zinc-500 dark:text-zinc-400" />
+							{/snippet}
+							<span class="hidden sm:inline">{PROFILE_ACTIONS.TODOLIST.LABEL}</span>
+						</Button>
+
 						{#if isMe}
-							<span
-								class="text-[10px] px-2 py-0.5 rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 font-medium select-none"
+							<Button
+								variant="outline"
+								size="xs"
+								onclick={() => (isEditing = true)}
+								title={PROFILE_ACTIONS.EDIT.TITLE}
+								ariaLabel={PROFILE_ACTIONS.EDIT.TITLE}
+								class="w-7 sm:w-auto p-0 sm:px-2"
 							>
-								Your Profile
-							</span>
+								{#snippet leftIcon()}
+									<Icon icon={PROFILE_ACTIONS.EDIT.ICON} class="h-3.5 w-3.5 text-zinc-500 dark:text-zinc-400" />
+								{/snippet}
+								<span class="hidden sm:inline">{PROFILE_ACTIONS.EDIT.LABEL}</span>
+							</Button>
 						{/if}
 					</div>
-
-					<div
-						class="flex items-center gap-2 text-xs text-zinc-500 dark:text-zinc-400 pt-0.5"
-					>
-						<button
-							type="button"
-							onclick={copyHandle}
-							class="font-mono font-medium text-zinc-600 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-zinc-100 hover:underline cursor-pointer"
-							title="Copy handle"
-						>
-							@{user.handle}
-						</button>
-						<span>·</span>
-						<span>Joined {user.createdAt ? user.createdAt.slice(0, 10) : 'Recently'}</span>
-					</div>
 				</div>
-			</div>
 
-			<div class="flex items-center gap-2">
-				<a
-					href={`/@${user.handle}/todolist`}
-					class="px-3 py-1.5 rounded-xl border border-zinc-200/80 dark:border-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-800 text-xs font-medium text-zinc-700 dark:text-zinc-300 transition-colors inline-flex items-center gap-1.5 shadow-2xs cursor-pointer"
-					title="View Todolist (Kanban & Calendar)"
+				<div
+					class="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 text-xs text-zinc-500 dark:text-zinc-400 pt-0.5"
 				>
-					<Icon icon="lucide:kanban" class="h-3.5 w-3.5 text-zinc-500" />
-					<span class="hidden sm:inline">Todolist</span>
-					<Icon icon="lucide:arrow-right" class="h-3 w-3 text-zinc-400" />
-				</a>
-
-				{#if isMe}
-					<Button
-						variant="outline"
-						size="xs"
-						onclick={() => (isEditing = true)}
-						class="font-medium"
+					<button
+						type="button"
+						onclick={copyHandle}
+						class="font-mono font-medium text-zinc-600 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-zinc-100 hover:underline cursor-pointer w-fit"
+						title="Copy handle"
 					>
-						Edit Profile
-					</Button>
-				{/if}
+						@{user.handle}
+					</button>
+					<span class="hidden sm:inline">·</span>
+					<span>Joined {user.createdAt ? user.createdAt.slice(0, 10) : 'Recently'}</span>
+				</div>
 			</div>
 		</div>
 	{:else}

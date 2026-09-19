@@ -10,8 +10,14 @@
 		type?: 'button' | 'submit' | 'reset';
 		disabled?: boolean;
 		loading?: boolean;
+		iconOnly?: boolean;
+		touchExpanded?: boolean;
+		ariaLabel?: string;
 		title?: string;
 		class?: string;
+		href?: string;
+		target?: string;
+		rel?: string;
 		onclick?: (event: MouseEvent) => void;
 		children?: Snippet;
 		leftIcon?: Snippet;
@@ -24,8 +30,14 @@
 		type = 'button',
 		disabled = false,
 		loading = false,
+		iconOnly = false,
+		touchExpanded = false,
+		ariaLabel,
 		title,
 		class: className = '',
+		href,
+		target,
+		rel,
 		onclick,
 		children,
 		leftIcon,
@@ -55,31 +67,68 @@
 		md: 'h-9 px-3.5 text-sm gap-2 rounded-lg font-medium',
 		lg: 'h-11 px-5 text-base gap-2.5 rounded-xl font-semibold'
 	};
+
+	const iconSizeClasses: Record<ComponentSize, string> = {
+		xs: 'w-7 h-7 p-0 rounded-md',
+		sm: 'w-8 h-8 p-0 rounded-lg',
+		md: 'w-9 h-9 p-0 rounded-lg',
+		lg: 'w-11 h-11 p-0 rounded-xl'
+	};
+
+	const buttonClasses = $derived(
+		cn(
+			'inline-flex items-center justify-center transition-all duration-150 select-none cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-900 dark:focus-visible:outline-zinc-100 disabled:opacity-50 disabled:pointer-events-none disabled:cursor-not-allowed',
+			variantClasses[variant],
+			iconOnly ? iconSizeClasses[size] : sizeClasses[size],
+			touchExpanded && 'relative after:absolute after:-inset-2.5 after:content-[\'\'] after:cursor-pointer',
+			className
+		)
+	);
 </script>
 
-<button
-	{type}
-	{title}
-	disabled={disabled || loading}
-	{onclick}
-	class={cn(
-		'inline-flex items-center justify-center transition-all duration-150 select-none cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-900 dark:focus-visible:outline-zinc-100 disabled:opacity-50 disabled:pointer-events-none disabled:cursor-not-allowed',
-		variantClasses[variant],
-		sizeClasses[size],
-		className
-	)}
->
-	{#if loading}
-		<Spinner size={size === 'lg' ? 'md' : 'sm'} class="text-current" />
-	{:else if leftIcon}
-		{@render leftIcon()}
-	{/if}
+{#if href}
+	<a
+		{href}
+		{target}
+		{rel}
+		{title}
+		aria-label={ariaLabel || title}
+		{onclick}
+		class={buttonClasses}
+	>
+		{#if leftIcon}
+			{@render leftIcon()}
+		{/if}
 
-	{#if children}
-		{@render children()}
-	{/if}
+		{#if children}
+			{@render children()}
+		{/if}
 
-	{#if !loading && rightIcon}
-		{@render rightIcon()}
-	{/if}
-</button>
+		{#if rightIcon}
+			{@render rightIcon()}
+		{/if}
+	</a>
+{:else}
+	<button
+		{type}
+		{title}
+		aria-label={ariaLabel || title}
+		disabled={disabled || loading}
+		{onclick}
+		class={buttonClasses}
+	>
+		{#if loading}
+			<Spinner size={size === 'lg' ? 'md' : 'sm'} class="text-current" />
+		{:else if leftIcon}
+			{@render leftIcon()}
+		{/if}
+
+		{#if children}
+			{@render children()}
+		{/if}
+
+		{#if !loading && rightIcon}
+			{@render rightIcon()}
+		{/if}
+	</button>
+{/if}

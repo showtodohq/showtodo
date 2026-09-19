@@ -3,6 +3,7 @@ import {
 	TODO_STATUS,
 	ALL_TODO_STATUSES,
 	TODO_STATUSES,
+	TODO_STATUS_ICON_SIZES,
 	getStatusConfig,
 	isStatusDone,
 	isStatusInProgress,
@@ -87,6 +88,22 @@ describe('Constants Domain Ubiquitous Language (TDD)', () => {
 		]);
 		for (const text of allActivityTexts) {
 			expect(text.length).toBeGreaterThan(0);
+		}
+	});
+
+	it('defines standardized status icon size classes without hardcoding', () => {
+		expect(TODO_STATUS_ICON_SIZES.xs).toBe('h-2.5 w-2.5');
+		expect(TODO_STATUS_ICON_SIZES.sm).toBe('h-3.5 w-3.5');
+		expect(TODO_STATUS_ICON_SIZES.md).toBe('h-4 w-4');
+		expect(TODO_STATUS_ICON_SIZES.lg).toBe('h-5 w-5');
+	});
+
+	it('ensures StatusConfig does not contain legacy icon string properties', () => {
+		for (const st of TODO_STATUSES) {
+			// @ts-expect-error icon should no longer exist
+			expect(st.icon).toBeUndefined();
+			// @ts-expect-error actionIcon should no longer exist
+			expect(st.actionIcon).toBeUndefined();
 		}
 	});
 });

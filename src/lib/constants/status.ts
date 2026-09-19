@@ -42,14 +42,24 @@ export interface StatusConfig {
 	textClass: string;
 	borderClass: string;
 	dotClass: string;
-	icon: string;
-	actionIcon: string;
 	actionColorClass: string;
 	actionButtonClass: string;
 	// 详情弹窗专用的状态按钮样式
 	activeButtonClass: string;
 	inactiveButtonClass: string;
 }
+
+/**
+ * 统一状态图标尺寸规格表 (杜绝组件内硬编码)
+ */
+export const TODO_STATUS_ICON_SIZES = {
+	xs: 'h-2.5 w-2.5',
+	sm: 'h-3.5 w-3.5',
+	md: 'h-4 w-4',
+	lg: 'h-5 w-5'
+} as const;
+
+export type TodoStatusIconSize = keyof typeof TODO_STATUS_ICON_SIZES;
 
 export const TODO_STATUSES: StatusConfig[] = [
 	{
@@ -62,8 +72,6 @@ export const TODO_STATUSES: StatusConfig[] = [
 		textClass: 'text-zinc-700 dark:text-zinc-300',
 		borderClass: 'border-zinc-200 dark:border-zinc-700',
 		dotClass: 'bg-zinc-400',
-		icon: 'lucide:circle-dashed',
-		actionIcon: 'lucide:circle-dashed',
 		actionColorClass: 'text-zinc-400 dark:text-zinc-500',
 		actionButtonClass:
 			'bg-zinc-100 text-zinc-700 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700',
@@ -82,8 +90,6 @@ export const TODO_STATUSES: StatusConfig[] = [
 		textClass: 'text-blue-700 dark:text-blue-300',
 		borderClass: 'border-blue-200 dark:border-blue-800/60',
 		dotClass: 'bg-blue-500',
-		icon: 'lucide:timer',
-		actionIcon: 'lucide:play',
 		actionColorClass: 'text-blue-600 dark:text-blue-400',
 		actionButtonClass:
 			'bg-blue-50 text-blue-700 hover:bg-blue-100 dark:bg-blue-950/60 dark:text-blue-300 dark:hover:bg-blue-900/60',
@@ -101,8 +107,6 @@ export const TODO_STATUSES: StatusConfig[] = [
 		textClass: 'text-emerald-700 dark:text-emerald-300',
 		borderClass: 'border-emerald-200 dark:border-emerald-800/60',
 		dotClass: 'bg-emerald-500',
-		icon: 'lucide:check-circle-2',
-		actionIcon: 'lucide:check-circle-2',
 		actionColorClass: 'text-emerald-600 dark:text-emerald-400',
 		actionButtonClass:
 			'bg-emerald-50 text-emerald-700 hover:bg-emerald-100 dark:bg-emerald-950/60 dark:text-emerald-300 dark:hover:bg-emerald-900/60',
@@ -120,8 +124,6 @@ export const TODO_STATUSES: StatusConfig[] = [
 		textClass: 'text-zinc-600 dark:text-zinc-400',
 		borderClass: 'border-zinc-200 dark:border-zinc-700',
 		dotClass: 'bg-zinc-400',
-		icon: 'lucide:archive',
-		actionIcon: 'lucide:archive',
 		actionColorClass: 'text-zinc-500 dark:text-zinc-400',
 		actionButtonClass:
 			'bg-zinc-100 text-zinc-600 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-700',
@@ -147,8 +149,6 @@ export function getStatusConfig(status: TodoStatus | string): StatusConfig {
 			textClass: 'text-zinc-700',
 			borderClass: 'border-zinc-200',
 			dotClass: 'bg-zinc-400',
-			icon: 'lucide:circle',
-			actionIcon: 'lucide:circle',
 			actionColorClass: 'text-zinc-400',
 			actionButtonClass: 'bg-zinc-100 text-zinc-700',
 			activeButtonClass: 'bg-zinc-900 text-white border-zinc-900',
