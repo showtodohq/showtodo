@@ -136,10 +136,10 @@
 
 			<Button
 				variant="primary"
-				size="sm"
+				size="xs"
 				loading={isJoining}
 				onclick={onjoin}
-				class="font-medium"
+				class="font-medium px-3 py-1.5 shadow-xs"
 			>
 				Add to my list
 			</Button>

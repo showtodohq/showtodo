@@ -2,6 +2,7 @@
 	import type { TopicItem } from '$lib/types/todo';
 	import UserAvatarTooltip from '$lib/components/user/UserAvatarTooltip.svelte';
 	import { userStore } from '$lib/stores/user.svelte';
+	import Button from '$lib/components/ui/Button.svelte';
 	import Icon from '@iconify/svelte';
 
 	interface Props {
@@ -57,13 +58,14 @@
 					<span>In my list</span>
 				</span>
 			{:else}
-				<button
-					type="button"
+				<Button
+					variant="primary"
+					size="xs"
 					onclick={() => onjoin?.(topic)}
-					class="inline-flex items-center gap-1 text-xs font-semibold text-zinc-700 dark:text-zinc-200 bg-white hover:bg-zinc-100 dark:bg-zinc-800 dark:hover:bg-zinc-700 hover:text-zinc-900 dark:hover:text-white px-2.5 py-1 rounded-lg transition-colors cursor-pointer shadow-2xs"
+					class="font-medium px-3 py-1.5 shadow-xs"
 				>
-					<span>+ Add to my list</span>
-				</button>
+					Add to my list
+				</Button>
 			{/if}
 		</div>
 	</div>

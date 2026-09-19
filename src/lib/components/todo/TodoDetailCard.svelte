@@ -20,6 +20,7 @@
 		isMine: boolean;
 		topicParticipantCount?: number;
 		hasJoined?: boolean;
+		myJoinedTodo?: Todo | null;
 		myJoinedStatus?: TodoStatus;
 		isJoining?: boolean;
 		onstatuschange?: (nextStatus: TodoStatus, e?: MouseEvent) => void;
@@ -37,6 +38,7 @@
 		isMine,
 		topicParticipantCount = 0,
 		hasJoined = false,
+		myJoinedTodo,
 		myJoinedStatus,
 		isJoining = false,
 		onstatuschange,
@@ -88,6 +90,29 @@
 	});
 
 	const scheduleText = $derived(formatScheduleRange(todo.startDate, todo.dueDate));
+
+	// 领域派生状态：多人同行模块 (Domain Derived States for Multiplayer Section)
+	const hasOtherParticipants = $derived((topicParticipantCount ?? 0) > 1);
+
+	// 是否展示同行模块：
+	// 1. 待办必须绑定了 topicHash
+	// 2. 当为作者本人的待办且暂无他人同行时，隐藏空状态以消除视觉杂讯
+	// 3. 其它场景（作者且有多人同行、或非作者可查看/参与/快捷打卡）正常呈现
+	const shouldShowMultiplayer = $derived(
+		Boolean(todo.topicHash && (!isMine || hasOtherParticipants))
+	);
+
+	// 我的当前关联待办详情链接
+	const myTodoUrl = $derived(
+		myJoinedTodo?.shortId || myJoinedTodo?.id
+			? `/t/${myJoinedTodo.shortId || myJoinedTodo.id}`
+			: null
+	);
+
+	// 是否允许快捷查看我的待办 (非作者 + todo in my list + 拥有同行者)
+	const canShowMyTodoShortcut = $derived(
+		Boolean(!isMine && hasJoined && hasOtherParticipants && myTodoUrl)
+	);
 
 	async function handleSave(e: SubmitEvent) {
 		e.preventDefault();
@@ -280,11 +305,11 @@
 	</div>
 
 	<!-- Multiplayer / Trending section -->
-	{#if todo.topicHash}
+	{#if shouldShowMultiplayer}
 		<div
 			class="p-4 rounded-2xl border transition-all space-y-3 {hasJoined
 				? 'bg-emerald-50/70 dark:bg-emerald-950/20 border-emerald-200/80 dark:border-emerald-800/50'
-				: topicParticipantCount > 1
+				: hasOtherParticipants
 					? 'bg-amber-50/80 dark:bg-amber-950/30 border-amber-200/80 dark:border-amber-800/50'
 					: 'bg-zinc-50/80 dark:bg-zinc-800/40 border-zinc-200/80 dark:border-zinc-800'}"
 		>
@@ -296,26 +321,21 @@
 							<Icon icon="lucide:check" class="h-4 w-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
 							<span>In my list</span>
 						</span>
-						{#if topicParticipantCount > 1}
+						{#if hasOtherParticipants}
 							<span class="text-emerald-600/80 dark:text-emerald-400/80">
 								({topicParticipantCount} people doing this)
 							</span>
 						{/if}
 					{:else if isMine}
 						<div class="flex items-center gap-2 text-zinc-700 dark:text-zinc-300">
-							{#if topicParticipantCount > 1}
-								<Icon icon="lucide:flame" class="h-4 w-4 text-orange-500 shrink-0" />
-								<span>
-									<strong>{topicParticipantCount}</strong> other people are also doing this todo!
-								</span>
-							{:else}
-								<Icon icon="lucide:sprout" class="h-4 w-4 text-emerald-500 shrink-0" />
-								<span>No one else yet.</span>
-							{/if}
+							<Icon icon="lucide:flame" class="h-4 w-4 text-orange-500 shrink-0" />
+							<span>
+								<strong>{topicParticipantCount}</strong> other people are also doing this todo!
+							</span>
 						</div>
 					{:else}
 						<div class="flex items-center gap-2 text-zinc-700 dark:text-zinc-300">
-							{#if topicParticipantCount > 1}
+							{#if hasOtherParticipants}
 								<Icon icon="lucide:flame" class="h-4 w-4 text-orange-500 shrink-0" />
 								<span>
 									<strong>{topicParticipantCount}</strong> people are doing this todo
@@ -327,7 +347,7 @@
 						</div>
 					{/if}
 
-					{#if topicParticipantCount > 1 || hasJoined}
+					{#if hasOtherParticipants || hasJoined}
 						<a
 							href="/trending/{todo.topicHash}"
 							class="font-semibold text-xs transition-colors hover:underline shrink-0 {hasJoined
@@ -335,6 +355,17 @@
 								: 'text-amber-700 dark:text-amber-300'}"
 						>
 							See who's doing this →
+						</a>
+					{/if}
+
+					{#if canShowMyTodoShortcut}
+						<a
+							href={myTodoUrl}
+							class="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl text-xs font-semibold bg-emerald-100/90 hover:bg-emerald-200/90 text-emerald-800 dark:bg-emerald-900/50 dark:hover:bg-emerald-900/80 dark:text-emerald-200 transition-all shadow-2xs shrink-0 cursor-pointer"
+							title="View my todo"
+						>
+							<span>Mine</span>
+							<Icon icon="lucide:arrow-up-right" class="h-3 w-3" />
 						</a>
 					{/if}
 				</div>

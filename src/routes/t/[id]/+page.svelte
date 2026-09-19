@@ -128,6 +128,7 @@
 					isMine={detailRes.isMine}
 					topicParticipantCount={detailRes.topicParticipantCount}
 					hasJoined={detailRes.hasJoined}
+					myJoinedTodo={detailRes.myJoinedTodo}
 					myJoinedStatus={detailRes.myJoinedTodo?.status}
 					isJoining={detailRes.isJoining}
 					onstatuschange={detailRes.handleStatusChange}
