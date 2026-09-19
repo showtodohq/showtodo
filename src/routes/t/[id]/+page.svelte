@@ -1,6 +1,9 @@
 <script lang="ts">
 	import { page } from '$app/state';
 	import { goto } from '$app/navigation';
+	import { userStore } from '$lib/stores/user.svelte';
+	import { toast } from '$lib/stores/toast.svelte';
+	import { TODO_STATUS } from '$lib/constants/status';
 	import { todoMutations } from '$lib/stores/todo.svelte';
 	import { createTodoDetailResource } from '$lib/stores/resources/use-todo-detail.svelte';
 	import type { ReactionEmoji } from '$lib/types/todo';
@@ -27,6 +30,23 @@
 	function handleReaction(emoji?: ReactionEmoji) {
 		if (!detailRes.todo) return;
 		todoMutations.toggleReaction(detailRes.todo.id, emoji, detailRes.todo);
+	}
+
+	async function handleDelete() {
+		const authorHandle = detailRes.todo?.author?.handle || userStore.handle;
+		const ok = await detailRes.handleDeleteTodo();
+		if (ok) {
+			if (authorHandle) {
+				goto(`/@${authorHandle}`);
+			} else {
+				goto('/');
+			}
+		}
+	}
+
+	async function handleAbandon() {
+		await detailRes.handleStatusChange(TODO_STATUS.ABANDONED);
+		toast.success('Todo marked as abandoned');
 	}
 </script>
 
@@ -114,6 +134,8 @@
 					onstatuschange={detailRes.handleStatusChange}
 					onreaction={handleReaction}
 					onsaveedit={detailRes.handleSaveEdit}
+					ondelete={handleDelete}
+					onabandon={handleAbandon}
 					onjoin={detailRes.handleJoinTopic}
 					onmystatuschange={detailRes.handleToggleMyStatus}
 				/>

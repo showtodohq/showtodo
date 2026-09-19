@@ -163,6 +163,21 @@ export const api = {
 		);
 	},
 
+	async deleteTodo(
+		id: string,
+		email: string,
+		customFetch?: typeof fetch
+	): Promise<{ success: boolean; deletedId: string }> {
+		return request<{ success: boolean; deletedId: string }>(
+			`/api/todos/${id}`,
+			{
+				method: 'DELETE',
+				body: JSON.stringify({ email })
+			},
+			customFetch
+		);
+	},
+
 	async addReaction(
 		todoId: string,
 		emoji: ReactionEmoji,

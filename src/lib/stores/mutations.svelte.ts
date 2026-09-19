@@ -308,6 +308,32 @@ class TodoMutations {
 			// handled
 		}
 	}
+
+	/**
+	 * 删除待办事项 (物理删除并级联清理各 store)
+	 */
+	async deleteTodo(todoId: string): Promise<boolean> {
+		if (!userStore.email) {
+			toast.info('Please set your email in the top right avatar first');
+			return false;
+		}
+
+		try {
+			await api.deleteTodo(todoId, userStore.email);
+
+			// 成功后清理前端各领域模型与缓存仓库
+			todoRegistry.remove(todoId);
+			todayStore.removeId(todoId);
+			feedStore.removeId(todoId);
+			trendingStore.syncRemove(todoId);
+
+			toast.success('Todo deleted permanently');
+			return true;
+		} catch (err) {
+			toast.error(`Failed to delete: ${(err as Error).message}`);
+			return false;
+		}
+	}
 }
 
 export const todoMutations = new TodoMutations();

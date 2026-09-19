@@ -9,6 +9,7 @@ vi.mock('$lib/services/api', () => ({
 	api: {
 		createTodo: vi.fn(),
 		updateTodo: vi.fn(),
+		deleteTodo: vi.fn().mockResolvedValue({ success: true, deletedId: 'test-id' }),
 		addReaction: vi.fn().mockResolvedValue({}),
 		removeReaction: vi.fn().mockResolvedValue({}),
 		getDailyCards: vi.fn().mockResolvedValue({ cards: [] })
@@ -227,5 +228,68 @@ describe('todoMutations.createTodo', () => {
 
 		expect(todo.reactions?.['🔥']).toBe(1);
 		expect(todo.myReactions).toEqual([]);
+	});
+});
+
+describe('todoMutations.deleteTodo', () => {
+	beforeEach(() => {
+		todoRegistry.clear();
+		vi.clearAllMocks();
+		userStore.setSession({
+			email: 'tester@example.com',
+			nickname: '测试用户',
+			handle: 'tester',
+			id: 'user-uuid-1',
+			avatar: 'https://example.com/avatar.jpg'
+		});
+	});
+
+	it('calls api.deleteTodo and clears todo from registry and lists', async () => {
+		todoRegistry.upsert({
+			id: 'todo-to-delete',
+			shortId: 'ttd',
+			topicHash: '',
+			content: '待删除',
+			note: null,
+			isNotePublic: true,
+			category: null,
+			authorId: 'user-uuid-1',
+			status: 'pending',
+			startDate: '2026-09-11T00:00:00.000Z',
+			dueDate: null,
+			createdAt: '2026-09-11T00:00:00.000Z',
+			updatedAt: '2026-09-11T00:00:00.000Z'
+		});
+
+		expect(todoRegistry.get('todo-to-delete')).toBeDefined();
+
+		const success = await todoMutations.deleteTodo('todo-to-delete');
+		expect(success).toBe(true);
+		expect(api.deleteTodo).toHaveBeenCalledWith('todo-to-delete', 'tester@example.com');
+		expect(todoRegistry.get('todo-to-delete')).toBeUndefined();
+	});
+
+	it('returns false and does not clear registry if API fails', async () => {
+		vi.mocked(api.deleteTodo).mockRejectedValueOnce(new Error('Network error'));
+
+		todoRegistry.upsert({
+			id: 'todo-failed-delete',
+			shortId: 'tfd',
+			topicHash: '',
+			content: '待删除失败',
+			note: null,
+			isNotePublic: true,
+			category: null,
+			authorId: 'user-uuid-1',
+			status: 'pending',
+			startDate: '2026-09-11T00:00:00.000Z',
+			dueDate: null,
+			createdAt: '2026-09-11T00:00:00.000Z',
+			updatedAt: '2026-09-11T00:00:00.000Z'
+		});
+
+		const success = await todoMutations.deleteTodo('todo-failed-delete');
+		expect(success).toBe(false);
+		expect(todoRegistry.get('todo-failed-delete')).toBeDefined();
 	});
 });

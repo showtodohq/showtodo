@@ -237,6 +237,16 @@ export function createTodoDetailResource(initialIdentifier?: string) {
 		}
 	}
 
+	async function handleDeleteTodo(): Promise<boolean> {
+		if (!todo) return false;
+		const idToDelete = todo.id;
+		const ok = await todoMutations.deleteTodo(idToDelete);
+		if (ok) {
+			todo = null;
+		}
+		return ok;
+	}
+
 	async function handleJoinTopic() {
 		if (!userStore.email) {
 			toast.info('Please set your email in the top right avatar before joining');
@@ -324,6 +334,7 @@ export function createTodoDetailResource(initialIdentifier?: string) {
 		handleStatusChange,
 		handleCheckIn,
 		handleSaveEdit,
+		handleDeleteTodo,
 		handleJoinTopic,
 		handleToggleMyStatus
 	};

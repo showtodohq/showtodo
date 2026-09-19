@@ -54,3 +54,28 @@ export const PATCH: RequestHandler = async ({ params, request }) => {
 		return handleError(e);
 	}
 };
+
+export const DELETE: RequestHandler = async ({ params, request, url }) => {
+	try {
+		let email: string | undefined;
+		try {
+			const body = await request.json();
+			if (body && typeof body === 'object' && 'email' in body) {
+				email = body.email;
+			}
+		} catch {
+			// request might not have a json body
+		}
+
+		if (!email) {
+			email = url.searchParams.get('email') || undefined;
+		}
+
+		const validatedEmail = validateEmail(email);
+		const result = await todoService.deleteTodo(db, params.id, validatedEmail);
+
+		return json(result);
+	} catch (e) {
+		return handleError(e);
+	}
+};

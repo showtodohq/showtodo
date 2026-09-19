@@ -127,6 +127,27 @@ class TrendingStore {
 			this.cards = [...this.cards];
 		}
 	}
+
+	syncRemove(todoId: string) {
+		let changed = false;
+		for (const card of this.cards) {
+			const pIndex = card.participants.findIndex(
+				(item) => item.todoId === todoId || (item.shortId && item.shortId === todoId)
+			);
+			if (pIndex !== -1) {
+				const [removed] = card.participants.splice(pIndex, 1);
+				if (isStatusDone(removed.status)) {
+					card.doneCount = Math.max(0, card.doneCount - 1);
+				}
+				card.totalParticipants = Math.max(0, card.totalParticipants - 1);
+				card.isMultiplayer = card.totalParticipants > 1;
+				changed = true;
+			}
+		}
+		if (changed) {
+			this.cards = this.cards.filter((c) => c.totalParticipants > 0);
+		}
+	}
 }
 
 export const trendingStore = new TrendingStore();

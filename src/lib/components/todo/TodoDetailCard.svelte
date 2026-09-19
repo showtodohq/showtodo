@@ -1,11 +1,12 @@
 <script lang="ts">
 	import type { Todo, TodoStatus, ReactionEmoji } from '$lib/types/todo';
-	import { getStatusConfig } from '$lib/constants/status';
+	import { getStatusConfig, TODO_STATUS } from '$lib/constants/status';
 	import { getCategoryConfig } from '$lib/constants/categories';
 	import { formatRelativeTime, formatScheduleRange } from '$lib/utils/format';
 	import { toast } from '$lib/stores/toast.svelte';
 	import Avatar from '$lib/components/ui/Avatar.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
+	import Modal from '$lib/components/ui/Modal.svelte';
 	import CategoryBadge from '$lib/components/todo/CategoryBadge.svelte';
 	import TodoCheckbox from '$lib/components/todo/TodoCheckbox.svelte';
 	import TodoContent from '$lib/components/todo/TodoContent.svelte';
@@ -22,6 +23,8 @@
 		onstatuschange?: (nextStatus: TodoStatus, e?: MouseEvent) => void;
 		onreaction?: (emoji?: ReactionEmoji) => void;
 		onsaveedit?: (content: string, note?: string | null) => Promise<void>;
+		ondelete?: () => Promise<void> | void;
+		onabandon?: () => Promise<void> | void;
 		onjoin?: () => Promise<void> | void;
 		onmystatuschange?: (nextStatus: TodoStatus, e?: MouseEvent) => void;
 	}
@@ -36,6 +39,8 @@
 		onstatuschange,
 		onreaction,
 		onsaveedit,
+		ondelete,
+		onabandon,
 		onjoin,
 		onmystatuschange
 	}: Props = $props();
@@ -44,6 +49,34 @@
 	let editContent = $state('');
 	let editNote = $state('');
 	let isSaving = $state(false);
+	let showDeleteModal = $state(false);
+	let isDeleting = $state(false);
+	let isAbandoning = $state(false);
+
+	async function handleAbandon() {
+		isAbandoning = true;
+		try {
+			if (onabandon) {
+				await onabandon();
+			} else if (onstatuschange) {
+				onstatuschange(TODO_STATUS.ABANDONED);
+			}
+			showDeleteModal = false;
+			isEditing = false;
+		} finally {
+			isAbandoning = false;
+		}
+	}
+
+	async function handleDelete() {
+		isDeleting = true;
+		try {
+			await ondelete?.();
+			showDeleteModal = false;
+		} finally {
+			isDeleting = false;
+		}
+	}
 
 	$effect(() => {
 		editContent = todo.content;
@@ -163,18 +196,30 @@
 				></textarea>
 			</div>
 
-			<div class="flex justify-end gap-2">
-				<Button
+			<div class="flex items-center justify-between pt-1">
+				<button
 					type="button"
-					variant="ghost"
-					size="xs"
-					onclick={() => (isEditing = false)}
+					onclick={() => (showDeleteModal = true)}
+					class="inline-flex items-center gap-1.5 px-2 py-1.5 rounded-xl text-xs font-medium text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40 border border-transparent hover:border-red-200/60 dark:hover:border-red-900/50 transition-colors cursor-pointer"
+					title="Delete this todo"
 				>
-					Cancel
-				</Button>
-				<Button type="submit" variant="primary" size="xs" loading={isSaving}>
-					Save
-				</Button>
+					<Icon icon="lucide:trash-2" class="w-3.5 h-3.5 shrink-0" />
+					<span>Delete todo</span>
+				</button>
+
+				<div class="flex items-center gap-2">
+					<Button
+						type="button"
+						variant="ghost"
+						size="xs"
+						onclick={() => (isEditing = false)}
+					>
+						Cancel
+					</Button>
+					<Button type="submit" variant="primary" size="xs" loading={isSaving}>
+						Save
+					</Button>
+				</div>
 			</div>
 		</form>
 	{:else}
@@ -323,3 +368,76 @@
 		</div>
 	{/if}
 </div>
+
+<!-- Delete Confirmation Modal -->
+<Modal
+	bind:open={showDeleteModal}
+	size="sm"
+	closeOnClickOutside={!isDeleting && !isAbandoning}
+	closeOnEsc={!isDeleting && !isAbandoning}
+>
+	{#snippet header()}
+		<div class="flex items-center gap-2.5 text-zinc-900 dark:text-zinc-100">
+			<div class="p-2 rounded-xl bg-red-100 dark:bg-red-950/60 text-red-600 dark:text-red-400">
+				<Icon icon="lucide:trash-2" class="w-4 h-4" />
+			</div>
+			<span class="text-base font-semibold">Delete this todo?</span>
+		</div>
+	{/snippet}
+
+	<div class="space-y-4 pt-1">
+		<p class="text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed">
+			This action cannot be undone. All activity logs and reactions will be permanently deleted.
+		</p>
+
+		<!-- 放弃引导说明 (内含快捷放弃，推荐操作) -->
+		<div class="p-3.5 rounded-2xl bg-amber-50/80 dark:bg-amber-950/20 border border-amber-200/70 dark:border-amber-900/40 space-y-2.5">
+			<div class="space-y-1">
+				<div class="flex items-center gap-1.5 text-xs font-semibold text-amber-800 dark:text-amber-300">
+					<Icon icon="lucide:lightbulb" class="w-3.5 h-3.5 text-amber-600 dark:text-amber-400 shrink-0" />
+					<span>Not working on this anymore?</span>
+				</div>
+				<p class="text-[11px] text-amber-700/90 dark:text-amber-400/80 leading-relaxed">
+					Marking it as abandoned preserves your history and public streak.
+				</p>
+			</div>
+
+			<button
+				type="button"
+				onclick={handleAbandon}
+				disabled={isAbandoning || isDeleting}
+				class="w-full inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium text-amber-900 dark:text-amber-200 bg-amber-100/90 hover:bg-amber-200/90 dark:bg-amber-900/40 dark:hover:bg-amber-900/60 border border-amber-300/60 dark:border-amber-800/60 transition-colors cursor-pointer select-none disabled:opacity-50"
+			>
+				<Icon icon="lucide:archive" class="w-3.5 h-3.5 shrink-0" />
+				<span>Mark as Abandoned</span>
+				<span class="text-[10px] px-1.5 py-0.5 rounded-full bg-amber-200/80 dark:bg-amber-800/80 text-amber-800 dark:text-amber-200 font-medium">
+					Recommended
+				</span>
+			</button>
+		</div>
+	</div>
+
+	{#snippet footer()}
+		<div class="flex items-center justify-end gap-2 w-full">
+			<Button
+				type="button"
+				variant="ghost"
+				size="sm"
+				onclick={() => (showDeleteModal = false)}
+				disabled={isDeleting || isAbandoning}
+			>
+				Cancel
+			</Button>
+			<Button
+				type="button"
+				variant="danger"
+				size="sm"
+				loading={isDeleting}
+				disabled={isAbandoning}
+				onclick={handleDelete}
+			>
+				Delete
+			</Button>
+		</div>
+	{/snippet}
+</Modal>

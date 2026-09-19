@@ -849,3 +849,57 @@ describe('listDailyCards', () => {
 	});
 });
 
+describe('delete', () => {
+	test('deletes existing todo by id when requested by author', async () => {
+		const todo = await todoService.create(testDb, {
+			content: 'To be deleted',
+			authorId: testUser.id
+		});
+
+		const result = await todoService.deleteTodo(testDb, todo.id, testUser.email);
+		expect(result).toEqual({ success: true, deletedId: todo.id });
+
+		const found = await todoService.findByIdOrShortId(testDb, todo.id);
+		expect(found).toBeNull();
+	});
+
+	test('deletes existing todo by shortId when requested by author', async () => {
+		const todo = await todoService.create(testDb, {
+			content: 'To be deleted by shortId',
+			authorId: testUser.id
+		});
+
+		const result = await todoService.deleteTodo(testDb, todo.shortId, testUser.email);
+		expect(result).toEqual({ success: true, deletedId: todo.id });
+
+		const found = await todoService.findByIdOrShortId(testDb, todo.shortId);
+		expect(found).toBeNull();
+	});
+
+	test('throws FORBIDDEN when non-author attempts to delete', async () => {
+		const otherUser = await userService.findOrCreate(testDb, 'other@example.com');
+		const todo = await todoService.create(testDb, {
+			content: 'Protected todo',
+			authorId: testUser.id
+		});
+
+		await expect(
+			todoService.deleteTodo(testDb, todo.id, otherUser.email)
+		).rejects.toThrow(AppError);
+
+		await expect(
+			todoService.deleteTodo(testDb, todo.id, otherUser.email)
+		).rejects.toMatchObject({ code: 'FORBIDDEN' });
+	});
+
+	test('throws NOT_FOUND when deleting non-existent todo', async () => {
+		await expect(
+			todoService.deleteTodo(testDb, '00000000-0000-0000-0000-000000000000', testUser.email)
+		).rejects.toThrow(AppError);
+
+		await expect(
+			todoService.deleteTodo(testDb, '00000000-0000-0000-0000-000000000000', testUser.email)
+		).rejects.toMatchObject({ code: 'NOT_FOUND' });
+	});
+});
+

@@ -120,6 +120,10 @@ class TodoStore {
 	toggleReaction(todoId: string, emoji?: ReactionEmoji, fallbackTodo?: Todo) {
 		return todoMutations.toggleReaction(todoId, emoji, fallbackTodo);
 	}
+
+	deleteTodo(todoId: string) {
+		return todoMutations.deleteTodo(todoId);
+	}
 }
 
 export const todoStore = new TodoStore();

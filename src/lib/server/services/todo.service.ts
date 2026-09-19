@@ -952,4 +952,32 @@ export async function listTopics(
 	};
 }
 
+export async function deleteTodo(
+	db: Database,
+	idOrShortId: string,
+	authorEmail: string
+): Promise<{ success: boolean; deletedId: string }> {
+	const condition = isUUID(idOrShortId)
+		? eq(todos.id, idOrShortId)
+		: eq(todos.shortId, idOrShortId);
+
+	const existing = await db
+		.select()
+		.from(todos)
+		.innerJoin(users, eq(todos.authorId, users.id))
+		.where(condition)
+		.limit(1);
+
+	if (!existing[0]) throw new AppError('NOT_FOUND', 'Todo not found');
+
+	const { todos: todo, users: author } = existing[0];
+	if (author.email.toLowerCase() !== authorEmail.toLowerCase()) {
+		throw new AppError('FORBIDDEN', 'Only the author can delete this todo');
+	}
+
+	await db.delete(todos).where(eq(todos.id, todo.id));
+
+	return { success: true, deletedId: todo.id };
+}
+
 
