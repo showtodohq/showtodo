@@ -1,6 +1,20 @@
 # ShowTodo
 
-ShowTodo is an open public task application designed for transparent personal accountability, peer presence, and workflow observation. Users publish task commitments that are visible across the web by default. The system automatically clusters identical goals using content-addressable topic hashing, allowing individuals pursuing the same objective to track their progress alongside one another. The interface supports multiple data perspectives: a chronological feed, a three-lane status board, and a weekly contributor schedule. A bidirectional lifecycle model permits transitions between pending, in progress, completed, and abandoned states. Public profiles display contribution heatmaps, historical milestones, and individual task lists. Observers can signal support through lightweight reaction indicators. The platform is implemented with SvelteKit, Svelte 5 runes, TypeScript, Tailwind CSS, Drizzle ORM, and Neon PostgreSQL.
+ShowTodo is an open, public-first todo network for creators, learners, and builders to share their daily journey and build in public. It transforms isolated personal todo lists into a transparent public feed of real-time progress across the open web.
+
+### Core Value Pillars
+
+- **Social Accountability**: Publishing your daily todos fosters positive discipline, replacing private procrastination with visible commitment.
+- **Shared Goals and Companionship**: When peers work toward identical todo goals, content-addressable topic hashing brings them together for shared pacing and quiet companionship.
+- **Workflow Discovery**: Observers can witness authentic daily todo breakdowns, study practical focus habits, and emulate effective execution patterns from active peers.
+- **Quiet Encouragement**: Peers can cheer progress and celebrate finished todos using distraction-free reaction signals without conversational noise.
+- **Build in Public**: Public todo profiles, chronological milestone feeds, and 365-day activity heatmaps create verifiable proof of consistency.
+
+### Workspace Perspectives
+
+- **Flexible Todo Views**: Manage your personal todo list through a chronological stream, a multi-lane kanban board, or a monthly calendar view.
+- **Fluid Todo Lifecycle**: Seamlessly transition items across pending, in-progress, completed, and abandoned states as priorities evolve.
+
 
 ## Documentation Index
 

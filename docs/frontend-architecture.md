@@ -174,9 +174,9 @@ The Action Square (`src/routes/+page.svelte`) provides three fluid lenses onto t
   3. `done`
 - **Features**: Drag/move quick actions, status counters, and companion tags.
 
-### 5.3 Weekly Calendar View (`TodoCalendarView.svelte`)
-- **Focus**: Time-horizon alignment and multi-creator visibility.
-- **Features**: Natural calendar week grid (Monday to Sunday), user-first swimlanes showing only creators with active commitments that week, and current user pinned to the top.
+### 5.3 Monthly Calendar View (`TodoCalendarView.svelte`)
+- **Focus**: Monthly time-horizon planning and date-driven progress tracking.
+- **Features**: 7-column calendar grid (Monday to Sunday) mapping todos to target dates, previous/next month navigation, "Today" quick jump, date badge completion indicators, and day-level drill-down inspector.
 
 ---
 
@@ -225,7 +225,7 @@ src/lib/components/
 │   ├── TodoItem.svelte         # Primary todo card with responsive actions
 │   ├── TodoStreamView.svelte   # Stream list view
 │   ├── TodoKanbanView.svelte   # Kanban 3-lane view
-│   ├── TodoCalendarView.svelte # Weekly creator calendar matrix
+│   ├── TodoCalendarView.svelte # Monthly date grid view
 │   ├── TodoDetailCard.svelte   # Deep detail card with metadata
 │   ├── TodoActivityTimeline.svelte # Check-in growth log timeline
 │   ├── TodoComposer.svelte     # Instant todo creation form
