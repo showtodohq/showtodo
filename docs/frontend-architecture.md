@@ -74,17 +74,17 @@ Our design philosophy is anchored in six pillars:
 
 | Route Path | View / Component | Core Purpose & Data Requirements |
 |---|---|---|
-| `/` | `TodoStreamView` / `TodoKanbanView` / `TodoCalendarView` | Main Action Square: Triple-view todo feed, today check-ins, companion goals |
-| `/@handle` | `UserProfileCard`, `ActivityHeatmap`, `UserStatsGrid` | Public Creator Profile: 365-day contribution streak, stats overview, bio |
-| `/@handle/todolist` | `TodoItem` list, filters | Creator’s dedicated public action list |
-| `/goals` | `TopicCard` list, search, filters | Walk-Together Goals Directory: Leaderboard of active goals |
-| `/goals/[hash]` | `TopicHeaderCard`, `TopicParticipantList` | Companion Goal Detail: Participants roster, today vs all-time completions |
-| `/trending` | `TrendingTopicsWidget`, `TopicCard` | High-momentum goals leaderboard |
-| `/trending/[hash]` | Redirect / Goal Detail | Companion Goal Detail by trending link |
-| `/stats` | `SiteStatsWidget`, `CategoryDonutChart`, `ActivityHeatmap` | Platform Observability: Total todos, completion rate, global heatmap, top creators |
-| `/t/[id]` | `TodoDetailCard`, `TodoActivityTimeline` | Todo Detail & Companion Timeline: ShortId sharing link, growth story logs |
-| `/about` | Static content | Philosophy statement: Build in Public, Companionship, Supervision, Emulation |
-| `/privacy` | Static content | Privacy commitment: Email protection, public todo transparency |
+| `/` | `TodoComposer`, `TodoItem`, widgets (`MyTodayWidget`, `TrendingTopicsWidget`, `SiteStatsWidget`) | Main Action Square: Chronological public feed of latest todos, category filter, today check-ins, trending goals, and site statistics widgets |
+| `/@handle` | `UserProfileCard`, `ActivityHeatmap`, `UserStatsGrid`, `TodoItem` | Public Creator Profile: 365-day contribution heatmap, stats overview, and author's public todos |
+| `/@handle/todolist` | `TodoStreamView`, `TodoKanbanView`, `TodoCalendarView` | Creator Workbench: Triple-view todo interface (Stream, Kanban, Monthly Calendar) with search, status tabs, and category chips |
+| `/goals` | Redirect to `/trending` | Backward-compatibility redirect to trending goals directory |
+| `/goals/[hash]` | Redirect to `/trending/[hash]` | Backward-compatibility redirect to companion goal detail |
+| `/trending` | `createTopicsResource`, `TopicCard`, `ExpandableFilterBar` | Trending Goals Discovery: Leaderboard with scope tabs (all, today, mine), sorting, and search |
+| `/trending/[hash]` | `TopicHeaderCard`, `TopicParticipantList` | Companion Goal Detail: Goal description, participants roster, target date filter, and one-click join/leave |
+| `/stats` | `SiteStatsWidget`, `CategoryDonutChart`, `ActivityHeatmap` | Platform Observability: Total todos, completion rate, 365-day global heatmap, and active creator rankings |
+| `/t/[id]` | `TodoDetailCard`, `TodoActivityTimeline` | Todo Detail & Companion Timeline: ShortId sharing link, check-in growth logs, and reactions |
+| `/about` | Static content (`ABOUT_CONTENT`) | Philosophy statement: Build in Public, Companionship, Supervision, Emulation, FAQ |
+| `/privacy` | Static content (`PRIVACY_CONTENT`) | Privacy commitment: Email protection, public todo transparency |
 | `/(dev)/demo` | UI Showcase | Interactive showcase for atomic design tokens and components |
 
 ---

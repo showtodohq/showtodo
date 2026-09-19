@@ -83,18 +83,20 @@ On failure, endpoints respond with HTTP 4xx or 5xx status codes and a structured
 | `other` | Other | General unclassified aspirations |
 
 ### 3.3 Reaction Indicators (`emoji`)
-The platform supports 8 reaction indicators for peer cheering and witnessing:
+The platform supports 8 reaction indicators for peer cheering and witnessing. The backend validator (`VALID_EMOJIS` in `validation.ts`) and database schema strictly enforce the literal Unicode emoji character:
 
-| Code | Name | Semantic Intent | Active Color Scheme |
-|---|---|---|---|
-| `heart` | Heart | Care and solidarity | Rose tint (`border-rose-300 text-rose-700`) |
-| `like` | Like | Endorsement and agreement | Blue tint (`border-blue-300 text-blue-700`) |
-| `fire` | Fire | Momentum and encouragement | Orange tint (`border-orange-300 text-orange-700`) |
-| `strong` | Strong | Determination and persistence | Emerald tint (`border-emerald-300 text-emerald-700`) |
-| `clap` | Clap | Celebration and applause | Amber tint (`border-amber-300 text-amber-700`) |
-| `rocket` | Rocket | Accelerated progress | Indigo tint (`border-indigo-300 text-indigo-700`) |
-| `party` | Party | Milestone celebration | Yellow tint (`border-yellow-300 text-yellow-700`) |
-| `eyes` | Watching | Witnessing and observation | Zinc tint (`border-zinc-300 text-zinc-700`) |
+| Emoji | Name | Unicode Escape | Semantic Intent | Active Color Scheme |
+|---|---|---|---|---|
+| `❤️` | Heart | `\u2764\ufe0f` | Care and solidarity | Rose tint (`border-rose-300 text-rose-700`) |
+| `👍` | Like | `\ud83d\udc4d` | Endorsement and agreement | Blue tint (`border-blue-300 text-blue-700`) |
+| `🔥` | Fire | `\ud83d\udd25` | Momentum and encouragement | Orange tint (`border-orange-300 text-orange-700`) |
+| `💪` | Strong | `\ud83d\udcaa` | Determination and persistence | Emerald tint (`border-emerald-300 text-emerald-700`) |
+| `👏` | Clap | `\ud83d\udc4f` | Celebration and applause | Amber tint (`border-amber-300 text-amber-700`) |
+| `🚀` | Rocket | `\ud83d\ude80` | Accelerated progress | Indigo tint (`border-indigo-300 text-indigo-700`) |
+| `🎉` | Party | `\ud83c\udf89` | Milestone celebration | Yellow tint (`border-yellow-300 text-yellow-700`) |
+| `👀` | Watching | `\ud83d\udc40` | Witnessing and observation | Zinc tint (`border-zinc-300 text-zinc-700`) |
+
+*Protocol Specification*: Mutation endpoints (`POST/DELETE /api/todos/:id/reactions`) require the literal Unicode character (or its JSON-encoded Unicode escape). The `reactions` map returned in Todo payloads uses these Unicode characters as keys. English words (such as `"fire"` or `"rocket"`) are not accepted by the API validator and will produce `400 Bad Request`.
 
 ---
 
@@ -114,7 +116,7 @@ Retrieve a paginated stream of public todos with rich filtering options.
 | `category` | `string` | No | - | Filter by category ID |
 | `authorId` | `string` | No | - | Filter by author user UUID |
 | `currentUserId` | `string` | No | - | Current user UUID for personal reaction state & companion resolution |
-| `cursor` | `string` | No | - | Cursor timestamp (ISO) for infinite scroll pagination |
+| `cursor` | `string` | No | - | Cursor Todo UUID (v4) of the last fetched item for keyset pagination |
 | `limit` | `integer` | No | `20` | Max items to return (`1 <= limit <= 1000`) |
 | `startDateFrom` | `string` | No | - | Scheduled start date window start (`YYYY-MM-DD` or ISO) |
 | `startDateTo` | `string` | No | - | Scheduled start date window end (`YYYY-MM-DD` or ISO) |
@@ -145,13 +147,13 @@ Retrieve a paginated stream of public todos with rich filtering options.
         "handle": "alexchen",
         "avatar": null
       },
-      "reactions": { "heart": 0, "like": 2, "fire": 5, "strong": 3, "clap": 1, "rocket": 4, "party": 0, "eyes": 7 },
-      "myReactions": ["fire", "rocket"],
+      "reactions": { "❤️": 0, "👍": 2, "🔥": 5, "💪": 3, "👏": 1, "🚀": 4, "🎉": 0, "👀": 7 },
+      "myReactions": ["🔥", "🚀"],
       "topicParticipantCount": 3,
       "myJoinedTodo": null
     }
   ],
-  "nextCursor": "2026-08-26T08:00:00.000Z"
+  "nextCursor": "78c946e3-f661-4fa3-9f5b-1662991ddf31"
 }
 ```
 
@@ -188,7 +190,7 @@ Publish a new public commitment. Providing an email automatically finds or provi
     "dueDate": null,
     "createdAt": "2026-08-26T08:00:00.000Z",
     "updatedAt": "2026-08-26T08:00:00.000Z",
-    "reactions": { "heart": 0, "like": 0, "fire": 0, "strong": 0, "clap": 0, "rocket": 0, "party": 0, "eyes": 0 },
+    "reactions": { "❤️": 0, "👍": 0, "🔥": 0, "💪": 0, "👏": 0, "🚀": 0, "🎉": 0, "👀": 0 },
     "myReactions": []
   },
   "author": {
@@ -235,8 +237,8 @@ Fetch single todo by UUID or 8-character `shortId`. Returns author info, reactio
       "handle": "alexchen",
       "avatar": null
     },
-    "reactions": { "heart": 1, "like": 4, "fire": 2, "strong": 0, "clap": 0, "rocket": 1, "party": 0, "eyes": 3 },
-    "myReactions": ["fire"],
+    "reactions": { "❤️": 1, "👍": 4, "🔥": 2, "💪": 0, "👏": 0, "🚀": 1, "🎉": 0, "👀": 3 },
+    "myReactions": ["🔥"],
     "activities": [
       {
         "id": "11c946e3-f661-4fa3-9f5b-1662991ddf01",
@@ -428,8 +430,8 @@ Retrieve deep companion metrics and full participant lists for a specific goal h
         "dueDate": null,
         "createdAt": "2026-08-26T08:00:00.000Z",
         "isMe": true,
-        "reactions": { "heart": 1, "like": 2, "fire": 4, "strong": 0, "clap": 0, "rocket": 0, "party": 0, "eyes": 1 },
-        "myReactions": ["fire"],
+        "reactions": { "❤️": 1, "👍": 2, "🔥": 4, "💪": 0, "👏": 0, "🚀": 0, "🎉": 0, "👀": 1 },
+        "myReactions": ["🔥"],
         "user": {
           "id": "a9bf1c17-646e-4401-9f93-5c026e64ec64",
           "nickname": "Alex Chen",
@@ -533,7 +535,7 @@ User-first calendar matrix returning active creators with commitments in `[start
       "dueDate": null,
       "createdAt": "2026-08-26T08:00:00.000Z",
       "updatedAt": "2026-08-26T08:30:00.000Z",
-      "reactions": { "heart": 0, "like": 0, "fire": 2, "strong": 1, "clap": 0, "rocket": 1, "party": 0, "eyes": 3 }
+      "reactions": { "❤️": 0, "👍": 0, "🔥": 2, "💪": 1, "👏": 0, "🚀": 1, "🎉": 0, "👀": 3 }
     }
   ],
   "hasMoreUsers": false
@@ -545,13 +547,13 @@ User-first calendar matrix returning active creators with commitments in `[start
 ### 4.4 Emotional Reactions (`/api/todos/:id/reactions`)
 
 #### `POST /api/todos/:id/reactions` — Add Emotion Reaction
-Cheer and witness a todo using one of the 8 emojis. Automatically creates an account if the email is unseen.
+Cheer and witness a todo using one of the 8 emojis (`❤️`, `👍`, `🔥`, `💪`, `👏`, `🚀`, `🎉`, `👀`). Automatically creates an account if the email is unseen.
 
 ##### Request Body
 ```json
 {
   "email": "supporter@example.com",
-  "emoji": "fire"
+  "emoji": "🔥"
 }
 ```
 
@@ -562,7 +564,7 @@ Cheer and witness a todo using one of the 8 emojis. Automatically creates an acc
     "id": "3bb62c64-41d6-444a-992a-8cf8feccefa7",
     "todoId": "78c946e3-f661-4fa3-9f5b-1662991ddf31",
     "userId": "b1234567-1111-2222-3333-444455556666",
-    "emoji": "fire",
+    "emoji": "🔥",
     "createdAt": "2026-08-26T10:20:00.000Z"
   }
 }
@@ -577,7 +579,7 @@ Remove an existing reaction for the given email and emoji.
 ```json
 {
   "email": "supporter@example.com",
-  "emoji": "fire"
+  "emoji": "🔥"
 }
 ```
 
@@ -598,7 +600,7 @@ Returns detailed emoji counts and participant profiles.
 {
   "reactions": [
     {
-      "emoji": "fire",
+      "emoji": "🔥",
       "count": 1,
       "users": [
         {
@@ -818,7 +820,7 @@ Monitors uptime and basic service availability.
 | **TC-TODO-08** | `GET /api/todos` | Query feed with category and cursor | `200 OK` | Returns `todos` array and `nextCursor` |
 | **TC-TOPIC-01**| `GET /api/topics` | Discover trending goals | `200 OK` | Returns `topics` with participants and completionRate |
 | **TC-TOPIC-02**| `GET /api/topics/:hash` | Query specific goal hash | `200 OK` | `topic.topicHash == :hash` |
-| **TC-REACT-01**| `POST /api/todos/:id/reactions` | React with `rocket` | `201 Created` | Reaction recorded |
+| **TC-REACT-01**| `POST /api/todos/:id/reactions` | React with `🚀` | `201 Created` | Reaction recorded |
 | **TC-REACT-02**| `POST /api/todos/:id/reactions` | Duplicate reaction with same emoji | `409 Conflict` | `error.code == "DUPLICATE_REACTION"` |
 | **TC-REACT-03**| `DELETE /api/todos/:id/reactions` | Remove previously placed reaction | `200 OK` | `success == true` |
 | **TC-USER-01** | `GET /api/users/:id` | Fetch user profile by handle | `200 OK` | `user.handle` matches, email redacted |
