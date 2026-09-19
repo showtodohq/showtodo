@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { page } from '$app/state';
+	import BrandLogo from '$lib/components/ui/BrandLogo.svelte';
 	import UserPopover from '$lib/components/layout/UserPopover.svelte';
 	import { createTodoModalStore } from '$lib/stores/create-todo-modal.svelte';
 
@@ -40,16 +41,8 @@
 	<div class="mx-auto grid grid-cols-[1fr_auto_1fr] h-full max-w-3xl sm:max-w-4xl items-center px-4 sm:px-6 gap-3">
 		<!-- 左列 (1fr)：品牌 Logo 与产品名称 (左对齐) -->
 		<div class="flex items-center justify-start min-w-0">
-			<a href="/" class="flex items-center gap-2.5 group transition-opacity hover:opacity-90 shrink-0">
-				<div class="flex h-7 w-7 items-center justify-center rounded-lg bg-zinc-900 text-white dark:bg-white dark:text-zinc-900 shadow-xs">
-					<svg class="h-4 w-4 stroke-[2.2]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
-						<path d="M9 12l2.5 2.5L18 8" />
-						<path d="M21 12a9 9 0 1 1-9-9c2.5 0 4.75 1 6.4 2.6" />
-					</svg>
-				</div>
-				<span class="text-sm font-semibold tracking-tight text-zinc-900 dark:text-zinc-100 hidden sm:inline">
-					ShowTodo
-				</span>
+			<a href="/" class="group transition-opacity hover:opacity-90 shrink-0" aria-label="ShowTodo Home">
+				<BrandLogo size="md" showText={true} />
 			</a>
 		</div>
 
