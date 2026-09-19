@@ -8,8 +8,7 @@
 		isStatusDone,
 		isStatusAbandoned
 	} from '$lib/constants/status';
-	import CategoryBadge from '$lib/components/todo/CategoryBadge.svelte';
-	import TodoCheckbox from '$lib/components/todo/TodoCheckbox.svelte';
+	import { getCategoryConfig } from '$lib/constants/categories';
 	import EmptyState from '$lib/components/ui/EmptyState.svelte';
 	import Popover from '$lib/components/ui/Popover.svelte';
 	import { POPOVER_PLACEMENT, POPOVER_TRIGGER, POPOVER_ROLE } from '$lib/constants/popover';
@@ -79,21 +78,12 @@
 					{:else}
 						{#each col.todos as todo (todo.id)}
 							{@const currentStatusConfig = getStatusConfig(todo.status)}
+							{@const catConfig = getCategoryConfig(todo.category)}
 							<div
-								class="group/card relative rounded-2xl bg-white dark:bg-zinc-900 p-4 shadow-2xs hover:shadow-xs transition-all duration-150 space-y-3"
+								class="group/card relative rounded-2xl p-4 shadow-2xs hover:shadow-xs transition-all duration-150 space-y-3 {catConfig
+									? catConfig.bgClass
+									: 'bg-white dark:bg-zinc-900'}"
 							>
-								<!-- Top bar: category & relative time -->
-								<div class="flex items-center justify-between gap-2">
-									<div>
-										{#if todo.category}
-											<CategoryBadge category={todo.category} />
-										{/if}
-									</div>
-									<span class="font-mono text-[10px] text-zinc-400">
-										{formatRelativeTime(todo.createdAt)}
-									</span>
-								</div>
-
 								<!-- Todo content link -->
 								<a
 									href="/t/{todo.shortId || todo.id}"
@@ -112,16 +102,20 @@
 								<!-- Note preview -->
 								{#if todo.note}
 									<div
-										class="text-xs text-zinc-500 dark:text-zinc-400 bg-zinc-50/80 dark:bg-zinc-800/40 rounded-xl p-2.5 leading-normal"
+										class="text-xs text-zinc-600 dark:text-zinc-300 bg-white/60 dark:bg-black/20 rounded-xl p-2.5 leading-normal"
 									>
 										{todo.note}
 									</div>
 								{/if}
 
-								<!-- Bottom bar: status menu & checkbox -->
+								<!-- Bottom bar: time on left, status popover on right -->
 								<div class="flex items-center justify-between pt-1">
+									<span class="font-mono text-[10px] text-zinc-500/80 dark:text-zinc-400">
+										{formatRelativeTime(todo.createdAt)}
+									</span>
+
 									<Popover
-										placement={POPOVER_PLACEMENT.TOP_START}
+										placement={POPOVER_PLACEMENT.TOP_END}
 										trigger={POPOVER_TRIGGER.CLICK}
 										role={POPOVER_ROLE.MENU}
 										offset={6}
@@ -130,7 +124,7 @@
 											<button
 												type="button"
 												{...triggerProps}
-												class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs font-medium bg-zinc-100/70 dark:bg-zinc-800/70 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200/80 dark:hover:bg-zinc-700/80 transition-colors cursor-pointer"
+												class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs font-medium bg-white/80 dark:bg-zinc-800/80 text-zinc-700 dark:text-zinc-300 hover:bg-white dark:hover:bg-zinc-700 transition-colors cursor-pointer shadow-2xs"
 												title="Change status"
 											>
 												<TodoStatusIcon status={todo.status} size="xs" class={currentStatusConfig.actionColorClass} />
@@ -169,14 +163,6 @@
 											</div>
 										{/snippet}
 									</Popover>
-
-									<!-- 右侧打卡复选框 -->
-									<TodoCheckbox
-										status={todo.status}
-										isMine={true}
-										size="sm"
-										ontoggle={(nextStatus, e) => resource.handleToggle(todo, nextStatus, e)}
-									/>
 								</div>
 							</div>
 						{/each}

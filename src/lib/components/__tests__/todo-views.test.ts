@@ -64,6 +64,10 @@ describe('Todo Views (Stream, Kanban, Calendar) SSR Rendering', () => {
 		expect(rendered.body).toContain('Progress Column Task');
 		// 校验列头已收敛使用 TodoStatusIcon (包含空心圆与饼图)
 		expect(rendered.body).toContain('d="M12 12 L12 3 A9 9 0 0 1 21 12 Z"');
+		// 校验卡片背景应用了对应分类颜色 (dev 分类对应 bg-purple-50)
+		expect(rendered.body).toContain('bg-purple-50');
+		// 校验底部栏状态变更按钮居右
+		expect(rendered.body).toContain('Change status');
 	});
 
 	it('renders TodoCalendarView correctly with 7-column matrix and weekday headers', () => {
