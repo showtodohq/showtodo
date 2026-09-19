@@ -1,5 +1,6 @@
 import type { Todo, TodoStatus } from '$lib/types/todo';
 import type { UserProfile } from '$lib/types/user';
+import { isStatusCompletedOrAbandoned } from '$lib/constants/status';
 
 /**
  * 状态排序权重：in_progress 优先，其次 pending，再后 done，最后 abandoned
@@ -148,3 +149,15 @@ export function sortUsersForCalendar(
 		return timeB - timeA;
 	});
 }
+
+/**
+ * 获取日历单元格待办状态：是否有未完成待办，或已全部完成
+ */
+export function getCalendarCellBadgeStatus(
+	todos: Array<{ status?: string | null }>
+): 'HAS_PENDING' | 'ALL_DONE' | 'EMPTY' {
+	if (!todos || todos.length === 0) return 'EMPTY';
+	const hasPending = todos.some((t) => !isStatusCompletedOrAbandoned(t.status));
+	return hasPending ? 'HAS_PENDING' : 'ALL_DONE';
+}
+

@@ -4,6 +4,11 @@
 		isStatusDone,
 		isStatusCompletedOrAbandoned
 	} from '$lib/constants/status';
+	import {
+		CALENDAR_LAYOUT,
+		CALENDAR_BADGE_STYLE
+	} from '$lib/constants/calendar';
+	import { getCalendarCellBadgeStatus } from '$lib/utils/calendar';
 	import TodoItem from '$lib/components/todo/TodoItem.svelte';
 	import EmptyState from '$lib/components/ui/EmptyState.svelte';
 
@@ -112,13 +117,13 @@
 				<button
 					type="button"
 					onclick={() => onSelectDay(cell)}
-					class="min-h-[96px] sm:min-h-[116px] p-2 sm:p-2.5 rounded-2xl flex flex-col text-left transition-all cursor-pointer relative group {isSelected
-						? 'bg-zinc-200/80 dark:bg-zinc-800/90 shadow-2xs'
+					class="{CALENDAR_LAYOUT.CELL_CONTAINER_CLASS} {isSelected
+						? 'bg-zinc-200/80 dark:bg-zinc-800/90 shadow-2xs ring-1 ring-zinc-300 dark:ring-zinc-700'
 						: 'bg-zinc-100/50 dark:bg-zinc-900/40 hover:bg-zinc-100/80 dark:hover:bg-zinc-900/70'} {cell.isCurrentMonth
 						? ''
 						: 'opacity-35'}"
 				>
-					<div class="flex items-center justify-between mb-1.5 w-full">
+					<div class="flex items-center justify-between mb-1 sm:mb-1.5 w-full">
 						{#if cell.isToday}
 							<div
 								class="h-5 w-5 rounded-full bg-zinc-900 text-white dark:bg-white dark:text-zinc-900 flex items-center justify-center text-[11px] font-bold shadow-xs"
@@ -137,14 +142,31 @@
 						{/if}
 
 						{#if cell.todos.length > 0}
-							<span class="text-[10px] font-mono text-zinc-400">
+							<span class={CALENDAR_LAYOUT.DESKTOP_TOP_COUNT_CLASS}>
 								{cell.todos.length}
 							</span>
 						{/if}
 					</div>
 
-					<!-- Todo items list -->
-					<div class="space-y-1 flex-1 w-full overflow-hidden">
+					<!-- Mobile centered todo count badge -->
+					<div class={CALENDAR_LAYOUT.MOBILE_CENTER_CONTAINER_CLASS}>
+						{#if cell.todos.length > 0}
+							{@const badgeStatus = getCalendarCellBadgeStatus(cell.todos)}
+							<span
+								class="{CALENDAR_LAYOUT.MOBILE_CENTER_BADGE_CLASS} {badgeStatus === 'HAS_PENDING'
+									? CALENDAR_BADGE_STYLE.HAS_PENDING.className
+									: CALENDAR_BADGE_STYLE.ALL_DONE.className}"
+								title="{cell.todos.length} {badgeStatus === 'HAS_PENDING'
+									? CALENDAR_BADGE_STYLE.HAS_PENDING.labelSuffix
+									: CALENDAR_BADGE_STYLE.ALL_DONE.labelSuffix}"
+							>
+								{cell.todos.length}
+							</span>
+						{/if}
+					</div>
+
+					<!-- Desktop todo items list -->
+					<div class={CALENDAR_LAYOUT.DESKTOP_TODO_LIST_CLASS}>
 						{#each cell.todos.slice(0, 3) as todo (todo.id)}
 							<div
 								class="w-full px-2 py-0.5 rounded-lg text-[11px] font-medium truncate block bg-white/90 dark:bg-zinc-800/90 text-zinc-700 dark:text-zinc-300 shadow-2xs transition-all {isStatusCompletedOrAbandoned(

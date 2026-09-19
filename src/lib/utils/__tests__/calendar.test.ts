@@ -6,7 +6,8 @@ import {
 	formatDayHeader,
 	sortTodosForCell,
 	sortUsersForCalendar,
-	addWeeks
+	addWeeks,
+	getCalendarCellBadgeStatus
 } from '../calendar';
 import type { Todo } from '$lib/types/todo';
 import type { UserProfile } from '$lib/types/user';
@@ -150,5 +151,21 @@ describe('calendar utils', () => {
 
 		const sorted = sortUsersForCalendar(users, 'user-me');
 		expect(sorted.map((u) => u.id)).toEqual(['user-me', 'user-2', 'user-1']);
+	});
+
+	describe('getCalendarCellBadgeStatus', () => {
+		it('returns EMPTY for empty todo list', () => {
+			expect(getCalendarCellBadgeStatus([])).toBe('EMPTY');
+		});
+
+		it('returns HAS_PENDING when there are pending or in_progress todos', () => {
+			expect(getCalendarCellBadgeStatus([{ status: 'pending' }])).toBe('HAS_PENDING');
+			expect(getCalendarCellBadgeStatus([{ status: 'in_progress' }, { status: 'done' }])).toBe('HAS_PENDING');
+		});
+
+		it('returns ALL_DONE when all todos are done or abandoned', () => {
+			expect(getCalendarCellBadgeStatus([{ status: 'done' }])).toBe('ALL_DONE');
+			expect(getCalendarCellBadgeStatus([{ status: 'done' }, { status: 'abandoned' }])).toBe('ALL_DONE');
+		});
 	});
 });
