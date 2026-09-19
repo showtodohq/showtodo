@@ -148,20 +148,18 @@
 						{/if}
 					</div>
 
-					<!-- Mobile centered todo count badge -->
+					<!-- Mobile centered todo dot indicator -->
 					<div class={CALENDAR_LAYOUT.MOBILE_CENTER_CONTAINER_CLASS}>
 						{#if cell.todos.length > 0}
 							{@const badgeStatus = getCalendarCellBadgeStatus(cell.todos)}
 							<span
-								class="{CALENDAR_LAYOUT.MOBILE_CENTER_BADGE_CLASS} {badgeStatus === 'HAS_PENDING'
-									? CALENDAR_BADGE_STYLE.HAS_PENDING.className
-									: CALENDAR_BADGE_STYLE.ALL_DONE.className}"
+								class="{CALENDAR_LAYOUT.MOBILE_CENTER_DOT_CLASS} {badgeStatus === 'HAS_PENDING'
+									? CALENDAR_BADGE_STYLE.HAS_PENDING.dotClassName
+									: CALENDAR_BADGE_STYLE.ALL_DONE.dotClassName}"
 								title="{cell.todos.length} {badgeStatus === 'HAS_PENDING'
 									? CALENDAR_BADGE_STYLE.HAS_PENDING.labelSuffix
 									: CALENDAR_BADGE_STYLE.ALL_DONE.labelSuffix}"
-							>
-								{cell.todos.length}
-							</span>
+							></span>
 						{/if}
 					</div>
 

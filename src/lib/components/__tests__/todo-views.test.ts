@@ -79,20 +79,23 @@ describe('Todo Views (Stream, Kanban, Calendar) SSR Rendering', () => {
 		expect(rendered.body).toContain('Calendar Test Todo');
 		// 校验日历单元格内为纯文字呈现，不渲染前导状态图标
 		expect(rendered.body).not.toContain('d="M5 13l4 4L19 7"');
-		// 校验移动端居中数量角标已渲染且标明完成状态
+		// 校验移动端居中圆点指示器已渲染且呈现完成绿
 		expect(rendered.body).toContain('flex sm:hidden flex-1 items-center justify-center');
+		expect(rendered.body).toContain('h-1.5 w-1.5 rounded-full');
+		expect(rendered.body).toContain('bg-emerald-500');
 		expect(rendered.body).toContain('all completed');
 		// 校验桌面端条目列表在移动端隐藏
 		expect(rendered.body).toContain('hidden sm:block space-y-1');
 	});
 
-	it('renders TodoCalendarView with pending badge style when cell has active tasks', () => {
+	it('renders TodoCalendarView with pending dot style when cell has active tasks', () => {
 		const res = createMyTodosResource();
 		const t = mockTodo('t2', 'pending', 'Active Pending Task');
 		todoRegistry.upsert(t);
 		res.setTodoIds(['t2']);
 
 		const rendered = render(TodoCalendarView, { props: { resource: res } });
+		expect(rendered.body).toContain('bg-zinc-900');
 		expect(rendered.body).toContain('pending tasks');
 		expect(rendered.body).toContain('hidden sm:inline-block');
 	});

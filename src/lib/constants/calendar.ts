@@ -8,12 +8,14 @@ export const CALENDAR_BADGE_STYLE = {
 	ALL_DONE: {
 		className:
 			'bg-emerald-500/15 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400 font-semibold',
+		dotClassName: 'bg-emerald-500 dark:bg-emerald-400',
 		labelSuffix: 'all completed'
 	},
 	/** 含有未完成待办时的样式：高反差醒目色，强调注意力 */
 	HAS_PENDING: {
 		className:
 			'bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900 font-bold shadow-2xs',
+		dotClassName: 'bg-zinc-900 dark:bg-zinc-100',
 		labelSuffix: 'pending tasks'
 	}
 } as const;
@@ -30,9 +32,8 @@ export const CALENDAR_LAYOUT = {
 	DESKTOP_TOP_COUNT_CLASS: 'hidden sm:inline-block text-[10px] font-mono text-zinc-400',
 	/** 移动端居中容器：在移动端占据主体空间并居中对齐，桌面端隐藏 */
 	MOBILE_CENTER_CONTAINER_CLASS: 'flex sm:hidden flex-1 items-center justify-center w-full py-0.5',
-	/** 移动端居中放大的数量角标基础样式 */
-	MOBILE_CENTER_BADGE_CLASS:
-		'inline-flex items-center justify-center min-w-[24px] h-[24px] px-1.5 rounded-full text-xs font-mono font-bold leading-none shadow-2xs transition-transform',
+	/** 移动端居中圆点指示器样式 (数量大于0时方格内居中显示单圆点) */
+	MOBILE_CENTER_DOT_CLASS: 'h-1.5 w-1.5 rounded-full transition-transform',
 	/** 桌面端详细条目列表容器 (移动端隐藏，避免小可视区域文字被挤压截断) */
 	DESKTOP_TODO_LIST_CLASS: 'hidden sm:block space-y-1 flex-1 w-full overflow-hidden'
 } as const;

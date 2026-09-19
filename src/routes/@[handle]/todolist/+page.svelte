@@ -9,7 +9,6 @@
 	import BreadcrumbNav from '$lib/components/ui/BreadcrumbNav.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
 	import Avatar from '$lib/components/ui/Avatar.svelte';
-	import TodoComposer from '$lib/components/todo/TodoComposer.svelte';
 	import TodoStreamView from '$lib/components/todo/TodoStreamView.svelte';
 	import TodoKanbanView from '$lib/components/todo/TodoKanbanView.svelte';
 	import TodoCalendarView from '$lib/components/todo/TodoCalendarView.svelte';
@@ -31,8 +30,6 @@
 
 	const handleParam = $derived(page.params.handle);
 	const resource = createMyTodosResource();
-
-	let composerCategory = $state<CategoryId | null>(null);
 
 	// 同步 URL 参数中的 ?view=, ?q=, ?status=, ?category=
 	let isUrlInitialized = false;
@@ -197,14 +194,8 @@
 			</Button>
 		</div>
 	{:else}
-		<!-- Header Banner: 作者模式展示发布框，访客模式展示公开看板标牌 -->
-		{#if resource.isMe}
-			<TodoComposer
-				bind:selectedCategory={composerCategory}
-				placeholder="Write down a goal, press Enter to plan..."
-				onsubmit={(data) => resource.createTodo(data)}
-			/>
-		{:else if resource.targetUser}
+		<!-- Header Banner: 访客模式展示公开看板标牌 (作者模式不展示发布框) -->
+		{#if !resource.isMe && resource.targetUser}
 			<div
 				class="rounded-3xl border border-zinc-200/80 dark:border-zinc-800 bg-white/70 dark:bg-zinc-900/60 p-4 sm:p-5 backdrop-blur-md shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-3"
 			>
