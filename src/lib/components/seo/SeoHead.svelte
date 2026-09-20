@@ -31,6 +31,14 @@
 	{#if seo.ogImage}
 		<meta property="og:image" content={seo.ogImage} />
 	{/if}
+	{#if seo.ogType === 'article'}
+		{#if seo.publishedTime}
+			<meta property="article:published_time" content={seo.publishedTime} />
+		{/if}
+		{#if seo.modifiedTime}
+			<meta property="article:modified_time" content={seo.modifiedTime} />
+		{/if}
+	{/if}
 
 	<!-- Twitter Cards -->
 	<meta name="twitter:card" content="summary_large_image" />

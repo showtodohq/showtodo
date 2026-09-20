@@ -51,18 +51,7 @@
 		toast.success('Todo marked as abandoned');
 	}
 
-	const todoSeo = $derived(
-		getTodoDetailSeo(
-			detailRes.todo
-				? {
-						id: detailRes.todo.id,
-						shortId: detailRes.todo.shortId,
-						content: detailRes.todo.content,
-						author: detailRes.todo.author
-					}
-				: undefined
-		)
-	);
+	const todoSeo = $derived(getTodoDetailSeo(detailRes.todo));
 </script>
 
 <SeoHead seo={todoSeo} />

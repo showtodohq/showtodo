@@ -117,22 +117,66 @@ describe('SEO Domain Constants & Functions', () => {
 	});
 
 	describe('getTodoDetailSeo', () => {
-		test('generates detail SEO for single public todo item', () => {
+		test('generates detail SEO for single public todo item with datePublished and author.url', () => {
 			const todo = {
 				id: 'uuid-1234',
 				shortId: 'short123',
 				content: 'Release version 1.0 of open-source dashboard',
 				author: {
 					nickname: 'Bob',
-					handle: 'bob_dev'
-				}
+					handle: 'bob_dev',
+					avatar: 'https://example.com/avatar.png'
+				},
+				createdAt: '2026-09-20T10:00:00.000Z',
+				updatedAt: '2026-09-20T11:00:00.000Z'
 			};
 			const seo = getTodoDetailSeo(todo);
 			expect(seo.title).toContain('"Release version 1.0 of open-source dashboard" by Bob');
 			expect(seo.description).toContain('Tracked publicly by Bob');
 			expect(seo.canonical).toBe(`${SITE_BASE_URL}/t/short123`);
 			expect(seo.ogType).toBe('article');
+			expect(seo.publishedTime).toBe('2026-09-20T10:00:00.000Z');
+			expect(seo.modifiedTime).toBe('2026-09-20T11:00:00.000Z');
 			expect(seo.jsonLd).toBeDefined();
+
+			const jsonLd = seo.jsonLd as Record<string, any>;
+			expect(jsonLd['@type']).toBe('SocialMediaPosting');
+			expect(jsonLd.datePublished).toBe('2026-09-20T10:00:00.000Z');
+			expect(jsonLd.dateModified).toBe('2026-09-20T11:00:00.000Z');
+			expect(jsonLd.author).toEqual({
+				'@type': 'Person',
+				name: 'Bob',
+				url: `${SITE_BASE_URL}/@bob_dev`,
+				image: 'https://example.com/avatar.png'
+			});
+			expect(jsonLd.publisher).toEqual({
+				'@type': 'Organization',
+				name: SITE_NAME,
+				url: SITE_BASE_URL,
+				logo: {
+					'@type': 'ImageObject',
+					url: `${SITE_BASE_URL}/favicon.svg`
+				}
+			});
+			expect(jsonLd.mainEntityOfPage).toEqual({
+				'@type': 'WebPage',
+				'@id': `${SITE_BASE_URL}/t/short123`
+			});
+		});
+
+		test('handles Date objects and fallbacks for dates and author url', () => {
+			const createDate = new Date('2026-09-19T08:30:00.000Z');
+			const todo = {
+				id: 'uuid-5678',
+				content: 'Task without handle or update date',
+				author: null,
+				createdAt: createDate
+			};
+			const seo = getTodoDetailSeo(todo);
+			const jsonLd = seo.jsonLd as Record<string, any>;
+			expect(jsonLd.datePublished).toBe('2026-09-19T08:30:00.000Z');
+			expect(jsonLd.dateModified).toBe('2026-09-19T08:30:00.000Z');
+			expect(jsonLd.author.url).toBe(`${SITE_BASE_URL}/`);
 		});
 
 		test('truncates very long task content in title', () => {
@@ -143,6 +187,8 @@ describe('SEO Domain Constants & Functions', () => {
 			};
 			const seo = getTodoDetailSeo(todo);
 			expect(seo.title).toContain('...');
+			const jsonLd = seo.jsonLd as Record<string, any>;
+			expect(jsonLd.datePublished).toBeDefined();
 		});
 
 		test('handles fallback when todo is undefined', () => {

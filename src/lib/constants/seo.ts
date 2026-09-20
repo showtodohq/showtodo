@@ -60,10 +60,12 @@ export const ALL_TARGET_KEYWORDS = [
 export interface SeoMetadata {
 	title: string;
 	description: string;
-	keywords: string[];
+	keywords?: string[];
 	canonical: string;
 	ogType?: 'website' | 'article' | 'profile';
 	ogImage?: string;
+	publishedTime?: string;
+	modifiedTime?: string;
 	jsonLd?: Record<string, unknown> | Array<Record<string, unknown>>;
 }
 
@@ -309,15 +311,35 @@ export function getTrendingSeo(query?: string | null): SeoMetadata {
 	};
 }
 
-/**
- * Generates SEO metadata for an individual Todo detail page (/t/[id]).
- */
-export function getTodoDetailSeo(todo?: {
+export interface TodoDetailSeoInput {
 	id?: string;
 	shortId?: string;
 	content?: string;
-	author?: { nickname?: string | null; handle?: string | null } | null;
-}): SeoMetadata {
+	author?: {
+		nickname?: string | null;
+		handle?: string | null;
+		avatar?: string | null;
+	} | null;
+	createdAt?: string | Date | null;
+	updatedAt?: string | Date | null;
+}
+
+/**
+ * Format a Date object or date string into an ISO 8601 string.
+ */
+function toIsoDateString(dateVal?: string | Date | null): string | undefined {
+	if (!dateVal) return undefined;
+	if (dateVal instanceof Date) {
+		return !isNaN(dateVal.getTime()) ? dateVal.toISOString() : undefined;
+	}
+	const d = new Date(dateVal);
+	return !isNaN(d.getTime()) ? d.toISOString() : undefined;
+}
+
+/**
+ * Generates SEO metadata for an individual Todo detail page (/t/[id]).
+ */
+export function getTodoDetailSeo(todo?: TodoDetailSeoInput | null): SeoMetadata {
 	if (!todo || !todo.content) {
 		return {
 			title: `Todo Details · Public Task · ${SITE_NAME}`,
@@ -332,6 +354,12 @@ export function getTodoDetailSeo(todo?: {
 	const snippet = todo.content.length > 50 ? `${todo.content.slice(0, 47)}...` : todo.content;
 	const authorName = todo.author?.nickname || (todo.author?.handle ? `@${todo.author.handle}` : 'A creator');
 	const taskUrl = `${SITE_BASE_URL}/t/${todo.shortId || todo.id}`;
+	const authorUrl = todo.author?.handle
+		? `${SITE_BASE_URL}/@${todo.author.handle}`
+		: `${SITE_BASE_URL}/`;
+
+	const datePublished = toIsoDateString(todo.createdAt) || toIsoDateString(todo.updatedAt) || new Date().toISOString();
+	const dateModified = toIsoDateString(todo.updatedAt) || datePublished;
 
 	return {
 		title: `"${snippet}" by ${authorName} · Public Todo · ${SITE_NAME}`,
@@ -347,15 +375,34 @@ export function getTodoDetailSeo(todo?: {
 		canonical: taskUrl,
 		ogType: 'article',
 		ogImage: SITE_DEFAULT_IMAGE,
+		publishedTime: datePublished,
+		modifiedTime: dateModified,
 		jsonLd: {
 			'@context': 'https://schema.org',
 			'@type': 'SocialMediaPosting',
 			headline: snippet,
 			articleBody: todo.content,
 			url: taskUrl,
+			mainEntityOfPage: {
+				'@type': 'WebPage',
+				'@id': taskUrl
+			},
+			datePublished,
+			dateModified,
 			author: {
 				'@type': 'Person',
-				name: authorName
+				name: authorName,
+				url: authorUrl,
+				...(todo.author?.avatar ? { image: todo.author.avatar } : {})
+			},
+			publisher: {
+				'@type': 'Organization',
+				name: SITE_NAME,
+				url: SITE_BASE_URL,
+				logo: {
+					'@type': 'ImageObject',
+					url: `${SITE_BASE_URL}/favicon.svg`
+				}
 			}
 		}
 	};
