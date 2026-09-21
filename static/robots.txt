@@ -7,31 +7,6 @@
 
 User-agent: *
 Allow: /
-Allow: /about
-Allow: /stats
-Allow: /trending
-Allow: /goals
-Allow: /privacy
-Allow: /llms.txt
-Allow: /llms-full.txt
-Allow: /sitemap.xml
-Disallow: /(dev)/
-Disallow: /api/health
-
-# Dedicated directives for AI Crawlers
-User-agent: GPTBot
-User-agent: ChatGPT-User
-User-agent: ClaudeBot
-User-agent: Claude-Web
-User-agent: PerplexityBot
-User-agent: Applebot-Extended
-User-agent: Google-Extended
-User-agent: CCBot
-User-agent: cohere-ai
-Allow: /
-Allow: /llms.txt
-Allow: /llms-full.txt
-Disallow: /(dev)/
-Disallow: /api/health
+Disallow: /api/
 
 Sitemap: https://showtodo.com/sitemap.xml

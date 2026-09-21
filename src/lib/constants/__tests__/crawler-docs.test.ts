@@ -23,27 +23,14 @@ describe('Crawler and LLM Discoverability Documents Specification', () => {
 			expect(content.length).toBeGreaterThan(50);
 		});
 
-		test('includes User-agent wildcard and essential public routes', () => {
+		test('allows all public web pages under wildcard user-agent', () => {
 			expect(content).toContain('User-agent: *');
 			expect(content).toContain('Allow: /');
-			expect(content).toContain('Allow: /about');
-			expect(content).toContain('Allow: /stats');
-			expect(content).toContain('Allow: /trending');
-			expect(content).toContain('Allow: /goals');
-			expect(content).toContain('Allow: /privacy');
 		});
 
-		test('disallows internal and development routes', () => {
-			expect(content).toContain('Disallow: /(dev)/');
-			expect(content).toContain('Disallow: /api/health');
-		});
-
-		test('targets and welcomes major AI and LLM crawlers', () => {
-			expect(content).toContain('User-agent: GPTBot');
-			expect(content).toContain('User-agent: ClaudeBot');
-			expect(content).toContain('User-agent: PerplexityBot');
-			expect(content).toContain('User-agent: Applebot-Extended');
-			expect(content).toContain('User-agent: Google-Extended');
+		test('disallows crawling backend api endpoints and removes dev artifacts', () => {
+			expect(content).toContain('Disallow: /api/');
+			expect(content).not.toContain('(dev)');
 		});
 
 		test('references sitemap and llms.txt context documentation', () => {
