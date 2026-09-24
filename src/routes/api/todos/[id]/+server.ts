@@ -26,7 +26,7 @@ export const GET: RequestHandler = async ({ params, url }) => {
 	}
 };
 
-export const PATCH: RequestHandler = async ({ params, request }) => {
+export const PATCH: RequestHandler = async ({ params, request, locals }) => {
 	try {
 		let body;
 		try {
@@ -35,7 +35,16 @@ export const PATCH: RequestHandler = async ({ params, request }) => {
 			throw new AppError('VALIDATION_ERROR', 'Invalid JSON body');
 		}
 
-		const email = validateEmail(body.email);
+		let authIdentifier: { userId?: string; email?: string } | undefined;
+		if (locals?.user?.id) {
+			authIdentifier = { userId: locals.user.id };
+		} else if (body.email) {
+			authIdentifier = { email: validateEmail(body.email) };
+		}
+
+		if (!authIdentifier) {
+			throw new AppError('FORBIDDEN', 'Authentication required to update this todo');
+		}
 
 		const data: Record<string, unknown> = {};
 		if (body.content !== undefined) data.content = validateContent(body.content);
@@ -47,7 +56,7 @@ export const PATCH: RequestHandler = async ({ params, request }) => {
 		if (body.dueDate !== undefined) data.dueDate = validateOptionalDateTime(body.dueDate);
 		if (body.activityNote !== undefined) data.activityNote = validateActivityContent(body.activityNote);
 
-		const updated = await todoService.update(db, params.id, email, data);
+		const updated = await todoService.update(db, params.id, authIdentifier, data);
 
 		return json({ todo: updated });
 	} catch (e) {
@@ -55,24 +64,37 @@ export const PATCH: RequestHandler = async ({ params, request }) => {
 	}
 };
 
-export const DELETE: RequestHandler = async ({ params, request, url }) => {
+export const DELETE: RequestHandler = async ({ params, request, url, locals }) => {
 	try {
-		let email: string | undefined;
-		try {
-			const body = await request.json();
-			if (body && typeof body === 'object' && 'email' in body) {
-				email = body.email;
+		let authIdentifier: { userId?: string; email?: string } | undefined;
+
+		if (locals?.user?.id) {
+			authIdentifier = { userId: locals.user.id };
+		} else {
+			let email: string | undefined;
+			try {
+				const body = await request.json();
+				if (body && typeof body === 'object' && 'email' in body) {
+					email = body.email;
+				}
+			} catch {
+				// request might not have a json body
 			}
-		} catch {
-			// request might not have a json body
+
+			if (!email) {
+				email = url.searchParams.get('email') || undefined;
+			}
+
+			if (email) {
+				authIdentifier = { email: validateEmail(email) };
+			}
 		}
 
-		if (!email) {
-			email = url.searchParams.get('email') || undefined;
+		if (!authIdentifier) {
+			throw new AppError('FORBIDDEN', 'Authentication required to delete this todo');
 		}
 
-		const validatedEmail = validateEmail(email);
-		const result = await todoService.deleteTodo(db, params.id, validatedEmail);
+		const result = await todoService.deleteTodo(db, params.id, authIdentifier);
 
 		return json(result);
 	} catch (e) {

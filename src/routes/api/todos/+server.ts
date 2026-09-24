@@ -15,7 +15,7 @@ import {
 	validateLimit
 } from '$lib/server/validation';
 
-export const POST: RequestHandler = async ({ request }) => {
+export const POST: RequestHandler = async ({ request, locals }) => {
 	try {
 		let body;
 		try {
@@ -24,7 +24,6 @@ export const POST: RequestHandler = async ({ request }) => {
 			throw new AppError('VALIDATION_ERROR', 'Invalid JSON body');
 		}
 
-		const email = validateEmail(body.email);
 		const content = validateContent(body.content);
 		const note = validateNote(body.note);
 		const isNotePublic = validateBoolean(body.isNotePublic, true);
@@ -32,7 +31,19 @@ export const POST: RequestHandler = async ({ request }) => {
 		const startDate = validateOptionalDateTime(body.startDate) ?? undefined;
 		const dueDate = validateOptionalDateTime(body.dueDate);
 
-		const user = await userService.findOrCreate(db, email);
+		let user: any = null;
+		if (locals?.user?.id) {
+			user = await userService.findById(db, locals.user.id);
+		}
+		if (!user && body.email) {
+			const email = validateEmail(body.email);
+			user = await userService.findOrCreate(db, email);
+		}
+
+		if (!user) {
+			throw new AppError('FORBIDDEN', 'Authentication required to create a todo');
+		}
+
 		const rawTodo = await todoService.create(db, {
 			content,
 			note,

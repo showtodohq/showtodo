@@ -265,7 +265,12 @@ export async function list(db: Database, filters: ListTodosFilters) {
 	};
 }
 
-export async function update(db: Database, idOrShortId: string, authorEmail: string, data: UpdateTodoData) {
+export async function update(
+	db: Database,
+	idOrShortId: string,
+	authIdentifier: { userId?: string; email?: string } | string,
+	data: UpdateTodoData
+) {
 	const condition = isUUID(idOrShortId)
 		? eq(todos.id, idOrShortId)
 		: eq(todos.shortId, idOrShortId);
@@ -280,7 +285,17 @@ export async function update(db: Database, idOrShortId: string, authorEmail: str
 	if (!existing[0]) throw new AppError('NOT_FOUND', 'Todo not found');
 
 	const { todos: todo, users: author } = existing[0];
-	if (author.email.toLowerCase() !== authorEmail.toLowerCase()) {
+	
+	let isAuthorized = false;
+	if (typeof authIdentifier === 'string') {
+		isAuthorized = author.email.toLowerCase() === authIdentifier.toLowerCase();
+	} else if (authIdentifier.userId && todo.authorId === authIdentifier.userId) {
+		isAuthorized = true;
+	} else if (authIdentifier.email && author.email.toLowerCase() === authIdentifier.email.toLowerCase()) {
+		isAuthorized = true;
+	}
+
+	if (!isAuthorized) {
 		throw new AppError('FORBIDDEN', 'Only the author can update this todo');
 	}
 
@@ -955,7 +970,7 @@ export async function listTopics(
 export async function deleteTodo(
 	db: Database,
 	idOrShortId: string,
-	authorEmail: string
+	authIdentifier: { userId?: string; email?: string } | string
 ): Promise<{ success: boolean; deletedId: string }> {
 	const condition = isUUID(idOrShortId)
 		? eq(todos.id, idOrShortId)
@@ -971,7 +986,17 @@ export async function deleteTodo(
 	if (!existing[0]) throw new AppError('NOT_FOUND', 'Todo not found');
 
 	const { todos: todo, users: author } = existing[0];
-	if (author.email.toLowerCase() !== authorEmail.toLowerCase()) {
+	
+	let isAuthorized = false;
+	if (typeof authIdentifier === 'string') {
+		isAuthorized = author.email.toLowerCase() === authIdentifier.toLowerCase();
+	} else if (authIdentifier.userId && todo.authorId === authIdentifier.userId) {
+		isAuthorized = true;
+	} else if (authIdentifier.email && author.email.toLowerCase() === authIdentifier.email.toLowerCase()) {
+		isAuthorized = true;
+	}
+
+	if (!isAuthorized) {
 		throw new AppError('FORBIDDEN', 'Only the author can delete this todo');
 	}
 

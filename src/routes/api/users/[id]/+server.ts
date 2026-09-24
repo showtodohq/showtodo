@@ -20,7 +20,7 @@ export const GET: RequestHandler = async ({ params, url, request }) => {
 	}
 };
 
-export const PATCH: RequestHandler = async ({ params, request }) => {
+export const PATCH: RequestHandler = async ({ params, request, locals }) => {
 	try {
 		let body;
 		try {
@@ -29,7 +29,16 @@ export const PATCH: RequestHandler = async ({ params, request }) => {
 			throw new AppError('VALIDATION_ERROR', 'Invalid JSON body');
 		}
 
-		const email = validateEmail(body.email);
+		let authIdentifier: { userId?: string; email?: string } | undefined;
+		if (locals?.user?.id) {
+			authIdentifier = { userId: locals.user.id };
+		} else if (body.email) {
+			authIdentifier = { email: validateEmail(body.email) };
+		}
+
+		if (!authIdentifier) {
+			throw new AppError('FORBIDDEN', 'Authentication required to update profile');
+		}
 
 		const data: { nickname?: string; avatar?: string | null; handle?: string } = {};
 		if (body.nickname !== undefined) {
@@ -48,7 +57,7 @@ export const PATCH: RequestHandler = async ({ params, request }) => {
 		const targetUser = await userService.findByIdOrHandle(db, params.id);
 		if (!targetUser) throw new AppError('NOT_FOUND', 'User not found');
 
-		const updated = await userService.update(db, targetUser.id, email, data);
+		const updated = await userService.update(db, targetUser.id, authIdentifier, data);
 
 		return json({ user: userService.toUserProfile(updated, { isSelf: true }) });
 	} catch (e) {

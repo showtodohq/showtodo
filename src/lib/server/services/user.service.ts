@@ -72,12 +72,22 @@ export async function findOrCreate(db: Database, email: string) {
 export async function update(
 	db: Database,
 	id: string,
-	email: string,
+	authIdentifier: { userId?: string; email?: string } | string,
 	data: { nickname?: string; avatar?: string | null; handle?: string }
 ) {
 	const user = await findByIdOrHandle(db, id);
 	if (!user) throw new AppError('NOT_FOUND', 'User not found');
-	if (user.email.toLowerCase() !== email.toLowerCase()) {
+
+	let isAuthorized = false;
+	if (typeof authIdentifier === 'string') {
+		isAuthorized = user.email.toLowerCase() === authIdentifier.toLowerCase();
+	} else if (authIdentifier.userId && user.id === authIdentifier.userId) {
+		isAuthorized = true;
+	} else if (authIdentifier.email && user.email.toLowerCase() === authIdentifier.email.toLowerCase()) {
+		isAuthorized = true;
+	}
+
+	if (!isAuthorized) {
 		throw new AppError('FORBIDDEN', 'Not authorized to update this user');
 	}
 

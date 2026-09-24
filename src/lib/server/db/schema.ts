@@ -7,6 +7,7 @@ export const activityTypeEnum = pgEnum('todo_activity_type', ['created', 'status
 export const users = pgTable('users', {
 	id: uuid('id').primaryKey().defaultRandom(),
 	email: text('email').notNull().unique(),
+	emailVerified: boolean('email_verified').notNull().default(false),
 	handle: text('handle').notNull().unique(),
 	nickname: text('nickname').notNull(),
 	avatar: text('avatar'),
@@ -72,11 +73,68 @@ export const todoActivities = pgTable(
 	(table) => [index('idx_todo_activities_todo_created').on(table.todoId, table.createdAt)]
 );
 
+// Better Auth core tables
+export const sessions = pgTable('sessions', {
+	id: text('id').primaryKey(),
+	token: text('token').notNull().unique(),
+	userId: uuid('user_id')
+		.notNull()
+		.references(() => users.id, { onDelete: 'cascade' }),
+	expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
+	ipAddress: text('ip_address'),
+	userAgent: text('user_agent'),
+	createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+	updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow().$onUpdate(() => new Date())
+});
+
+export const accounts = pgTable('accounts', {
+	id: text('id').primaryKey(),
+	userId: uuid('user_id')
+		.notNull()
+		.references(() => users.id, { onDelete: 'cascade' }),
+	accountId: text('account_id').notNull(),
+	providerId: text('provider_id').notNull(),
+	accessToken: text('access_token'),
+	refreshToken: text('refresh_token'),
+	accessTokenExpiresAt: timestamp('access_token_expires_at', { withTimezone: true }),
+	refreshTokenExpiresAt: timestamp('refresh_token_expires_at', { withTimezone: true }),
+	scope: text('scope'),
+	password: text('password'),
+	idToken: text('id_token'),
+	createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+	updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow().$onUpdate(() => new Date())
+});
+
+export const verifications = pgTable('verifications', {
+	id: text('id').primaryKey(),
+	identifier: text('identifier').notNull(),
+	value: text('value').notNull(),
+	expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
+	createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+	updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow().$onUpdate(() => new Date())
+});
+
 // Relations for Drizzle query builder
 export const usersRelations = relations(users, ({ many }) => ({
 	todos: many(todos),
 	reactions: many(reactions),
-	activities: many(todoActivities)
+	activities: many(todoActivities),
+	sessions: many(sessions),
+	accounts: many(accounts)
+}));
+
+export const sessionsRelations = relations(sessions, ({ one }) => ({
+	user: one(users, {
+		fields: [sessions.userId],
+		references: [users.id]
+	})
+}));
+
+export const accountsRelations = relations(accounts, ({ one }) => ({
+	user: one(users, {
+		fields: [accounts.userId],
+		references: [users.id]
+	})
 }));
 
 export const todosRelations = relations(todos, ({ one, many }) => ({
@@ -109,3 +167,4 @@ export const todoActivitiesRelations = relations(todoActivities, ({ one }) => ({
 		references: [users.id]
 	})
 }));
+
