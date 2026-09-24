@@ -14,6 +14,8 @@
 	import Icon from '@iconify/svelte';
 
 	import { getTodayString } from '$lib/utils/format';
+	import { getTrendingTopicSeo } from '$lib/constants/seo';
+	import SeoHead from '$lib/components/seo/SeoHead.svelte';
 
 	let { data }: { data: PageData } = $props();
 
@@ -34,11 +36,11 @@
 			topicRes.load(hash, targetDate);
 		}
 	});
+
+	const topicSeo = $derived(getTrendingTopicSeo(topicRes.topic, page.params.hash));
 </script>
 
-<svelte:head>
-	<title>{topicRes.topic ? `#${topicRes.topic.content} · Trending · ShowTodo` : 'Trending · ShowTodo'}</title>
-</svelte:head>
+<SeoHead seo={topicSeo} />
 
 <div class="w-full space-y-6 sm:space-y-8">
 	<DataView

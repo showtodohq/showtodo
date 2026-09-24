@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { PRIVACY_POLICY } from '$lib/constants/privacy';
+	import { SITE_BASE_URL } from '$lib/constants/seo';
 	import Icon from '@iconify/svelte';
 
 	let activeSectionId = $state<string>(PRIVACY_POLICY.sections[0].id);
@@ -25,7 +26,7 @@
 <svelte:head>
 	<title>{PRIVACY_POLICY.meta.title}</title>
 	<meta name="description" content={PRIVACY_POLICY.meta.description} />
-	<link rel="canonical" href="https://showtodo.com/privacy" />
+	<link rel="canonical" href="{SITE_BASE_URL}/privacy" />
 	<meta property="og:title" content={PRIVACY_POLICY.meta.title} />
 	<meta property="og:description" content={PRIVACY_POLICY.meta.description} />
 	<meta property="og:type" content="website" />

@@ -1,12 +1,12 @@
 # ShowTodo - Public Todo Network Robots Policy
-# https://showtodo.com
+# https://www.showtodo.com
 
 # LLM Agents & AI crawlers context documentation:
-# https://showtodo.com/llms.txt
-# https://showtodo.com/llms-full.txt
+# https://www.showtodo.com/llms.txt
+# https://www.showtodo.com/llms-full.txt
 
 User-agent: *
 Allow: /
 Disallow: /api/
 
-Sitemap: https://showtodo.com/sitemap.xml
+Sitemap: https://www.showtodo.com/sitemap.xml

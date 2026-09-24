@@ -10,6 +10,8 @@
 	import ActivityHeatmap from '$lib/components/stats/ActivityHeatmap.svelte';
 	import CategoryDonutChart from '$lib/components/stats/CategoryDonutChart.svelte';
 	import Icon from '@iconify/svelte';
+	import { getStatsSeo } from '$lib/constants/seo';
+	import SeoHead from '$lib/components/seo/SeoHead.svelte';
 
 	let { data }: { data: PageData } = $props();
 
@@ -36,11 +38,11 @@
 	function refresh() {
 		statsStore.load(true, 365);
 	}
+
+	const statsSeo = getStatsSeo();
 </script>
 
-<svelte:head>
-	<title>Stats Dashboard · ShowTodo</title>
-</svelte:head>
+<SeoHead seo={statsSeo} />
 
 <div class="w-full space-y-6 sm:space-y-8">
 	<!-- Page Title and Controls -->

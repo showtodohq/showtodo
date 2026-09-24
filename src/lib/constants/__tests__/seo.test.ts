@@ -4,6 +4,8 @@ import {
 	getUserProfileSeo,
 	getUserWorkbenchSeo,
 	getTrendingSeo,
+	getTrendingTopicSeo,
+	getStatsSeo,
 	getTodoDetailSeo,
 	ALL_TARGET_KEYWORDS,
 	SITE_NAME,
@@ -194,6 +196,51 @@ describe('SEO Domain Constants & Functions', () => {
 		test('handles fallback when todo is undefined', () => {
 			const seo = getTodoDetailSeo(undefined);
 			expect(seo.title).toContain('Todo Details');
+		});
+	});
+
+	describe('getTrendingTopicSeo', () => {
+		test('generates canonical URL without query parameters or dates', () => {
+			const topic = {
+				topicHash: '7012c0bd01c4d9c9',
+				content: 'Morning 5km Run & Meditation',
+				totalParticipants: 5
+			};
+			const seo = getTrendingTopicSeo(topic);
+			expect(seo.canonical).toBe(`${SITE_BASE_URL}/trending/7012c0bd01c4d9c9`);
+			expect(seo.canonical).not.toContain('?date=');
+			expect(seo.canonical).toContain('https://www.showtodo.com');
+			expect(seo.title).toContain('"Morning 5km Run & Meditation"');
+			expect(seo.title).toContain('Public Trending Goal');
+			expect(seo.description).toContain('Morning 5km Run & Meditation');
+			expect(seo.ogType).toBe('website');
+			expect(seo.jsonLd).toBeDefined();
+
+			const jsonLd = seo.jsonLd as Record<string, any>;
+			expect(jsonLd['@type']).toBe('CollectionPage');
+			expect(jsonLd.url).toBe(`${SITE_BASE_URL}/trending/7012c0bd01c4d9c9`);
+		});
+
+		test('handles fallback when topic is null/undefined but hash exists', () => {
+			const seo = getTrendingTopicSeo(null, '7012c0bd01c4d9c9');
+			expect(seo.canonical).toBe(`${SITE_BASE_URL}/trending/7012c0bd01c4d9c9`);
+			expect(seo.title).toContain('Trending Goal');
+		});
+
+		test('handles complete fallback when neither topic nor hash is provided', () => {
+			const seo = getTrendingTopicSeo(undefined);
+			expect(seo.canonical).toBe(`${SITE_BASE_URL}/trending`);
+		});
+	});
+
+	describe('getStatsSeo', () => {
+		test('generates stats SEO with canonical pointing to /stats', () => {
+			const seo = getStatsSeo();
+			expect(seo.canonical).toBe(`${SITE_BASE_URL}/stats`);
+			expect(seo.title).toContain('Stats');
+			expect(seo.description).toContain('productivity');
+			expect(seo.ogType).toBe('website');
+			expect(seo.jsonLd).toBeDefined();
 		});
 	});
 });

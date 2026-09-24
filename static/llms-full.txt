@@ -2,10 +2,10 @@
 
 > ShowTodo is an open, public-first todo network for creators, learners, and builders to share their daily journey, gain social accountability, and build in public.
 
-Canonical URL: https://showtodo.com
-Robots Policy: https://showtodo.com/robots.txt
-Sitemap: https://showtodo.com/sitemap.xml
-Summary LLMs Context: https://showtodo.com/llms.txt
+Canonical URL: https://www.showtodo.com
+Robots Policy: https://www.showtodo.com/robots.txt
+Sitemap: https://www.showtodo.com/sitemap.xml
+Summary LLMs Context: https://www.showtodo.com/llms.txt
 
 ---
 
@@ -212,5 +212,5 @@ Retrieves global platform statistics.
 
 ## 4. Metadata & Legal
 - License: MIT (c) 2026 ShowTodo
-- Privacy & Data Governance: https://showtodo.com/privacy
+- Privacy & Data Governance: https://www.showtodo.com/privacy
 - Security Contact: security@showtodo.com

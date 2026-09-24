@@ -6,7 +6,7 @@
 
 import { getCategoryConfig } from './categories';
 
-export const SITE_BASE_URL = 'https://showtodo.com';
+export const SITE_BASE_URL = 'https://www.showtodo.com';
 export const SITE_NAME = 'ShowTodo';
 export const SITE_DEFAULT_IMAGE = `${SITE_BASE_URL}/og-image.png`;
 
@@ -307,6 +307,100 @@ export function getTrendingSeo(query?: string | null): SeoMetadata {
 			name: 'Trending Public Goals & Todos',
 			description: 'Discover trending public tasks and multi-person goals on ShowTodo.',
 			url: `${SITE_BASE_URL}/trending`
+		}
+	};
+}
+
+/**
+ * Input interface for generating Trending Topic detail SEO metadata.
+ */
+export interface TrendingTopicSeoInput {
+	topicHash?: string | null;
+	content?: string | null;
+	category?: string | null;
+	totalParticipants?: number | null;
+}
+
+/**
+ * Generates SEO metadata for a specific Trending Topic detail page (/trending/[hash]).
+ * Guarantees that canonical always strips dates or query parameters, unifying under SITE_BASE_URL.
+ */
+export function getTrendingTopicSeo(
+	topic?: TrendingTopicSeoInput | null,
+	hashParam?: string | null
+): SeoMetadata {
+	const hash = topic?.topicHash || hashParam;
+	const canonicalUrl = hash ? `${SITE_BASE_URL}/trending/${hash}` : `${SITE_BASE_URL}/trending`;
+
+	if (!topic || !topic.content) {
+		return {
+			title: `Trending Goal · ${SITE_NAME}`,
+			description: 'Explore trending public goals, collaborative habits, and accountability checklists on ShowTodo.',
+			keywords: ['what are people doing', 'public goals', 'trending todo', 'build in public', SITE_NAME],
+			canonical: canonicalUrl,
+			ogType: 'website',
+			ogImage: SITE_DEFAULT_IMAGE
+		};
+	}
+
+	const snippet = topic.content.length > 50 ? `${topic.content.slice(0, 47)}...` : topic.content;
+	const participantCount = topic.totalParticipants || 1;
+	const pageTitle = `"${snippet}" · Public Trending Goal · ${SITE_NAME}`;
+	const pageDescription = `Join ${participantCount} ${participantCount === 1 ? 'person' : 'people'} working on "${topic.content}". Track public checklist progress, stay accountable, and build consistency together on ShowTodo.`;
+
+	return {
+		title: pageTitle,
+		description: pageDescription,
+		keywords: [
+			topic.content,
+			'trending todo',
+			'public goal',
+			'daily checklist',
+			'build in public',
+			'accountability partner',
+			SITE_NAME
+		],
+		canonical: canonicalUrl,
+		ogType: 'website',
+		ogImage: SITE_DEFAULT_IMAGE,
+		jsonLd: {
+			'@context': 'https://schema.org',
+			'@type': 'CollectionPage',
+			name: `"${snippet}" · Public Trending Goal`,
+			description: pageDescription,
+			url: canonicalUrl
+		}
+	};
+}
+
+/**
+ * Generates SEO metadata for the Public Statistics page (/stats).
+ */
+export function getStatsSeo(): SeoMetadata {
+	const canonicalUrl = `${SITE_BASE_URL}/stats`;
+	const description =
+		'Explore real-time public productivity metrics, annual todo activity heatmaps, category breakdowns, and community completion rates across ShowTodo.';
+
+	return {
+		title: `Public Stats & Productivity Transparency Dashboard · ${SITE_NAME}`,
+		description,
+		keywords: [
+			'public stats',
+			'productivity metrics',
+			'activity heatmap',
+			'daily tasks completion',
+			'build in public',
+			SITE_NAME
+		],
+		canonical: canonicalUrl,
+		ogType: 'website',
+		ogImage: SITE_DEFAULT_IMAGE,
+		jsonLd: {
+			'@context': 'https://schema.org',
+			'@type': 'WebPage',
+			name: 'ShowTodo Public Productivity Statistics Dashboard',
+			description,
+			url: canonicalUrl
 		}
 	};
 }

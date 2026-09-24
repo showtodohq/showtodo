@@ -129,7 +129,6 @@ describe('Crawler and LLM Discoverability Documents Specification', () => {
 				`${SITE_BASE_URL}/`,
 				`${SITE_BASE_URL}/about`,
 				`${SITE_BASE_URL}/trending`,
-				`${SITE_BASE_URL}/goals`,
 				`${SITE_BASE_URL}/stats`,
 				`${SITE_BASE_URL}/privacy`,
 				`${SITE_BASE_URL}/llms.txt`,

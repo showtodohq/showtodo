@@ -4,6 +4,8 @@
  * core value pillars, experience highlights, and structured FAQs.
  */
 
+import { SITE_BASE_URL } from './seo';
+
 export interface AboutMeta {
 	title: string;
 	description: string;
@@ -65,7 +67,7 @@ export const ABOUT_CONTENT: AboutContent = {
 		title: "What's ShowTodo · The Public Todo Network",
 		description:
 			'ShowTodo is an open public task network for creators, learners, and builders. Share your daily journey, gain social accountability, learn from others workflows, and build in public.',
-		canonical: 'https://showtodo.com/about',
+		canonical: `${SITE_BASE_URL}/about`,
 		keywords: [
 			'ShowTodo',
 			'public todo list',
@@ -273,7 +275,7 @@ export function generateAboutJsonLd(content: AboutContent = ABOUT_CONTENT): stri
 		'@context': 'https://schema.org',
 		'@type': 'WebApplication',
 		name: 'ShowTodo',
-		url: 'https://showtodo.com',
+		url: SITE_BASE_URL,
 		applicationCategory: 'ProductivityApplication',
 		operatingSystem: 'Any (Web-based)',
 		description: content.entityDefinition.statement,
@@ -296,8 +298,8 @@ export function generateAboutJsonLd(content: AboutContent = ABOUT_CONTENT): stri
 		'@context': 'https://schema.org',
 		'@type': 'Organization',
 		name: 'ShowTodo',
-		url: 'https://showtodo.com',
-		logo: 'https://showtodo.com/favicon.svg',
+		url: SITE_BASE_URL,
+		logo: `${SITE_BASE_URL}/favicon.svg`,
 		description: content.meta.description
 	};
 
