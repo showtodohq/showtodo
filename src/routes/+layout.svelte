@@ -7,7 +7,6 @@
 	import TopProgressBar from '$lib/components/ui/TopProgressBar.svelte';
 	import CreateTodoModal from '$lib/components/todo/CreateTodoModal.svelte';
 	import { progressStore } from '$lib/stores/progress.svelte';
-
 	let { children } = $props();
 
 	let isNavigating = false;

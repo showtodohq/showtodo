@@ -1,11 +1,13 @@
 import { browser } from '$app/environment';
+import { fromStore } from 'svelte/store';
 import { authClient } from '$lib/auth-client';
 import type { CurrentUserSession, UserProfile } from '$lib/types/user';
 
 const STORAGE_KEY = 'public_todo_user_session';
 
 class UserStore {
-	private session = authClient.useSession();
+	// 通过 Svelte 5 官方 fromStore 将 Nanostores Atom 桥接为响应式 $state (拥有 .current)
+	private session = fromStore(authClient.useSession());
 	private legacySession = $state<CurrentUserSession | null>(null);
 
 	constructor() {
@@ -42,26 +44,28 @@ class UserStore {
 	 * 当前用户数据：优先响应 Better Auth 真实会话，回退至 legacy 客户端缓存
 	 */
 	get current(): CurrentUserSession | null {
-		const sessionState = this.session?.get();
+		const sessionState = this.session.current;
 		const authUser = sessionState?.data?.user;
 		if (authUser) {
 			const email = authUser.email.trim().toLowerCase();
-			const nickname = authUser.name?.trim() || email.split('@')[0];
-			const handle = (authUser as any).handle?.trim() || nickname.replace(/[^a-z0-9-_]/gi, '').toLowerCase() || 'user';
+			const nickname = ((authUser as any).nickname || authUser.name)?.trim() || email.split('@')[0];
+			const handle =
+				(authUser as any).handle?.trim() ||
+				nickname.replace(/[^a-z0-9-_]/gi, '').toLowerCase() ||
+				'user';
 			return {
 				id: authUser.id,
 				email,
 				nickname,
 				handle,
-				avatar: authUser.image ?? null
+				avatar: authUser.image ?? (authUser as any).avatar ?? null
 			};
 		}
 		return this.legacySession;
 	}
 
 	get initialized(): boolean {
-		const sessionState = this.session?.get();
-		return Boolean(!sessionState?.isPending);
+		return Boolean(!this.session.current?.isPending);
 	}
 
 	get email(): string | undefined {
@@ -99,15 +103,15 @@ class UserStore {
 		this.saveLegacyStorage();
 	}
 
-	updateUserFromProfile(user: UserProfile) {
+	updateUserFromProfile(user: Partial<UserProfile> & { id: string }) {
 		const email = user.email || this.current?.email || '';
 		if (!email) return;
 		this.legacySession = {
 			email,
 			id: user.id,
-			handle: user.handle,
-			nickname: user.nickname,
-			avatar: user.avatar
+			handle: user.handle || 'user',
+			nickname: user.nickname || 'User',
+			avatar: user.avatar ?? null
 		};
 		this.saveLegacyStorage();
 	}

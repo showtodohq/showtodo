@@ -9,10 +9,12 @@
 	import { userStore } from '$lib/stores/user.svelte';
 	import { theme } from '$lib/stores/theme.svelte';
 	import { toast } from '$lib/stores/toast.svelte';
+	import { progressStore } from '$lib/stores/progress.svelte';
 	import { authClient } from '$lib/auth-client';
 	import Icon from '@iconify/svelte';
 
 	let isOpen = $state(false);
+	let isLoggingOut = $state(false);
 
 	// 未登录表单状态
 	let loginMode = $state<'options' | 'password'>('options');
@@ -38,6 +40,7 @@
 		currentPasswordInput = '';
 		newPasswordInput = '';
 		confirmPasswordInput = '';
+		isLoggingOut = false;
 	}
 
 	async function handleGoogleLogin() {
@@ -158,9 +161,20 @@
 	}
 
 	async function handleLogout() {
-		await userStore.signOut();
-		toast.info('Signed out');
-		closePopover();
+		if (isLoggingOut) return;
+		isLoggingOut = true;
+		progressStore.start();
+		try {
+			await userStore.signOut();
+			toast.info('Signed out');
+			closePopover();
+		} catch (err) {
+			console.error('Logout error:', err);
+			toast.error('Failed to sign out. Please try again.');
+		} finally {
+			isLoggingOut = false;
+			progressStore.done();
+		}
 	}
 
 	async function copyHandle() {
@@ -460,10 +474,18 @@
 					<button
 						type="button"
 						onclick={handleLogout}
-						class="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-xl text-xs font-medium text-red-600 hover:text-red-700 dark:text-red-400 hover:bg-red-50/80 dark:hover:bg-red-950/40 transition-colors cursor-pointer"
+						disabled={isLoggingOut}
+						class="w-full flex items-center justify-between px-2.5 py-1.5 rounded-xl text-xs font-medium text-red-600 hover:text-red-700 dark:text-red-400 hover:bg-red-50/80 dark:hover:bg-red-950/40 transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
 					>
-						<Icon icon="lucide:log-out" class="h-3.5 w-3.5" />
-						Sign Out
+						<span class="flex items-center gap-2">
+							{#if isLoggingOut}
+								<Icon icon="lucide:loader-2" class="h-3.5 w-3.5 animate-spin" />
+								<span>Signing out...</span>
+							{:else}
+								<Icon icon="lucide:log-out" class="h-3.5 w-3.5" />
+								<span>Sign Out</span>
+							{/if}
+						</span>
 					</button>
 				</div>
 			{/if}
