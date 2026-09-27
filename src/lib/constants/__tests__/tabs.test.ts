@@ -12,6 +12,8 @@ import {
 	TOPIC_PARTICIPANT_MODES,
 	TOPIC_PARTICIPANT_TABS
 } from '../tabs';
+
+
 import { TODO_STATUSES } from '../status';
 
 describe('Tabs Domain Constants (DDD)', () => {
@@ -57,3 +59,5 @@ describe('Tabs Domain Constants (DDD)', () => {
 		expect(TOPIC_PARTICIPANT_TABS.map((t) => t.id)).toEqual(['today', 'all']);
 	});
 });
+
+

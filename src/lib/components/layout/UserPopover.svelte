@@ -22,24 +22,11 @@
 	let password = $state('');
 	let isSubmitting = $state(false);
 
-	// 密码管理状态
-	let showSecurity = $state(false);
-	let checkingPassword = $state(false);
-	let hasPassword = $state<boolean | null>(null);
-	let currentPasswordInput = $state('');
-	let newPasswordInput = $state('');
-	let confirmPasswordInput = $state('');
-	let isSavingPassword = $state(false);
-
 	function closePopover() {
 		isOpen = false;
 		loginMode = 'options';
 		email = '';
 		password = '';
-		showSecurity = false;
-		currentPasswordInput = '';
-		newPasswordInput = '';
-		confirmPasswordInput = '';
 		isLoggingOut = false;
 	}
 
@@ -83,82 +70,6 @@
 		}
 	}
 
-	async function fetchPasswordStatus() {
-		checkingPassword = true;
-		try {
-			const res = await fetch('/api/user/password');
-			if (res.ok) {
-				const data = await res.json();
-				hasPassword = Boolean(data.hasPassword);
-			}
-		} catch (err) {
-			console.error('Failed to check password status:', err);
-		} finally {
-			checkingPassword = false;
-		}
-	}
-
-	function toggleSecurity() {
-		showSecurity = !showSecurity;
-		if (showSecurity && hasPassword === null) {
-			fetchPasswordStatus();
-		}
-	}
-
-	async function handleSavePassword(e: SubmitEvent) {
-		e.preventDefault();
-		if (newPasswordInput.length < 8) {
-			toast.error('New password must be at least 8 characters');
-			return;
-		}
-		if (newPasswordInput !== confirmPasswordInput) {
-			toast.error('Passwords do not match');
-			return;
-		}
-
-		isSavingPassword = true;
-		try {
-			if (hasPassword) {
-				// 修改密码
-				const { error } = await authClient.changePassword({
-					currentPassword: currentPasswordInput,
-					newPassword: newPasswordInput,
-					revokeOtherSessions: true
-				});
-				if (error) {
-					toast.error(error.message || 'Failed to update password');
-				} else {
-					toast.success('Password updated successfully!');
-					currentPasswordInput = '';
-					newPasswordInput = '';
-					confirmPasswordInput = '';
-					showSecurity = false;
-				}
-			} else {
-				// 初次设置密码
-				const res = await fetch('/api/user/password', {
-					method: 'POST',
-					headers: { 'Content-Type': 'application/json' },
-					body: JSON.stringify({ newPassword: newPasswordInput })
-				});
-				const data = await res.json();
-				if (!res.ok || data.error) {
-					toast.error(data.error?.message || 'Failed to set password');
-				} else {
-					toast.success('Password created successfully! You can now sign in with your email and password.');
-					hasPassword = true;
-					newPasswordInput = '';
-					confirmPasswordInput = '';
-					showSecurity = false;
-				}
-			}
-		} catch (err) {
-			console.error('Password operation failed:', err);
-			toast.error(`Operation failed: ${(err as Error).message}`);
-		} finally {
-			isSavingPassword = false;
-		}
-	}
 
 	async function handleLogout() {
 		if (isLoggingOut) return;
@@ -312,75 +223,24 @@
 						/>
 					</a>
 
-					<!-- 密码与安全管理 (渐进式折叠卡片) -->
-					<div class="pt-0.5">
-						<button
-							type="button"
-							onclick={toggleSecurity}
-							class="w-full flex items-center justify-between px-2.5 py-1.5 rounded-xl text-xs text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800/80 transition-colors cursor-pointer"
-						>
-							<span class="flex items-center gap-2 font-medium">
-								<Icon icon="lucide:key-round" class="h-3.5 w-3.5 text-zinc-400" />
-								Password & Security
-							</span>
-							<Icon
-								icon={showSecurity ? 'lucide:chevron-up' : 'lucide:chevron-down'}
-								class="h-3.5 w-3.5 text-zinc-400"
-							/>
-						</button>
+					<!-- 密码设置 -->
+					<a
+						href="/settings"
+						onclick={close}
+						class="flex items-center justify-between px-2.5 py-1.5 rounded-xl text-xs text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800/80 transition-colors cursor-pointer group/link"
+					>
+						<span class="flex items-center gap-2 font-medium">
+							<Icon icon="lucide:key-round" class="h-3.5 w-3.5 text-zinc-400" />
+							Password
+						</span>
+						<Icon
+							icon="lucide:arrow-right"
+							class="h-3 w-3 text-zinc-400 transition-transform group-hover/link:translate-x-0.5"
+						/>
+					</a>
 
-						{#if showSecurity}
-							<div class="mt-1 p-2.5 rounded-xl bg-zinc-50 dark:bg-zinc-950/60 border border-zinc-100 dark:border-zinc-800/80 space-y-2.5">
-								{#if checkingPassword}
-									<div class="text-[11px] text-zinc-400 flex items-center justify-center py-2 gap-1.5">
-										<Icon icon="lucide:loader-2" class="h-3.5 w-3.5 animate-spin" />
-										Checking security settings...
-									</div>
-								{:else}
-									<div class="text-[11px] font-medium text-zinc-600 dark:text-zinc-400">
-										{hasPassword ? 'Change your password' : 'Create a password for this account'}
-									</div>
-
-									<form onsubmit={handleSavePassword} class="space-y-2">
-										{#if hasPassword}
-											<Input
-												size="sm"
-												type="password"
-												placeholder="Current password"
-												bind:value={currentPasswordInput}
-												required
-											/>
-										{/if}
-										<Input
-											size="sm"
-											type="password"
-											placeholder="New password (min 8 chars)"
-											bind:value={newPasswordInput}
-											required
-										/>
-										<Input
-											size="sm"
-											type="password"
-											placeholder="Confirm new password"
-											bind:value={confirmPasswordInput}
-											required
-										/>
-										<Button
-											type="submit"
-											size="xs"
-											variant="primary"
-											class="w-full text-xs"
-											loading={isSavingPassword}
-											disabled={isSavingPassword || !newPasswordInput || !confirmPasswordInput}
-										>
-											{hasPassword ? 'Update Password' : 'Set Password'}
-										</Button>
-									</form>
-								{/if}
-							</div>
-						{/if}
-					</div>
 				{:else}
+
 					<!-- 未登录状态：Google 与密码登录 -->
 					<div class="p-2 space-y-2">
 						<!-- Google 登录 -->

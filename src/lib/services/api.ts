@@ -370,5 +370,24 @@ export const api = {
 		const params = new URLSearchParams({ tz: targetTz });
 		if (heatmapDays) params.set('heatmapDays', String(heatmapDays));
 		return request<GlobalStatsData>(`/api/stats?${params.toString()}`, undefined, customFetch);
+	},
+
+	async getPasswordStatus(customFetch?: typeof fetch): Promise<{ hasPassword: boolean }> {
+		return request<{ hasPassword: boolean }>('/api/user/password', undefined, customFetch);
+	},
+
+	async setPassword(
+		newPassword: string,
+		customFetch?: typeof fetch
+	): Promise<{ success: boolean; message: string }> {
+		return request<{ success: boolean; message: string }>(
+			'/api/user/password',
+			{
+				method: 'POST',
+				body: JSON.stringify({ newPassword })
+			},
+			customFetch
+		);
 	}
 };
+

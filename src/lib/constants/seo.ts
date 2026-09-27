@@ -501,3 +501,18 @@ export function getTodoDetailSeo(todo?: TodoDetailSeoInput | null): SeoMetadata 
 		}
 	};
 }
+
+/**
+ * Generates SEO metadata for the Account Settings & Security page (/settings).
+ */
+export function getSettingsSeo(): SeoMetadata {
+	return {
+		title: `Account Settings & Security · ${SITE_NAME}`,
+		description: 'Manage your profile details, handle, avatar, and password security on ShowTodo.',
+		keywords: ['account settings', 'security settings', 'password', 'profile', SITE_NAME],
+		canonical: `${SITE_BASE_URL}/settings`,
+		ogType: 'website',
+		ogImage: SITE_DEFAULT_IMAGE
+	};
+}
+

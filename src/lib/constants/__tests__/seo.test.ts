@@ -7,6 +7,7 @@ import {
 	getTrendingTopicSeo,
 	getStatsSeo,
 	getTodoDetailSeo,
+	getSettingsSeo,
 	ALL_TARGET_KEYWORDS,
 	SITE_NAME,
 	SITE_BASE_URL
@@ -243,4 +244,15 @@ describe('SEO Domain Constants & Functions', () => {
 			expect(seo.jsonLd).toBeDefined();
 		});
 	});
+
+	describe('getSettingsSeo', () => {
+		test('generates settings SEO with canonical pointing to /settings', () => {
+			const seo = getSettingsSeo();
+			expect(seo.canonical).toBe(`${SITE_BASE_URL}/settings`);
+			expect(seo.title).toContain('Settings');
+			expect(seo.description).toContain('security');
+			expect(seo.ogType).toBe('website');
+		});
+	});
 });
+
