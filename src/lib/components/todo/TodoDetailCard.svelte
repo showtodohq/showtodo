@@ -1,7 +1,7 @@
 <script lang="ts">
-	import type { Todo, TodoStatus, ReactionEmoji } from '$lib/types/todo';
+	import type { Todo, TodoStatus, ReactionEmoji, CategoryId } from '$lib/types/todo';
 	import { TODO_STATUS } from '$lib/constants/status';
-	import { getCategoryConfig } from '$lib/constants/categories';
+	import { CATEGORIES } from '$lib/constants/categories';
 	import { formatRelativeTime, formatScheduleRange } from '$lib/utils/format';
 	import { toast } from '$lib/stores/toast.svelte';
 	import Avatar from '$lib/components/ui/Avatar.svelte';
@@ -25,7 +25,13 @@
 		isJoining?: boolean;
 		onstatuschange?: (nextStatus: TodoStatus, e?: MouseEvent) => void;
 		onreaction?: (emoji?: ReactionEmoji) => void;
-		onsaveedit?: (content: string, note?: string | null) => Promise<void>;
+		onsaveedit?: (data: {
+			content: string;
+			note?: string | null;
+			category?: CategoryId | null;
+			startDate?: string | null;
+			dueDate?: string | null;
+		}) => Promise<void>;
 		ondelete?: () => Promise<void> | void;
 		onabandon?: () => Promise<void> | void;
 		onjoin?: () => Promise<void> | void;
@@ -54,10 +60,172 @@
 	let isEditing = $state(false);
 	let editContent = $state('');
 	let editNote = $state('');
+	let editCategory = $state<CategoryId | null>(null);
+	let editStartDate = $state('');
+	let editDueDate = $state('');
+	let activeStartQuick = $state<'now' | 'tomorrow' | 'nextMonday' | null>(null);
+	let activeDueQuick = $state<'eod' | 'tomorrow' | 'nextWeek' | null>(null);
 	let isSaving = $state(false);
 	let showDeleteModal = $state(false);
 	let isDeleting = $state(false);
 	let isAbandoning = $state(false);
+
+	function toDatetimeLocalValue(isoStr?: string | null): string {
+		if (!isoStr) return '';
+		try {
+			const d = new Date(isoStr);
+			if (isNaN(d.getTime())) return '';
+			const year = d.getFullYear();
+			const month = String(d.getMonth() + 1).padStart(2, '0');
+			const day = String(d.getDate()).padStart(2, '0');
+			const hours = String(d.getHours()).padStart(2, '0');
+			const minutes = String(d.getMinutes()).padStart(2, '0');
+			return `${year}-${month}-${day}T${hours}:${minutes}`;
+		} catch {
+			return '';
+		}
+	}
+
+	function resizeAction(node: HTMLTextAreaElement) {
+		function resize() {
+			node.style.height = 'auto';
+			node.style.height = `${node.scrollHeight}px`;
+		}
+		resize();
+		node.addEventListener('input', resize);
+		return {
+			destroy() {
+				node.removeEventListener('input', resize);
+			}
+		};
+	}
+
+	function syncFromTodo() {
+		editContent = todo.content;
+		editNote = todo.note || '';
+		editCategory = (todo.category as CategoryId) || null;
+		editStartDate = toDatetimeLocalValue(todo.startDate);
+		editDueDate = toDatetimeLocalValue(todo.dueDate);
+		activeStartQuick = null;
+		activeDueQuick = null;
+	}
+
+	$effect(() => {
+		if (!isEditing) {
+			syncFromTodo();
+		}
+	});
+
+	function startEditing() {
+		syncFromTodo();
+		isEditing = true;
+	}
+
+	function cancelEditing() {
+		syncFromTodo();
+		isEditing = false;
+	}
+
+	function setQuickStartDate(type: 'now' | 'tomorrow' | 'nextMonday') {
+		if (activeStartQuick === type) {
+			editStartDate = '';
+			activeStartQuick = null;
+			return;
+		}
+		activeStartQuick = type;
+		const target = new Date();
+		if (type === 'tomorrow') {
+			target.setDate(target.getDate() + 1);
+			target.setHours(9, 0, 0, 0);
+		} else if (type === 'nextMonday') {
+			const day = target.getDay();
+			const diff = day === 0 ? 1 : 8 - day;
+			target.setDate(target.getDate() + diff);
+			target.setHours(9, 0, 0, 0);
+		}
+		const year = target.getFullYear();
+		const month = String(target.getMonth() + 1).padStart(2, '0');
+		const date = String(target.getDate()).padStart(2, '0');
+		const hours = String(target.getHours()).padStart(2, '0');
+		const minutes = String(target.getMinutes()).padStart(2, '0');
+		editStartDate = `${year}-${month}-${date}T${hours}:${minutes}`;
+	}
+
+	function clearStartDate() {
+		editStartDate = '';
+		activeStartQuick = null;
+	}
+
+	function setQuickDueDate(type: 'eod' | 'tomorrow' | 'nextWeek') {
+		if (activeDueQuick === type) {
+			editDueDate = '';
+			activeDueQuick = null;
+			return;
+		}
+		activeDueQuick = type;
+		const target = new Date();
+		if (type === 'eod') {
+			target.setHours(23, 59, 0, 0);
+		} else if (type === 'tomorrow') {
+			target.setDate(target.getDate() + 1);
+			target.setHours(23, 59, 0, 0);
+		} else if (type === 'nextWeek') {
+			target.setDate(target.getDate() + 7);
+			target.setHours(23, 59, 0, 0);
+		}
+		const year = target.getFullYear();
+		const month = String(target.getMonth() + 1).padStart(2, '0');
+		const date = String(target.getDate()).padStart(2, '0');
+		editDueDate = `${year}-${month}-${date}T23:59`;
+	}
+
+	function clearDueDate() {
+		editDueDate = '';
+		activeDueQuick = null;
+	}
+
+	function clearAllTime() {
+		editStartDate = '';
+		editDueDate = '';
+		activeStartQuick = null;
+		activeDueQuick = null;
+	}
+
+	const isTimeInvalid = $derived.by(() => {
+		if (editStartDate && editDueDate) {
+			return new Date(editStartDate).getTime() > new Date(editDueDate).getTime();
+		}
+		return false;
+	});
+
+	async function handleSave() {
+		const clean = editContent.trim();
+		if (!clean || isSaving || isTimeInvalid) return;
+
+		isSaving = true;
+		try {
+			await onsaveedit?.({
+				content: clean,
+				note: editNote.trim() || null,
+				category: editCategory,
+				startDate: editStartDate ? new Date(editStartDate).toISOString() : null,
+				dueDate: editDueDate ? new Date(editDueDate).toISOString() : null
+			});
+			isEditing = false;
+		} finally {
+			isSaving = false;
+		}
+	}
+
+	function handleKeydown(e: KeyboardEvent) {
+		if (!isEditing) return;
+		if (e.key === 'Escape') {
+			cancelEditing();
+		} else if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
+			e.preventDefault();
+			handleSave();
+		}
+	}
 
 	async function handleAbandon() {
 		isAbandoning = true;
@@ -84,48 +252,24 @@
 		}
 	}
 
-	$effect(() => {
-		editContent = todo.content;
-		editNote = todo.note || '';
-	});
-
 	const scheduleText = $derived(formatScheduleRange(todo.startDate, todo.dueDate));
 
 	// 领域派生状态：多人同行模块 (Domain Derived States for Multiplayer Section)
 	const hasOtherParticipants = $derived((topicParticipantCount ?? 0) > 1);
 
-	// 是否展示同行模块：
-	// 1. 待办必须绑定了 topicHash
-	// 2. 当为作者本人的待办且暂无他人同行时，隐藏空状态以消除视觉杂讯
-	// 3. 其它场景（作者且有多人同行、或非作者可查看/参与/快捷打卡）正常呈现
 	const shouldShowMultiplayer = $derived(
 		Boolean(todo.topicHash && (!isMine || hasOtherParticipants))
 	);
 
-	// 我的当前关联待办详情链接
 	const myTodoUrl = $derived(
 		myJoinedTodo?.shortId || myJoinedTodo?.id
 			? `/t/${myJoinedTodo.shortId || myJoinedTodo.id}`
 			: null
 	);
 
-	// 是否允许快捷查看我的待办 (非作者 + todo in my list + 拥有同行者)
 	const canShowMyTodoShortcut = $derived(
 		Boolean(!isMine && hasJoined && hasOtherParticipants && myTodoUrl)
 	);
-
-	async function handleSave(e: SubmitEvent) {
-		e.preventDefault();
-		if (!editContent.trim()) return;
-
-		isSaving = true;
-		try {
-			await onsaveedit?.(editContent.trim(), editNote.trim() || null);
-			isEditing = false;
-		} finally {
-			isSaving = false;
-		}
-	}
 
 	async function copyLink() {
 		const url = window.location.href;
@@ -138,8 +282,10 @@
 	}
 </script>
 
+<svelte:window onkeydown={handleKeydown} />
+
 <div class="space-y-6 sm:space-y-7">
-	<!-- Author header & checkbox -->
+	<!-- Author header & status dropdown -->
 	<div class="flex items-start justify-between gap-4 pb-1">
 		<a
 			href="/@{todo.author?.handle || todo.authorId}"
@@ -185,46 +331,203 @@
 		</div>
 	</div>
 
-	<!-- Content & inline edit -->
+	<!-- 核心区域：浏览模式 vs 就地编辑模式 -->
 	{#if isEditing}
-		<form onsubmit={handleSave} class="space-y-3 pt-2">
-			<div class="space-y-1">
-				<label
-					for="edit-content"
-					class="text-xs font-medium text-zinc-600 dark:text-zinc-400"
-				>
-					Todo Content
-				</label>
+		<!-- 【就地编辑模式】：正文、备注、分类保持浏览模式样式不变，时间使用“新建todo”modal里的样式 -->
+		<div class="space-y-4 animate-in fade-in duration-150">
+			<!-- 1. 正文就地编辑：保持浏览模式样式不变 (相同的 H1 大字号、粗体、无边框下划线) -->
+			<div class="relative">
 				<textarea
-					id="edit-content"
 					bind:value={editContent}
-					rows="2"
+					use:resizeAction
+					placeholder="What are you working on? Todo content..."
+					rows="1"
 					required
-					class="w-full rounded-xl border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 p-3 text-sm text-zinc-900 dark:text-zinc-100 focus:outline-hidden focus:ring-2 focus:ring-zinc-400"
+					class="w-full resize-none bg-transparent p-0 border-0 border-b border-dashed border-zinc-300 dark:border-zinc-700 focus:border-zinc-900 dark:focus:border-zinc-100 focus:outline-hidden font-bold tracking-tight text-zinc-900 dark:text-zinc-100 text-lg sm:text-xl md:text-2xl leading-snug sm:leading-tight placeholder:text-zinc-400"
 				></textarea>
 			</div>
 
-			<div class="space-y-1">
-				<label
-					for="edit-note"
-					class="text-xs font-medium text-zinc-600 dark:text-zinc-400"
-				>
-					Public Note (optional)
-				</label>
+			<!-- 2. 备注就地编辑：保持浏览模式样式不变 (相同的左边框、圆角、背景和内边距) -->
+			<div class="relative pl-3.5 sm:pl-4 py-2 border-l-2 border-zinc-400 dark:border-zinc-600 bg-zinc-50/80 dark:bg-zinc-900/60 rounded-r-xl pr-3">
 				<textarea
-					id="edit-note"
 					bind:value={editNote}
+					use:resizeAction
+					placeholder="Add background notes or reference links (optional)..."
 					rows="2"
-					placeholder="Add background or notes..."
-					class="w-full rounded-xl border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 p-3 text-xs text-zinc-900 dark:text-zinc-100 focus:outline-hidden focus:ring-2 focus:ring-zinc-400"
+					class="w-full resize-none bg-transparent p-0 border-0 focus:outline-hidden text-xs sm:text-sm text-zinc-900 dark:text-zinc-100 leading-relaxed placeholder:text-zinc-400 dark:placeholder:text-zinc-500"
 				></textarea>
 			</div>
 
-			<div class="flex items-center justify-between pt-1">
+			<!-- 3. 分类就地编辑：保持浏览模式 CategoryBadge 药丸样式不变 -->
+			<div class="flex items-center gap-1.5 flex-wrap pt-1">
+				<span class="text-[11px] font-medium text-zinc-400 shrink-0 mr-1">Category:</span>
+				{#each CATEGORIES as cat}
+					{@const isSelected = editCategory === cat.id}
+					<button
+						type="button"
+						onclick={() => (editCategory = isSelected ? null : cat.id)}
+						class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-medium transition-all duration-150 cursor-pointer {isSelected
+							? 'ring-2 ring-zinc-900 dark:ring-zinc-100 shadow-xs font-semibold scale-105'
+							: 'opacity-50 hover:opacity-85 hover:scale-100'}"
+						style="background-color: {cat.color}20; color: {cat.color};"
+						title="Select category: {cat.name}"
+					>
+						<span class="h-1.5 w-1.5 rounded-full shrink-0" style="background-color: {cat.color};"></span>
+						<span>{cat.name}</span>
+					</button>
+				{/each}
+			</div>
+
+			<!-- 4. 时间就地编辑：使用“新建todo”modal里的完整 Schedule 样式 -->
+			<div class="p-3 sm:p-3.5 rounded-xl bg-zinc-50/90 dark:bg-zinc-900/60 border border-zinc-200/80 dark:border-zinc-800/80 space-y-3">
+				<!-- 卡片顶栏：标题与自包含的清空操作 -->
+				<div class="flex items-center justify-between">
+					<div class="flex items-center gap-1.5 text-xs font-semibold text-zinc-800 dark:text-zinc-200">
+						<Icon icon="lucide:calendar" class="h-3.5 w-3.5 text-zinc-500" />
+						<span>Schedule</span>
+					</div>
+
+					{#if editStartDate || editDueDate}
+						<button
+							type="button"
+							onclick={clearAllTime}
+							class="inline-flex items-center justify-center gap-1 h-6 px-2 rounded-lg text-[11px] text-zinc-500 hover:text-red-600 dark:text-zinc-400 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors cursor-pointer"
+							title="Clear schedule"
+							aria-label="Clear schedule"
+						>
+							<Icon icon="lucide:trash-2" class="h-3 w-3 shrink-0" />
+							<span>Clear</span>
+						</button>
+					{/if}
+				</div>
+
+				<!-- 时间规划双栏输入区 (响应式网格) -->
+				<div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+					<!-- 左栏：开始时间 (快捷操作：Now / Tmr / Mon) -->
+					<div class="space-y-1.5">
+						<div class="flex items-center justify-between">
+							<span class="text-[11px] font-medium text-zinc-500 dark:text-zinc-400">Start Date</span>
+							<div class="flex items-center gap-1">
+								<button
+									type="button"
+									onclick={() => setQuickStartDate('now')}
+									class="px-2 py-0.5 rounded text-[10px] font-mono font-medium transition-all duration-150 cursor-pointer {activeStartQuick === 'now'
+										? 'bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900 shadow-2xs font-semibold'
+										: 'bg-white dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-700 border border-zinc-200/80 dark:border-zinc-700/80'}"
+									title="Set to now"
+								>
+									Now
+								</button>
+								<button
+									type="button"
+									onclick={() => setQuickStartDate('tomorrow')}
+									class="px-2 py-0.5 rounded text-[10px] font-mono font-medium transition-all duration-150 cursor-pointer {activeStartQuick === 'tomorrow'
+										? 'bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900 shadow-2xs font-semibold'
+										: 'bg-white dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-700 border border-zinc-200/80 dark:border-zinc-700/80'}"
+									title="Set to tomorrow"
+								>
+									Tmr
+								</button>
+								<button
+									type="button"
+									onclick={() => setQuickStartDate('nextMonday')}
+									class="px-2 py-0.5 rounded text-[10px] font-mono font-medium transition-all duration-150 cursor-pointer {activeStartQuick === 'nextMonday'
+										? 'bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900 shadow-2xs font-semibold'
+										: 'bg-white dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-700 border border-zinc-200/80 dark:border-zinc-700/80'}"
+									title="Set to next Monday"
+								>
+									Mon
+								</button>
+								{#if editStartDate}
+									<button
+										type="button"
+										onclick={clearStartDate}
+										class="text-[10px] text-red-500 hover:text-red-600 px-1 cursor-pointer leading-none flex items-center justify-center"
+										title="Clear start date"
+									>
+										<Icon icon="lucide:x" class="h-3 w-3" />
+									</button>
+								{/if}
+							</div>
+						</div>
+						<input
+							type="datetime-local"
+							bind:value={editStartDate}
+							oninput={() => (activeStartQuick = null)}
+							class="w-full bg-white dark:bg-zinc-950 border border-zinc-200/80 dark:border-zinc-800 rounded-lg px-2.5 py-1.5 text-xs text-zinc-900 dark:text-zinc-100 focus:outline-hidden focus:ring-1 focus:ring-zinc-400 transition-all"
+						/>
+					</div>
+
+					<!-- 右栏：截止时间 (快捷操作：EOD / Tmr / +1w) -->
+					<div class="space-y-1.5">
+						<div class="flex items-center justify-between">
+							<span class="text-[11px] font-medium text-zinc-500 dark:text-zinc-400">Due Date</span>
+							<div class="flex items-center gap-1">
+								<button
+									type="button"
+									onclick={() => setQuickDueDate('eod')}
+									class="px-2 py-0.5 rounded text-[10px] font-mono font-medium transition-all duration-150 cursor-pointer {activeDueQuick === 'eod'
+										? 'bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900 shadow-2xs font-semibold'
+										: 'bg-white dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-700 border border-zinc-200/80 dark:border-zinc-700/80'}"
+									title="Set to end of day"
+								>
+									EOD
+								</button>
+								<button
+									type="button"
+									onclick={() => setQuickDueDate('tomorrow')}
+									class="px-2 py-0.5 rounded text-[10px] font-mono font-medium transition-all duration-150 cursor-pointer {activeDueQuick === 'tomorrow'
+										? 'bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900 shadow-2xs font-semibold'
+										: 'bg-white dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-700 border border-zinc-200/80 dark:border-zinc-700/80'}"
+									title="Set to tomorrow"
+								>
+									Tmr
+								</button>
+								<button
+									type="button"
+									onclick={() => setQuickDueDate('nextWeek')}
+									class="px-2 py-0.5 rounded text-[10px] font-mono font-medium transition-all duration-150 cursor-pointer {activeDueQuick === 'nextWeek'
+										? 'bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900 shadow-2xs font-semibold'
+										: 'bg-white dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-700 border border-zinc-200/80 dark:border-zinc-700/80'}"
+									title="Set to 1 week from now"
+								>
+									+1w
+								</button>
+								{#if editDueDate}
+									<button
+										type="button"
+										onclick={clearDueDate}
+										class="text-[10px] text-red-500 hover:text-red-600 px-1 cursor-pointer leading-none flex items-center justify-center"
+										title="Clear due date"
+									>
+										<Icon icon="lucide:x" class="h-3 w-3" />
+									</button>
+								{/if}
+							</div>
+						</div>
+						<input
+							type="datetime-local"
+							bind:value={editDueDate}
+							oninput={() => (activeDueQuick = null)}
+							class="w-full bg-white dark:bg-zinc-950 border border-zinc-200/80 dark:border-zinc-800 rounded-lg px-2.5 py-1.5 text-xs text-zinc-900 dark:text-zinc-100 focus:outline-hidden focus:ring-1 focus:ring-zinc-400 transition-all"
+						/>
+					</div>
+				</div>
+
+				{#if isTimeInvalid}
+					<div class="text-[11px] text-red-500 dark:text-red-400 flex items-center gap-1">
+						<Icon icon="lucide:alert-circle" class="h-3.5 w-3.5 shrink-0" />
+						<span>Start date cannot be later than due date</span>
+					</div>
+				{/if}
+			</div>
+
+			<!-- 5. 编辑操作栏 (取消 / 保存 / 删除) -->
+			<div class="flex items-center justify-between pt-2">
 				<button
 					type="button"
 					onclick={() => (showDeleteModal = true)}
-					class="inline-flex items-center gap-1.5 px-2 py-1.5 rounded-xl text-xs font-medium text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40 border border-transparent hover:border-red-200/60 dark:hover:border-red-900/50 transition-colors cursor-pointer"
+					class="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-medium text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40 border border-transparent hover:border-red-200/60 dark:hover:border-red-900/50 transition-colors cursor-pointer"
 					title="Delete this todo"
 				>
 					<Icon icon="lucide:trash-2" class="w-3.5 h-3.5 shrink-0" />
@@ -236,17 +539,26 @@
 						type="button"
 						variant="ghost"
 						size="xs"
-						onclick={() => (isEditing = false)}
+						onclick={cancelEditing}
+						disabled={isSaving}
 					>
 						Cancel
 					</Button>
-					<Button type="submit" variant="primary" size="xs" loading={isSaving}>
-						Save
+					<Button
+						type="button"
+						variant="primary"
+						size="xs"
+						loading={isSaving}
+						disabled={isSaving || !editContent.trim() || isTimeInvalid}
+						onclick={handleSave}
+					>
+						Save Changes
 					</Button>
 				</div>
 			</div>
-		</form>
+		</div>
 	{:else}
+		<!-- 【浏览模式】：正文、备注、分类（徽章）、时间、短链接 -->
 		<div class="space-y-3">
 			<TodoContent
 				content={todo.content}
@@ -262,47 +574,62 @@
 					{todo.note}
 				</div>
 			{/if}
+
+			<!-- 分类与起止时间栏 (显著展示分类徽章与日程时间，杜绝分类未显示) -->
+			<div class="flex items-center justify-between flex-wrap gap-2.5 pt-1 text-xs text-zinc-500 dark:text-zinc-400">
+				<div class="flex items-center gap-2 flex-wrap">
+					{#if todo.category}
+						<a
+							href="/?category={todo.category}"
+							class="inline-block hover:opacity-85 transition-opacity"
+							title="Filter todos by {todo.category}"
+						>
+							<CategoryBadge category={todo.category} />
+						</a>
+					{:else}
+						<span
+							class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium text-zinc-400 dark:text-zinc-500 bg-zinc-100 dark:bg-zinc-800/60 select-none"
+							title="No category assigned"
+						>
+							<span class="h-1.5 w-1.5 rounded-full bg-zinc-400/50"></span>
+							No category
+						</span>
+					{/if}
+
+					{#if scheduleText}
+						<span class="flex items-center gap-1 font-mono text-[11px] text-zinc-500 dark:text-zinc-400">
+							<Icon icon="lucide:calendar" class="h-3.5 w-3.5 text-zinc-400 shrink-0" />
+							<span>{scheduleText}</span>
+						</span>
+					{/if}
+				</div>
+
+				<button
+					type="button"
+					onclick={copyLink}
+					class="flex items-center gap-1 text-[11px] font-mono text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 hover:underline cursor-pointer"
+					title="Copy short link"
+				>
+					<Icon icon="lucide:link-2" class="h-3.5 w-3.5 text-zinc-400 shrink-0" />
+					<span>{todo.shortId || todo.id.slice(0, 8)}</span>
+				</button>
+			</div>
 		</div>
 	{/if}
 
-	<!-- Metadata bar: category, schedule, link copy -->
-	<div
-		class="flex items-center justify-between flex-wrap gap-3 pt-2 text-xs text-zinc-500 dark:text-zinc-400"
-	>
-		<div class="flex items-center gap-2.5 flex-wrap">
-			{#if todo.category}
-				<CategoryBadge category={todo.category} />
-			{/if}
-
-			{#if scheduleText}
-				<span class="flex items-center gap-1 font-mono text-[11px] text-zinc-500 dark:text-zinc-400">
-					<Icon icon="lucide:calendar" class="h-3.5 w-3.5 text-zinc-400 shrink-0" />
-					<span>{scheduleText}</span>
-				</span>
-			{/if}
+	<!-- Reaction bar & actions (浏览模式下提供反应和编辑入口) -->
+	{#if !isEditing}
+		<div class="pt-4 border-t border-zinc-200/60 dark:border-zinc-800/60">
+			<TodoReactionsBar
+				todoId={todo.id}
+				reactions={todo.reactions}
+				myReactions={todo.myReactions}
+				{isMine}
+				onreact={onreaction}
+				onedit={isMine ? startEditing : undefined}
+			/>
 		</div>
-
-		<button
-			type="button"
-			onclick={copyLink}
-			class="flex items-center gap-1 text-[11px] font-mono text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 hover:underline cursor-pointer"
-		>
-			<Icon icon="lucide:link-2" class="h-3.5 w-3.5 text-zinc-400 shrink-0" />
-			<span>{todo.shortId || todo.id.slice(0, 8)}</span>
-		</button>
-	</div>
-
-	<!-- Reaction bar & actions -->
-	<div class="pt-4 border-t border-zinc-200/60 dark:border-zinc-800/60">
-		<TodoReactionsBar
-			todoId={todo.id}
-			reactions={todo.reactions}
-			myReactions={todo.myReactions}
-			{isMine}
-			onreact={onreaction}
-			onedit={isMine && !isEditing ? () => (isEditing = true) : undefined}
-		/>
-	</div>
+	{/if}
 
 	<!-- Multiplayer / Trending section -->
 	{#if shouldShowMultiplayer}
@@ -438,7 +765,7 @@
 			This action is permanent and cannot be undone. All activity logs and reactions will be wiped.
 		</p>
 
-		<!-- 放弃引导说明 (内含快捷放弃，推荐操作) -->
+		<!-- 放弃引导说明 -->
 		<div
 			class="p-4 rounded-2xl bg-zinc-50/70 dark:bg-zinc-800/40 border border-zinc-200/80 dark:border-zinc-800/80 space-y-3"
 		>

@@ -213,4 +213,49 @@ describe('use-todo-detail resource (Multiplayer / Join Topic)', () => {
 		expect(detail.myJoinedTodo?.id).toBe('todo-me-server-1');
 		expect(detail.myJoinedTodo?.status).toBe('in_progress');
 	});
+
+	it('supports full editable fields in handleSaveEdit (content, note, category, startDate, dueDate)', async () => {
+		userStore.setSession({
+			id: 'user-me',
+			email: 'me@example.com',
+			nickname: '我自己',
+			handle: 'me'
+		});
+
+		const myTodo = mockTodo('todo-edit-1', 'user-me', '原任务内容');
+		todoRegistry.upsert(myTodo);
+
+		const detail = createTodoDetailResource('todo-edit-1');
+		const updateSpy = vi.spyOn(api, 'updateTodo').mockResolvedValue({
+			todo: {
+				...myTodo,
+				content: '新任务内容',
+				note: '新备注',
+				category: 'fitness',
+				startDate: '2026-09-27T10:00:00.000Z',
+				dueDate: '2026-09-28T18:00:00.000Z'
+			}
+		});
+
+		await detail.handleSaveEdit({
+			content: '新任务内容',
+			note: '新备注',
+			category: 'fitness',
+			startDate: '2026-09-27T10:00',
+			dueDate: '2026-09-28T18:00'
+		});
+
+		expect(updateSpy).toHaveBeenCalledWith(
+			'todo-edit-1',
+			expect.objectContaining({
+				email: 'me@example.com',
+				content: '新任务内容',
+				note: '新备注',
+				category: 'fitness'
+			})
+		);
+		expect(detail.todo?.content).toBe('新任务内容');
+		expect(detail.todo?.category).toBe('fitness');
+	});
 });
+

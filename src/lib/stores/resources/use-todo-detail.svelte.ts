@@ -4,7 +4,7 @@ import { todayStore } from '$lib/stores/today.svelte';
 import { toast } from '$lib/stores/toast.svelte';
 import { todoRegistry } from '$lib/stores/entities/todo-registry.svelte';
 import { todoMutations } from '$lib/stores/mutations.svelte';
-import type { Todo, TodoStatus, TodoActivityType } from '$lib/types/todo';
+import type { Todo, TodoStatus, TodoActivityType, CategoryId } from '$lib/types/todo';
 import { TODO_STATUS, isStatusDone } from '$lib/constants/status';
 
 export function createTodoDetailResource(initialIdentifier?: string, initialTodo?: Todo | null) {
@@ -221,14 +221,39 @@ export function createTodoDetailResource(initialIdentifier?: string, initialTodo
 		}
 	}
 
-	async function handleSaveEdit(content: string, note?: string | null) {
+	async function handleSaveEdit(
+		contentOrData:
+			| string
+			| {
+					content: string;
+					note?: string | null;
+					category?: CategoryId | null;
+					startDate?: string | null;
+					dueDate?: string | null;
+			  },
+		maybeNote?: string | null
+	) {
 		if (!todo || !userStore.email) return;
+
+		const payload: {
+			content: string;
+			note?: string | null;
+			category?: CategoryId | null;
+			startDate?: string | null;
+			dueDate?: string | null;
+		} =
+			typeof contentOrData === 'string'
+				? { content: contentOrData, note: maybeNote }
+				: contentOrData;
 
 		try {
 			const res = await api.updateTodo(todo.id, {
 				email: userStore.email,
-				content,
-				note
+				content: payload.content,
+				note: payload.note,
+				category: payload.category,
+				startDate: payload.startDate ? new Date(payload.startDate).toISOString() : undefined,
+				dueDate: payload.dueDate ? new Date(payload.dueDate).toISOString() : null
 			});
 
 			if (res.todo) {
@@ -239,6 +264,7 @@ export function createTodoDetailResource(initialIdentifier?: string, initialTodo
 			toast.error(`Failed to update: ${(err as Error).message}`);
 		}
 	}
+
 
 	async function handleDeleteTodo(): Promise<boolean> {
 		if (!todo) return false;
