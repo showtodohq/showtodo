@@ -35,7 +35,8 @@ describe('Settings Password Page (+page.server.ts)', () => {
 		} as any;
 
 		const result = (await load({ locals } as any)) as any;
-		expect(result).toEqual({ hasPassword: true });
+		expect(result).toMatchObject({ hasPassword: true });
+		expect(Array.isArray(result.apiKeys)).toBe(true);
 	});
 });
 
@@ -46,7 +47,8 @@ describe('Settings Password Page Component (+page.svelte)', () => {
 				data: {
 					user: null,
 					session: null,
-					hasPassword: true
+					hasPassword: true,
+					apiKeys: []
 				}
 			}
 		});
@@ -62,7 +64,8 @@ describe('Settings Password Page Component (+page.svelte)', () => {
 				data: {
 					user: null,
 					session: null,
-					hasPassword: false
+					hasPassword: false,
+					apiKeys: []
 				}
 			}
 		});

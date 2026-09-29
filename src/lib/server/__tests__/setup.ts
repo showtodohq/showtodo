@@ -15,6 +15,6 @@ export const testDb = drizzle(client, { schema });
 
 export async function cleanDatabase() {
 	await testDb.execute(
-		sql`TRUNCATE TABLE todo_activities, reactions, todos, users CASCADE`
+		sql`TRUNCATE TABLE todo_activities, reactions, todos, api_keys, users CASCADE`
 	);
 }

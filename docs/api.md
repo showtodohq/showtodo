@@ -806,7 +806,39 @@ Monitors uptime and basic service availability.
 
 ---
 
-## 5. QA Test Matrix & Automated Verification Checklist
+## 5. Model Context Protocol (MCP) Interface (`/api/mcp`)
+
+### 5.1 Protocol Standards
+ShowTodo natively exposes a standard Model Context Protocol (MCP) endpoint over Streamable HTTP and SSE:
+- **Endpoint**: `/api/mcp`
+- **Supported Transports**:
+  - `POST /api/mcp`: Standard JSON-RPC 2.0 requests (e.g. `initialize`, `ping`, `tools/list`, `tools/call`, `resources/list`, `resources/read`, `prompts/list`, `prompts/get`)
+  - `GET /api/mcp` (with `Accept: text/event-stream`): SSE event stream
+- **Authentication**:
+  - `Authorization: Bearer <API_KEY>` (format: `st_live_...`, 1:N personal access token managed in `/settings`).
+  - Read-only operations and public square discovery allow anonymous access; mutations require a valid token.
+
+### 5.2 Registered Capabilities Matrix
+- **Tools**:
+  - `create_todo`: Create new public todo (auto indexes topicHash).
+  - `list_my_todos`: Query authenticated user's todos.
+  - `update_todo_status`: Transition todo lifecycle status.
+  - `add_progress_note`: Append milestone progress update.
+  - `discover_topics`: Search trending goals on the public square.
+  - `react_to_todo`: Cheer companion with one of the 8 canonical Unicode emojis.
+- **Resources**:
+  - `showtodo://me/overview`: Personal dashboard JSON.
+  - `showtodo://users/{handle}/todolist`: Markdown public todolist (private notes sanitized).
+  - `showtodo://topics/{topicHash}`: Companion group details and activity stream.
+  - `showtodo://stats/summary`: Platform metrics.
+- **Prompts**:
+  - `daily_standup`: Guided daily review and prioritization.
+  - `breakdown_goal`: Decompose goals into atomic ShowTodo tasks.
+  - `companion_cheer`: Peer cheer and emoji suggestion assistant.
+
+---
+
+## 6. QA Test Matrix & Automated Verification Checklist
 
 | Test ID | Target Endpoint | Test Description | Expected Status | Assertion Rule |
 |---|---|---|---|---|
@@ -828,3 +860,7 @@ Monitors uptime and basic service availability.
 | **TC-STATS-01**| `GET /api/stats` | Fetch platform observability stats | `200 OK` | Returns `overview`, `categories`, `heatmap` |
 | **TC-CAL-01**  | `GET /api/calendar` | Valid weekly window query | `200 OK` | Returns active `users` and scoped `todos` |
 | **TC-CAL-02**  | `GET /api/calendar` | Missing `startDateFrom` parameter | `400 Bad Request` | `error.code == "VALIDATION_ERROR"` |
+| **TC-MCP-01**  | `POST /api/mcp` (initialize)| MCP JSON-RPC protocol handshake | `200 OK` | Returns serverInfo and capabilities |
+| **TC-MCP-02**  | `POST /api/mcp` (tools/list)| Discover registered tools | `200 OK` | Returns 6 tool definitions with JSON schema |
+| **TC-MCP-03**  | `POST /api/mcp` (tools/call)| Authenticated `create_todo` execution | `200 OK` | Creates todo with topicHash and returns summary |
+| **TC-MCP-04**  | `GET /api/mcp` (SSE)| Connect to MCP event stream | `200 OK` | Content-Type matches `text/event-stream` |

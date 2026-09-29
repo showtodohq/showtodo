@@ -114,13 +114,42 @@ export const verifications = pgTable('verifications', {
 	updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow().$onUpdate(() => new Date())
 });
 
+export const apiKeys = pgTable(
+	'api_keys',
+	{
+		id: uuid('id').primaryKey().defaultRandom(),
+		userId: uuid('user_id')
+			.notNull()
+			.references(() => users.id, { onDelete: 'cascade' }),
+		name: text('name').notNull(),
+		keyHash: text('key_hash').notNull().unique(),
+		prefix: text('prefix').notNull(),
+		scopes: text('scopes').notNull().default('all'),
+		lastUsedAt: timestamp('last_used_at', { withTimezone: true }),
+		expiresAt: timestamp('expires_at', { withTimezone: true }),
+		createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow()
+	},
+	(table) => [
+		index('idx_api_keys_user_id').on(table.userId),
+		index('idx_api_keys_key_hash').on(table.keyHash)
+	]
+);
+
 // Relations for Drizzle query builder
 export const usersRelations = relations(users, ({ many }) => ({
 	todos: many(todos),
 	reactions: many(reactions),
 	activities: many(todoActivities),
 	sessions: many(sessions),
-	accounts: many(accounts)
+	accounts: many(accounts),
+	apiKeys: many(apiKeys)
+}));
+
+export const apiKeysRelations = relations(apiKeys, ({ one }) => ({
+	user: one(users, {
+		fields: [apiKeys.userId],
+		references: [users.id]
+	})
 }));
 
 export const sessionsRelations = relations(sessions, ({ one }) => ({

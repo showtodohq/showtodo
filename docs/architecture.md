@@ -53,6 +53,7 @@ The system adheres strictly to a decoupled **Controller — Service — Data Acc
 │  - users/+server.ts         : Session initialization   │
 │  - users/[id]/+server.ts    : Profile get/patch        │
 │  - users/[id]/heatmap/      : 365-day user activity    │
+│  - mcp/+server.ts           : Model Context Protocol (Streamable HTTP / SSE) │
 │  - health/+server.ts        : Liveness probe           │
 │  - validation.ts            : Pure input assertions    │
 │  - errors.ts                : Centralized AppError     │
@@ -63,6 +64,8 @@ The system adheres strictly to a decoupled **Controller — Service — Data Acc
 │      2. Domain Service Layer (src/lib/server/services) │
 │  - todo.service.ts          : CRUD, calendar, search   │
 │  - user.service.ts          : Auto-provision, privacy  │
+│  - api-key.service.ts       : 1:N PAT token lifecycle  │
+│  - mcp/                     : Tools, Resources, Prompts│
 │  - activity.service.ts      : Event logging & timeline │
 │  - reaction.service.ts      : Reactions & non-N+1 aggr │
 │  - stats.service.ts         : Heatmaps, ratios, top-5  │
