@@ -19,7 +19,9 @@
   },
   "permissions": [
     "cookies",
-    "storage"
+    "storage",
+    "activeTab",
+    "scripting"
   ],
   "host_permissions": [
     "http://localhost:3003/*",

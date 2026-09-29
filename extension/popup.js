@@ -484,6 +484,28 @@ function setupEventListeners() {
   }
 }
 
+// --- Active Tab Selection Helper (Zero-pollution, No-injection) ---
+async function fillSelectionFromActiveTab() {
+  try {
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    if (!tab?.id || !tab.url || tab.url.startsWith('chrome://') || tab.url.startsWith('edge://') || tab.url.startsWith('chrome-extension://')) {
+      return;
+    }
+    const [injection] = await chrome.scripting.executeScript({
+      target: { tabId: tab.id },
+      func: () => window.getSelection()?.toString().trim() || ''
+    });
+    const selectedText = injection?.result;
+    if (selectedText && !contentInputEl.value.trim()) {
+      contentInputEl.value = selectedText;
+      validateForm();
+      contentInputEl.focus();
+    }
+  } catch (err) {
+    // Gracefully ignore tabs where script execution is forbidden
+  }
+}
+
 // --- Initialization (Instant Synchronous Render + Background SWR) ---
 function init() {
   initCategories();
@@ -497,6 +519,9 @@ function init() {
   }
 
   setupEventListeners();
+
+  // Auto-fill selected text from current page without any floating button or context menu
+  fillSelectionFromActiveTab();
 
   // Background non-blocking session revalidation
   checkSession();
