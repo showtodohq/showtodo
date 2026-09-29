@@ -13,7 +13,13 @@
 	import { authClient } from '$lib/auth-client';
 	import Icon from '@iconify/svelte';
 
-	let isOpen = $state(false);
+	interface Props {
+		initialOpen?: boolean;
+	}
+
+	let { initialOpen = false }: Props = $props();
+	// svelte-ignore state_referenced_locally
+	let isOpen = $state(initialOpen);
 	let isLoggingOut = $state(false);
 
 	// 未登录表单状态
@@ -223,15 +229,47 @@
 						/>
 					</a>
 
-					<!-- 密码设置 -->
+					<!-- 设置首页 -->
 					<a
 						href="/settings"
 						onclick={close}
 						class="flex items-center justify-between px-2.5 py-1.5 rounded-xl text-xs text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800/80 transition-colors cursor-pointer group/link"
 					>
 						<span class="flex items-center gap-2 font-medium">
+							<Icon icon="lucide:settings" class="h-3.5 w-3.5 text-zinc-400" />
+							Settings
+						</span>
+						<Icon
+							icon="lucide:arrow-right"
+							class="h-3 w-3 text-zinc-400 transition-transform group-hover/link:translate-x-0.5"
+						/>
+					</a>
+
+					<!-- 密码设置 -->
+					<a
+						href="/settings/password"
+						onclick={close}
+						class="flex items-center justify-between px-2.5 py-1.5 rounded-xl text-xs text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800/80 transition-colors cursor-pointer group/link"
+					>
+						<span class="flex items-center gap-2 font-medium">
 							<Icon icon="lucide:key-round" class="h-3.5 w-3.5 text-zinc-400" />
 							Password
+						</span>
+						<Icon
+							icon="lucide:arrow-right"
+							class="h-3 w-3 text-zinc-400 transition-transform group-hover/link:translate-x-0.5"
+						/>
+					</a>
+
+					<!-- API Key 设置 -->
+					<a
+						href="/settings/apikey"
+						onclick={close}
+						class="flex items-center justify-between px-2.5 py-1.5 rounded-xl text-xs text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800/80 transition-colors cursor-pointer group/link"
+					>
+						<span class="flex items-center gap-2 font-medium">
+							<Icon icon="lucide:sparkles" class="h-3.5 w-3.5 text-zinc-400" />
+							API Key
 						</span>
 						<Icon
 							icon="lucide:arrow-right"

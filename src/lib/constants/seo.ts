@@ -507,12 +507,41 @@ export function getTodoDetailSeo(todo?: TodoDetailSeoInput | null): SeoMetadata 
  */
 export function getSettingsSeo(): SeoMetadata {
 	return {
-		title: `Account Settings & Security · ${SITE_NAME}`,
-		description: 'Manage your profile details, handle, avatar, and password security on ShowTodo.',
-		keywords: ['account settings', 'security settings', 'password', 'profile', SITE_NAME],
+		title: `Account Settings · ${SITE_NAME}`,
+		description: 'Manage your profile details, handle, avatar, and security settings on ShowTodo.',
+		keywords: ['account settings', 'settings', 'profile', SITE_NAME],
 		canonical: `${SITE_BASE_URL}/settings`,
 		ogType: 'website',
 		ogImage: SITE_DEFAULT_IMAGE
 	};
 }
+
+/**
+ * Generates SEO metadata for the Password Settings page (/settings/password).
+ */
+export function getSettingsPasswordSeo(): SeoMetadata {
+	return {
+		title: `Password & Security · Settings · ${SITE_NAME}`,
+		description: 'Create or update your account password for secure email login on ShowTodo.',
+		keywords: ['password settings', 'account security', 'change password', SITE_NAME],
+		canonical: `${SITE_BASE_URL}/settings/password`,
+		ogType: 'website',
+		ogImage: SITE_DEFAULT_IMAGE
+	};
+}
+
+/**
+ * Generates SEO metadata for the API Key Management page (/settings/apikey).
+ */
+export function getSettingsApiKeySeo(): SeoMetadata {
+	return {
+		title: `AI & MCP API Keys · Settings · ${SITE_NAME}`,
+		description: 'Create and manage API keys to connect Cursor, Claude Desktop, and AI agents with ShowTodo.',
+		keywords: ['api keys', 'mcp server', 'ai agents', 'developer settings', SITE_NAME],
+		canonical: `${SITE_BASE_URL}/settings/apikey`,
+		ogType: 'website',
+		ogImage: SITE_DEFAULT_IMAGE
+	};
+}
+
 

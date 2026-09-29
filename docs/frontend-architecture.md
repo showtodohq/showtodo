@@ -83,6 +83,9 @@ Our design philosophy is anchored in six pillars:
 | `/trending/[hash]` | `TopicHeaderCard`, `TopicParticipantList` | Companion Goal Detail: Goal description, participants roster, target date filter, and one-click join/leave |
 | `/stats` | `SiteStatsWidget`, `CategoryDonutChart`, `ActivityHeatmap` | Platform Observability: Total todos, completion rate, 365-day global heatmap, and active creator rankings |
 | `/t/[id]` | `TodoDetailCard`, `TodoActivityTimeline` | Todo Detail & Companion Timeline: ShortId sharing link, check-in growth logs, and reactions |
+| `/settings` | `SettingsLayout`, `SettingsOverviewPage` | Account & Security Overview: Profile summary, credentials status, and theme preferences |
+| `/settings/password` | `SettingsLayout`, `PasswordPage` | Credentials Security: Create or update account password for email login |
+| `/settings/apikey` | `SettingsLayout`, `ApiKeyPage` | Developer & AI Integrations: Create, list, and revoke API keys for MCP agents (Claude / Cursor) |
 | `/about` | Static content (`ABOUT_CONTENT`) | Philosophy statement: Build in Public, Companionship, Supervision, Emulation, FAQ |
 | `/privacy` | Static content (`PRIVACY_CONTENT`) | Privacy commitment: Email protection, public todo transparency |
 | `/(dev)/demo` | UI Showcase | Interactive showcase for atomic design tokens and components |

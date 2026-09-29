@@ -8,6 +8,8 @@ import {
 	getStatsSeo,
 	getTodoDetailSeo,
 	getSettingsSeo,
+	getSettingsPasswordSeo,
+	getSettingsApiKeySeo,
 	ALL_TARGET_KEYWORDS,
 	SITE_NAME,
 	SITE_BASE_URL
@@ -253,6 +255,21 @@ describe('SEO Domain Constants & Functions', () => {
 			expect(seo.description).toContain('security');
 			expect(seo.ogType).toBe('website');
 		});
+
+		test('generates password settings SEO with canonical pointing to /settings/password', () => {
+			const seo = getSettingsPasswordSeo();
+			expect(seo.canonical).toBe(`${SITE_BASE_URL}/settings/password`);
+			expect(seo.title).toContain('Password');
+			expect(seo.description).toContain('password');
+		});
+
+		test('generates apikey settings SEO with canonical pointing to /settings/apikey', () => {
+			const seo = getSettingsApiKeySeo();
+			expect(seo.canonical).toBe(`${SITE_BASE_URL}/settings/apikey`);
+			expect(seo.title).toContain('API Keys');
+			expect(seo.description).toContain('API keys');
+		});
 	});
 });
+
 
