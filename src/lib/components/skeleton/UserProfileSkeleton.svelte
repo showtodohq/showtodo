@@ -8,34 +8,33 @@
 		<div class="h-4 w-20 bg-zinc-200/70 dark:bg-zinc-800/70 rounded-md"></div>
 	</div>
 
-	<!-- 个人名片大卡片骨架 -->
-	<div
-		class="rounded-2xl border border-zinc-200/80 dark:border-zinc-800/90 bg-white/80 dark:bg-zinc-900/60 p-6 sm:p-7 backdrop-blur-xs"
-	>
-		<div class="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-5">
-			<div class="w-16 h-16 rounded-full bg-zinc-200/80 dark:bg-zinc-800/80 shrink-0"></div>
-			<div class="space-y-2 flex-1">
+	<!-- 个人资料概览骨架 (无边框无背景，向设置页看齐) -->
+	<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+		<div class="flex items-center gap-4">
+			<div class="w-12 h-12 rounded-full bg-zinc-200/80 dark:bg-zinc-800/80 shrink-0"></div>
+			<div class="space-y-2">
 				<div class="h-5 w-32 bg-zinc-200/80 dark:bg-zinc-800/80 rounded-md"></div>
 				<div class="h-3.5 w-24 bg-zinc-200/60 dark:bg-zinc-800/60 rounded-md"></div>
-				<div class="h-3 w-40 bg-zinc-200/50 dark:bg-zinc-800/50 rounded-md"></div>
 			</div>
+		</div>
+		<div class="flex items-center gap-2">
+			<div class="h-8 w-24 rounded-lg bg-zinc-200/70 dark:bg-zinc-800/70"></div>
+			<div class="h-8 w-24 rounded-lg bg-zinc-200/70 dark:bg-zinc-800/70"></div>
 		</div>
 	</div>
 
-	<!-- 数据概览四宫格骨架 -->
-	<div class="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+	<!-- 数据概览四宫格骨架 (无边框无背景，上边框微弱分割) -->
+	<div class="grid grid-cols-2 sm:grid-cols-4 gap-4 text-center border-t border-zinc-100 dark:border-zinc-800/60 pt-6">
 		{#each Array(4) as _, i (i)}
-			<div
-				class="rounded-xl border border-zinc-200/70 dark:border-zinc-800/80 bg-white/50 dark:bg-zinc-900/30 p-4 space-y-2"
-			>
-				<div class="h-3 w-12 bg-zinc-200/60 dark:bg-zinc-800/60 rounded-md"></div>
-				<div class="h-6 w-8 bg-zinc-200/80 dark:bg-zinc-800/80 rounded-md"></div>
+			<div class="space-y-2">
+				<div class="h-7 w-12 bg-zinc-200/80 dark:bg-zinc-800/80 rounded-md mx-auto"></div>
+				<div class="h-3 w-16 bg-zinc-200/60 dark:bg-zinc-800/60 rounded-md mx-auto"></div>
 			</div>
 		{/each}
 	</div>
 
 	<!-- 分类与状态筛选 Tab 占位 -->
-	<div class="flex items-center gap-2 pt-2 border-b border-zinc-200/80 dark:border-zinc-800/80 pb-3">
+	<div class="flex items-center gap-2 pt-2 pb-1">
 		{#each Array(4) as _, i (i)}
 			<div class="h-7 w-16 rounded-lg bg-zinc-200/70 dark:bg-zinc-800/70"></div>
 		{/each}

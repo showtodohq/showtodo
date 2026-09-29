@@ -21,7 +21,7 @@
 </script>
 
 <div
-	class="grid grid-cols-2 sm:grid-cols-4 gap-4 text-center border-t border-zinc-200/60 dark:border-zinc-800/60 pt-6 mt-6"
+	class="grid grid-cols-2 sm:grid-cols-4 gap-4 text-center border-t border-zinc-100 dark:border-zinc-800/60 pt-6 mt-6"
 >
 	<div class="space-y-0.5">
 		<div class="text-2xl font-bold font-mono text-zinc-900 dark:text-zinc-100">

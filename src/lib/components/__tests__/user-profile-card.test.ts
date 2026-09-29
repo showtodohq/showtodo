@@ -1,7 +1,11 @@
 import { describe, it, expect } from 'vitest';
 import { render } from 'svelte/server';
 import UserProfileCard from '../user/UserProfileCard.svelte';
-import { PROFILE_ACTIONS } from '$lib/constants/profile';
+import {
+	PROFILE_ACTIONS,
+	PROFILE_ACTION_BUTTON_CLASS,
+	PROFILE_ACTION_ICON_CLASS
+} from '$lib/constants/profile';
 import type { UserProfile } from '$lib/types/user';
 
 const mockUser: UserProfile = {
@@ -14,8 +18,8 @@ const mockUser: UserProfile = {
 	lastTodoUpdatedAt: null
 };
 
-describe('UserProfileCard action buttons consistency (TDD & Design System)', () => {
-	it('renders both Todolist and Edit Profile buttons on the same line as username, showing icon-only on mobile', () => {
+describe('UserProfileCard design consistency with settings page (TDD & Design System)', () => {
+	it('renders borderless and backgroundless profile section matching settings page design specs', () => {
 		const rendered = render(UserProfileCard, {
 			props: {
 				user: mockUser,
@@ -27,29 +31,27 @@ describe('UserProfileCard action buttons consistency (TDD & Design System)', () 
 
 		// 检查 Todolist 按钮: 是一个链接按钮，指向用户的 todolist
 		expect(body).toContain('href="/@testuser/todolist"');
-		expect(body).toContain('Kanban');
 		expect(body).toContain(PROFILE_ACTIONS.TODOLIST.LABEL);
+		expect(body).toContain(`title="${PROFILE_ACTIONS.TODOLIST.TITLE.replace('&', '&amp;')}"`);
 
 		// 检查 Edit Profile 按钮: 包含编辑按钮标题与文本
 		expect(body).toContain(`title="${PROFILE_ACTIONS.EDIT.TITLE}"`);
 		expect(body).toContain(PROFILE_ACTIONS.EDIT.LABEL);
 
-		// 验证两者统一使用相同设计规范的尺寸与样式 (size="xs": h-7 rounded-md border-zinc-300)
-		expect(body).toContain('border-zinc-300');
-		expect(body).toContain('rounded-md');
+		// 验证向设置页设计看齐：无边框无背景 (borderless & backgroundless)，不包含旧版封闭大卡片样式
+		expect(body).not.toContain('rounded-3xl');
+		expect(body).not.toContain('backdrop-blur');
 
-		// 移动端仅显示图标：按钮文字包裹在 hidden sm:inline 中
-		expect(body).toContain(`<span class="hidden sm:inline">${PROFILE_ACTIONS.TODOLIST.LABEL}</span>`);
-		expect(body).toContain(`<span class="hidden sm:inline">${PROFILE_ACTIONS.EDIT.LABEL}</span>`);
+		// 验证按钮统一采用二次背景无边框与统一尺寸 (size="sm": h-8 rounded-lg)
+		expect(body).toContain('rounded-lg');
+		expect(body).toContain('bg-zinc-100/70');
+		expect(body).toContain('border-0');
 
-		// 移动端正方形图标尺寸响应式类名 (w-7 sm:w-auto p-0 sm:px-2)
-		expect(body).toContain('w-7 sm:w-auto');
-
-		// 验证用户名与按钮在同一个横向 flex justify-between 容器中
-		expect(body).toContain('flex items-center justify-between gap-2');
+		// 验证向设置页看齐的响应式布局结构 (flex flex-col sm:flex-row sm:items-center justify-between gap-4)
+		expect(body).toContain('flex flex-col sm:flex-row sm:items-center justify-between gap-4');
 	});
 
-	it('does not render "Your Profile" badge and supports mobile line break for handle and join date', () => {
+	it('does not render "Your Profile" badge and displays user handle and join date', () => {
 		const rendered = render(UserProfileCard, {
 			props: {
 				user: mockUser,
@@ -60,9 +62,9 @@ describe('UserProfileCard action buttons consistency (TDD & Design System)', () 
 		// 用户名后面不应出现 "Your Profile" 徽章
 		expect(rendered.body).not.toContain('Your Profile');
 
-		// 验证 handle 与 join 时间容器支持移动端换行 (flex-col sm:flex-row)
-		expect(rendered.body).toContain('flex-col sm:flex-row');
-		expect(rendered.body).toContain('hidden sm:inline');
+		// 验证 handle 与 join 时间展示
+		expect(rendered.body).toContain('@testuser');
+		expect(rendered.body).toContain('Joined 2026-01-01');
 	});
 
 	it('renders only Todolist button when isMe=false', () => {

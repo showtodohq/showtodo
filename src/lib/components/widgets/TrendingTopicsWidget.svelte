@@ -39,32 +39,29 @@
 	}
 </script>
 
-<div
-	class="rounded-2xl border border-zinc-200/80 dark:border-zinc-800/90 bg-white/60 dark:bg-zinc-950/60 p-4 backdrop-blur-xs space-y-3"
->
+<div class="space-y-3">
 	<!-- Header bar: unified pattern with icon, full title, badge and action link -->
-	<div class="flex items-center justify-between">
+	<div class="flex items-center justify-between gap-2 flex-wrap">
 		<a
 			href="/trending"
-			class="flex items-center gap-2 font-semibold text-xs text-zinc-900 dark:text-zinc-100 hover:text-amber-600 dark:hover:text-amber-400 transition-colors group/title"
-			title="Go to trending todos"
+			class="flex items-center gap-2.5 font-bold text-sm text-zinc-900 dark:text-zinc-100 hover:text-amber-600 dark:hover:text-amber-400 transition-colors group/title"
+			title="Go to trending"
 		>
-			<div class="flex h-6 w-6 items-center justify-center rounded-lg bg-orange-50 dark:bg-orange-950/50 text-orange-600 dark:orange-400 shrink-0">
-				<Icon icon="lucide:flame" class="h-3.5 w-3.5" />
+			<div class="p-1.5 rounded-xl bg-orange-50/70 dark:bg-orange-950/40 text-orange-600 dark:orange-400 shrink-0">
+				<Icon icon="lucide:flame" class="h-4 w-4" />
 			</div>
-			<span>Today's Trending Todos</span>
+			<span>Today's Trending</span>
 		</a>
 
 		<div class="flex items-center gap-1.5 font-mono text-xs">
-			<span class="text-[10px] text-zinc-400">TOP 5</span>
-			<span class="text-[10px] text-zinc-300 dark:text-zinc-700">·</span>
+			<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-mono text-zinc-600 dark:text-zinc-400 bg-zinc-100/70 dark:bg-zinc-800/50">TOP 5</span>
 			<a
 				href="/trending"
-				class="inline-flex items-center gap-0.5 text-[11px] font-medium text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100 transition-colors group/link cursor-pointer font-sans"
-				title="View all trending todos"
+				class="inline-flex items-center gap-1 text-xs font-medium text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100 transition-colors group/link cursor-pointer font-sans"
+				title="View all trending"
 			>
 				<span>View all</span>
-				<Icon icon="lucide:arrow-right" class="h-3 w-3 transition-transform group-hover/link:translate-x-0.5" />
+				<Icon icon="lucide:arrow-right" class="h-3.5 w-3.5 text-zinc-400 transition-transform duration-200 group-hover/link:translate-x-0.5" />
 			</a>
 		</div>
 	</div>

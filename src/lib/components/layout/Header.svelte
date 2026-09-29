@@ -38,7 +38,7 @@
 		? 'border-b border-zinc-200/60 dark:border-zinc-800/60 bg-white/80 dark:bg-zinc-950/80 backdrop-blur-md shadow-2xs'
 		: 'border-b border-transparent bg-transparent'}"
 >
-	<div class="mx-auto grid grid-cols-[1fr_auto_1fr] h-full max-w-3xl sm:max-w-4xl items-center px-4 sm:px-6 gap-3">
+	<div class="mx-auto grid grid-cols-[1fr_auto_1fr] h-full max-w-3xl sm:max-w-4xl lg:max-w-5xl xl:max-w-6xl items-center px-4 sm:px-6 gap-3">
 		<!-- 左列 (1fr)：品牌 Logo 与产品名称 (左对齐) -->
 		<div class="flex items-center justify-start min-w-0">
 			<a href="/" class="group transition-opacity hover:opacity-90 shrink-0" aria-label="ShowTodo Home">
@@ -50,7 +50,7 @@
 		<div class="flex items-center justify-center">
 			<nav
 				aria-label="Main navigation"
-				class="flex items-center p-1 rounded-xl bg-zinc-100/80 dark:bg-zinc-900/80 border border-zinc-200/60 dark:border-zinc-800/60 text-xs font-medium shrink-0"
+				class="flex items-center p-1 rounded-xl bg-zinc-100/80 dark:bg-zinc-900/80 text-xs font-medium shrink-0"
 			>
 				<a
 					href="/"

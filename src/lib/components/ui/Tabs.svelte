@@ -69,8 +69,8 @@
 	};
 
 	const variantContainerClasses = {
-		segmented: 'rounded-xl bg-zinc-100/80 dark:bg-zinc-800/80 border border-zinc-200/50 dark:border-zinc-700/50',
-		pill: 'rounded-full bg-zinc-100/80 dark:bg-zinc-800/80 border border-zinc-200/50 dark:border-zinc-700/50'
+		segmented: 'rounded-xl bg-zinc-100/80 dark:bg-zinc-800/80',
+		pill: 'rounded-full bg-zinc-100/80 dark:bg-zinc-800/80'
 	};
 
 	const variantItemClasses = {

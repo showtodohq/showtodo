@@ -185,7 +185,7 @@
 		{/snippet}
 
 		{#if profileRes.user}
-			<div class="space-y-5 sm:space-y-6">
+			<div class="space-y-8">
 				<!-- Breadcrumb navigation -->
 				<BreadcrumbNav
 					backHref="/"
@@ -205,13 +205,13 @@
 					/>
 				</UserProfileCard>
 
-				<!-- Personal Activity Heatmap -->
-				<div
-					class="p-5 sm:p-6 rounded-3xl border border-zinc-200/80 dark:border-zinc-800 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-md shadow-xs space-y-4"
+				<!-- Personal Activity Heatmap (向设置页看齐：无边框无背景，微弱分割线) -->
+				<section
+					class="pt-6 border-t border-zinc-100 dark:border-zinc-800/60 space-y-4"
 				>
 					<div class="flex items-center justify-between gap-3 flex-wrap">
 						<div class="flex items-center gap-2">
-							<span class="text-base font-bold text-zinc-900 dark:text-zinc-100">
+							<span class="text-sm font-bold text-zinc-900 dark:text-zinc-100">
 								Activity Footprint
 							</span>
 						</div>
@@ -227,13 +227,13 @@
 					{:else}
 						<ActivityHeatmap days={profileRes.heatmap?.days || []} />
 					{/if}
-				</div>
+				</section>
 
 				<!-- Todo List and Category Filter -->
-				<div class="space-y-4">
+				<section class="pt-6 border-t border-zinc-100 dark:border-zinc-800/60 space-y-4">
 					<!-- Status tabs and active category indicator -->
 					<div
-						class="flex items-center justify-between gap-2 border-b border-zinc-200/80 dark:border-zinc-800/80 pb-3 flex-wrap"
+						class="flex items-center justify-between gap-2 pb-1 flex-wrap"
 					>
 						<!-- Left: Status Tabs -->
 						<div class="flex items-center gap-1.5 text-xs font-medium flex-wrap">
@@ -329,7 +329,7 @@
 							{/each}
 						</div>
 					</DataView>
-				</div>
+				</section>
 			</div>
 		{/if}
 	</DataView>

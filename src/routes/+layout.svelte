@@ -33,7 +33,7 @@
 	<Header />
 
 	<!-- 主工作区：单列居中流 -->
-	<main class="flex-1 w-full max-w-3xl sm:max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
+	<main class="flex-1 w-full max-w-3xl sm:max-w-4xl lg:max-w-5xl xl:max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
 		{@render children()}
 	</main>
 

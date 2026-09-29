@@ -18,37 +18,34 @@
 </script>
 
 {#if userStore.email}
-	<div
-		class="rounded-2xl border border-zinc-200/80 dark:border-zinc-800/90 bg-white/60 dark:bg-zinc-950/60 p-4 backdrop-blur-xs space-y-3"
-	>
+	<div class="space-y-3">
 		<!-- Header bar: unified pattern with icon, full title, badge and action link -->
-		<div class="flex items-center justify-between">
+		<div class="flex items-center justify-between gap-2 flex-wrap">
 			<a
 				href={`/@${userStore.handle || userStore.id}/todolist`}
-				class="flex items-center gap-2 font-semibold text-xs text-zinc-900 dark:text-zinc-100 hover:text-blue-600 dark:hover:text-blue-400 transition-colors group/title"
+				class="flex items-center gap-2.5 font-bold text-sm text-zinc-900 dark:text-zinc-100 hover:text-blue-600 dark:hover:text-blue-400 transition-colors group/title"
 				title="Open My Todolist workbench"
 			>
-				<div class="flex h-6 w-6 items-center justify-center rounded-lg bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400 shrink-0">
-					<Icon icon="lucide:check-circle-2" class="h-3.5 w-3.5" />
+				<div class="p-1.5 rounded-xl bg-blue-50/70 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 shrink-0">
+					<Icon icon="lucide:check-circle-2" class="h-4 w-4" />
 				</div>
-				<span>My Today's Todos</span>
+				<span>My Today</span>
 			</a>
 
 			<div class="flex items-center gap-1.5 font-mono text-xs">
 				{#if todayStore.totalCount > 0}
-					<span class="text-[10px] text-zinc-400">
+					<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-mono text-zinc-600 dark:text-zinc-400 bg-zinc-100/70 dark:bg-zinc-800/50">
 						<strong class="font-semibold text-zinc-800 dark:text-zinc-200">{todayStore.doneCount}</strong>/{todayStore.totalCount}
 					</span>
-					<span class="text-[10px] text-zinc-300 dark:text-zinc-700">·</span>
 				{/if}
 
 				<a
 					href={`/@${userStore.handle || userStore.id}/todolist`}
-					class="inline-flex items-center gap-0.5 text-[11px] font-medium text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100 transition-colors group/link cursor-pointer font-sans"
+					class="inline-flex items-center gap-1 text-xs font-medium text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100 transition-colors group/link cursor-pointer font-sans"
 					title="Go to My Todolist workbench"
 				>
 					<span>View all</span>
-					<Icon icon="lucide:arrow-right" class="h-3 w-3 transition-transform group-hover/link:translate-x-0.5" />
+					<Icon icon="lucide:arrow-right" class="h-3.5 w-3.5 text-zinc-400 transition-transform duration-200 group-hover/link:translate-x-0.5" />
 				</a>
 			</div>
 		</div>

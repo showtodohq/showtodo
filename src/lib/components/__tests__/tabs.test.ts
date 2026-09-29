@@ -67,4 +67,17 @@ describe('Tabs component (TDD & WAI-ARIA)', () => {
 		});
 		expect(pill.body).toContain('rounded-full');
 	});
+
+	it('adheres to borderless aesthetic without container borders', () => {
+		const rendered = render(Tabs, {
+			props: {
+				options: mockOptions,
+				value: 'all'
+			}
+		});
+
+		expect(rendered.body).not.toContain('border-zinc-200');
+		expect(rendered.body).not.toContain('border-zinc-700');
+	});
 });
+

@@ -6,7 +6,11 @@
 	import Avatar from '$lib/components/ui/Avatar.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
 	import Icon from '@iconify/svelte';
-	import { PROFILE_ACTIONS } from '$lib/constants/profile';
+	import {
+		PROFILE_ACTIONS,
+		PROFILE_ACTION_BUTTON_CLASS,
+		PROFILE_ACTION_ICON_CLASS
+	} from '$lib/constants/profile';
 
 	interface Props {
 		user: UserProfile;
@@ -112,73 +116,73 @@
 <svelte:window onkeydown={handleKeydown} />
 
 <div
-	class="p-6 sm:p-8 rounded-3xl border border-zinc-200/80 dark:border-zinc-800 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-md shadow-xs transition-all duration-200"
+	class="space-y-6 transition-all duration-200"
 >
 	{#if !isEditing}
-		<!-- Profile view mode -->
-		<div class="flex items-center gap-3.5 sm:gap-4.5">
-			<Avatar
-				src={user.avatar}
-				name={user.nickname}
-				alt={user.nickname}
-				size="xl"
-				class="ring-4 ring-zinc-100 dark:ring-zinc-800/80 shadow-xs shrink-0"
-			/>
-			<div class="flex-1 min-w-0 space-y-1 sm:space-y-1.5">
-				<div class="flex items-center justify-between gap-2">
-					<h1
-						class="text-xl sm:text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100 leading-none truncate"
-					>
-						{user.nickname}
-					</h1>
-
-					<div class="flex items-center gap-1.5 sm:gap-2 shrink-0">
-						<Button
-							href={`/@${user.handle}/todolist`}
-							variant="outline"
-							size="xs"
-							title={PROFILE_ACTIONS.TODOLIST.TITLE}
-							ariaLabel={PROFILE_ACTIONS.TODOLIST.TITLE}
-							class="w-7 sm:w-auto p-0 sm:px-2"
+		<!-- Profile view mode (向设置页看齐：无边框无背景与响应式布局) -->
+		<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+			<div class="flex items-center gap-4">
+				<Avatar
+					src={user.avatar}
+					name={user.nickname}
+					alt={user.nickname}
+					size="lg"
+					class="shrink-0"
+				/>
+				<div class="min-w-0">
+					<div class="flex items-center gap-2 flex-wrap">
+						<h1
+							class="text-base sm:text-lg font-bold text-zinc-900 dark:text-zinc-100 truncate"
 						>
-							{#snippet leftIcon()}
-								<Icon icon={PROFILE_ACTIONS.TODOLIST.ICON} class="h-3.5 w-3.5 text-zinc-500 dark:text-zinc-400" />
-							{/snippet}
-							<span class="hidden sm:inline">{PROFILE_ACTIONS.TODOLIST.LABEL}</span>
-						</Button>
-
-						{#if isMe}
-							<Button
-								variant="outline"
-								size="xs"
-								onclick={() => (isEditing = true)}
-								title={PROFILE_ACTIONS.EDIT.TITLE}
-								ariaLabel={PROFILE_ACTIONS.EDIT.TITLE}
-								class="w-7 sm:w-auto p-0 sm:px-2"
+							{user.nickname}
+						</h1>
+						{#if user.handle}
+							<button
+								type="button"
+								onclick={copyHandle}
+								class="text-xs font-mono text-zinc-400 dark:text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300 cursor-pointer"
+								title="Copy handle"
 							>
-								{#snippet leftIcon()}
-									<Icon icon={PROFILE_ACTIONS.EDIT.ICON} class="h-3.5 w-3.5 text-zinc-500 dark:text-zinc-400" />
-								{/snippet}
-								<span class="hidden sm:inline">{PROFILE_ACTIONS.EDIT.LABEL}</span>
-							</Button>
+								@{user.handle}
+							</button>
 						{/if}
 					</div>
+					<p class="text-xs text-zinc-500 dark:text-zinc-400 font-mono truncate mt-0.5">
+						Joined {user.createdAt ? user.createdAt.slice(0, 10) : 'Recently'}
+					</p>
 				</div>
+			</div>
 
-				<div
-					class="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 text-xs text-zinc-500 dark:text-zinc-400 pt-0.5"
+			<div class="flex items-center gap-2 shrink-0">
+				<Button
+					href={`/@${user.handle}/todolist`}
+					variant="secondary"
+					size="sm"
+					title={PROFILE_ACTIONS.TODOLIST.TITLE}
+					ariaLabel={PROFILE_ACTIONS.TODOLIST.TITLE}
+					class={PROFILE_ACTION_BUTTON_CLASS}
 				>
-					<button
-						type="button"
-						onclick={copyHandle}
-						class="font-mono font-medium text-zinc-600 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-zinc-100 hover:underline cursor-pointer w-fit"
-						title="Copy handle"
+					{#snippet leftIcon()}
+						<Icon icon={PROFILE_ACTIONS.TODOLIST.ICON} class={PROFILE_ACTION_ICON_CLASS} />
+					{/snippet}
+					{PROFILE_ACTIONS.TODOLIST.LABEL}
+				</Button>
+
+				{#if isMe}
+					<Button
+						variant="secondary"
+						size="sm"
+						onclick={() => (isEditing = true)}
+						title={PROFILE_ACTIONS.EDIT.TITLE}
+						ariaLabel={PROFILE_ACTIONS.EDIT.TITLE}
+						class={PROFILE_ACTION_BUTTON_CLASS}
 					>
-						@{user.handle}
-					</button>
-					<span class="hidden sm:inline">·</span>
-					<span>Joined {user.createdAt ? user.createdAt.slice(0, 10) : 'Recently'}</span>
-				</div>
+						{#snippet leftIcon()}
+							<Icon icon={PROFILE_ACTIONS.EDIT.ICON} class={PROFILE_ACTION_ICON_CLASS} />
+						{/snippet}
+						{PROFILE_ACTIONS.EDIT.LABEL}
+					</Button>
+				{/if}
 			</div>
 		</div>
 	{:else}
@@ -206,7 +210,7 @@
 					<Button
 						type="button"
 						variant="ghost"
-						size="xs"
+						size="sm"
 						onclick={() => (isEditing = false)}
 						disabled={isSaving}
 					>
@@ -215,7 +219,7 @@
 					<Button
 						type="submit"
 						variant="primary"
-						size="xs"
+						size="sm"
 						loading={isSaving}
 						disabled={isSaving || !editNickname.trim() || !editHandle.trim()}
 					>

@@ -138,7 +138,7 @@
 
 <div
 	bind:this={containerRef}
-	class="rounded-2xl border border-zinc-200/80 dark:border-zinc-800 bg-white dark:bg-zinc-950 p-3 sm:p-3.5 transition-all duration-200 shadow-2xs focus-within:border-zinc-300 dark:focus-within:border-zinc-700 focus-within:ring-2 focus-within:ring-zinc-900/5 dark:focus-within:ring-white/5 {className}"
+	class="rounded-2xl border border-zinc-200/60 dark:border-zinc-800/60 bg-white dark:bg-zinc-950 p-3 sm:p-3.5 transition-all duration-200 shadow-none focus-within:border-zinc-300 dark:focus-within:border-zinc-700 {className}"
 >
 	<div class="flex gap-2.5 sm:gap-3">
 		<!-- 左侧用户头像 -->
@@ -147,7 +147,7 @@
 				src={userStore.avatar}
 				name={userStore.nickname || 'Guest'}
 				size="sm"
-				class="h-8 w-8 ring-1 ring-zinc-200/80 dark:ring-zinc-800"
+				class="h-8 w-8 ring-1 ring-zinc-200/60 dark:ring-zinc-800/60"
 			/>
 		</div>
 

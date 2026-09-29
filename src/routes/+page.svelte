@@ -89,9 +89,9 @@
 	/>
 
 	<!-- Main grid -->
-	<div class="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8 items-start">
-		<!-- Left stream -->
-		<div class="lg:col-span-7 xl:col-span-8 space-y-4">
+	<div class="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
+		<!-- Left stream (核心Feed流，占比扩大至 2/3，树立明确的视觉重心) -->
+		<div class="lg:col-span-8 space-y-4">
 			<div class="flex items-center justify-between px-1">
 				<h2 class="text-xs font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">
 					Latest Stream
@@ -183,18 +183,22 @@
 			</DataView>
 		</div>
 
-		<!-- 右侧副栏：辅助与概览组件库 (完全解耦，0 胶水 ref 绑定) -->
-		<aside class="lg:col-span-5 xl:col-span-4 space-y-4 sm:space-y-5">
+		<!-- 右侧副栏：辅助与概览组件库 (向设置页看齐：无边框无背景分区设计，轻量 1/3 副栏) -->
+		<aside class="lg:col-span-4 space-y-6 sm:space-y-8">
 			<!-- 1. 我的今日待办 -->
 			<MyTodayWidget />
 
 			<!-- 2. 今日热闹多人待办榜 -->
-			<TrendingTopicsWidget
-				onJoinTopic={(content, category) => todoMutations.joinTopic({ content, category })}
-			/>
+			<div class={userStore.email ? 'pt-6 border-t border-zinc-100 dark:border-zinc-800/60' : ''}>
+				<TrendingTopicsWidget
+					onJoinTopic={(content, category) => todoMutations.joinTopic({ content, category })}
+				/>
+			</div>
 
 			<!-- 3. 全站数据统计脉搏卡片 -->
-			<SiteStatsWidget />
+			<div class="pt-6 border-t border-zinc-100 dark:border-zinc-800/60">
+				<SiteStatsWidget />
+			</div>
 		</aside>
 	</div>
 </div>

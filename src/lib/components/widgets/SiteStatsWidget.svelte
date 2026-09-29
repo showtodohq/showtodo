@@ -13,36 +13,33 @@
 	});
 </script>
 
-<div
-	class="rounded-2xl border border-zinc-200/80 dark:border-zinc-800/90 bg-white/60 dark:bg-zinc-950/60 p-4 backdrop-blur-xs space-y-3.5"
->
+<div class="space-y-3.5">
 	<!-- Header bar: unified pattern with icon, full title, real metric badge and action link -->
-	<div class="flex items-center justify-between">
+	<div class="flex items-center justify-between gap-2 flex-wrap">
 		<a
 			href="/stats"
-			class="flex items-center gap-2 font-semibold text-xs text-zinc-900 dark:text-zinc-100 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors group/title"
+			class="flex items-center gap-2.5 font-bold text-sm text-zinc-900 dark:text-zinc-100 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors group/title"
 			title="Open full stats dashboard"
 		>
-			<div class="flex h-6 w-6 items-center justify-center rounded-lg bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 shrink-0">
-				<Icon icon="lucide:activity" class="h-3.5 w-3.5" />
+			<div class="p-1.5 rounded-xl bg-emerald-50/70 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 shrink-0">
+				<Icon icon="lucide:activity" class="h-4 w-4" />
 			</div>
 			<span>Site Pulse</span>
 		</a>
 
 		<div class="flex items-center gap-1.5 font-mono text-xs">
 			{#if statsStore.stats?.overview}
-				<span class="text-[10px] text-zinc-400">
+				<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-mono text-zinc-600 dark:text-zinc-400 bg-zinc-100/70 dark:bg-zinc-800/50">
 					{statsStore.stats.overview.totalUsers} people
 				</span>
-				<span class="text-[10px] text-zinc-300 dark:text-zinc-700">·</span>
 			{/if}
 			<a
 				href="/stats"
-				class="inline-flex items-center gap-0.5 text-[11px] font-medium text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100 transition-colors group/link cursor-pointer font-sans"
+				class="inline-flex items-center gap-1 text-xs font-medium text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100 transition-colors group/link cursor-pointer font-sans"
 				title="View full statistics dashboard"
 			>
 				<span>View all</span>
-				<Icon icon="lucide:arrow-right" class="h-3 w-3 transition-transform group-hover/link:translate-x-0.5" />
+				<Icon icon="lucide:arrow-right" class="h-3.5 w-3.5 text-zinc-400 transition-transform duration-200 group-hover/link:translate-x-0.5" />
 			</a>
 		</div>
 	</div>
@@ -65,31 +62,31 @@
 		{#if statsStore.stats}
 			{@const overview = statsStore.stats.overview}
 
-			<!-- 4-grid stats -->
+			<!-- 4-grid stats (无边框轻底色，向设置页看齐) -->
 			<div class="grid grid-cols-2 gap-2">
-				<div class="p-2.5 rounded-xl bg-zinc-50/80 dark:bg-zinc-900/50 border border-zinc-200/40 dark:border-zinc-800/40">
-					<div class="text-[11px] text-zinc-400 font-medium">Public Todos</div>
+				<div class="p-2.5 rounded-xl bg-zinc-100/70 dark:bg-zinc-800/50">
+					<div class="text-[11px] text-zinc-500 dark:text-zinc-400 font-medium">Public Todos</div>
 					<div class="text-base font-bold font-mono text-zinc-900 dark:text-zinc-100 mt-0.5">
 						{(overview?.totalTodos ?? 0).toLocaleString()}
 					</div>
 				</div>
 
-				<div class="p-2.5 rounded-xl bg-emerald-50/50 dark:bg-emerald-950/20 border border-emerald-200/30 dark:border-emerald-800/30">
-					<div class="text-[11px] text-emerald-600 dark:text-emerald-400 font-medium">Completed</div>
-					<div class="text-base font-bold font-mono text-emerald-600 dark:text-emerald-400 mt-0.5">
+				<div class="p-2.5 rounded-xl bg-emerald-50/70 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400">
+					<div class="text-[11px] font-medium opacity-90">Completed</div>
+					<div class="text-base font-bold font-mono mt-0.5">
 						{(overview?.completedTodos ?? 0).toLocaleString()}
 					</div>
 				</div>
 
-				<div class="p-2.5 rounded-xl bg-zinc-50/80 dark:bg-zinc-900/50 border border-zinc-200/40 dark:border-zinc-800/40">
-					<div class="text-[11px] text-zinc-400 font-medium">Overall Completion</div>
+				<div class="p-2.5 rounded-xl bg-zinc-100/70 dark:bg-zinc-800/50">
+					<div class="text-[11px] text-zinc-500 dark:text-zinc-400 font-medium">Overall Completion</div>
 					<div class="text-base font-bold font-mono text-amber-600 dark:text-amber-400 mt-0.5">
 						{overview?.completionRate ?? 0}%
 					</div>
 				</div>
 
-				<div class="p-2.5 rounded-xl bg-zinc-50/80 dark:bg-zinc-900/50 border border-zinc-200/40 dark:border-zinc-800/40">
-					<div class="text-[11px] text-zinc-400 font-medium">Active Today</div>
+				<div class="p-2.5 rounded-xl bg-zinc-100/70 dark:bg-zinc-800/50">
+					<div class="text-[11px] text-zinc-500 dark:text-zinc-400 font-medium">Active Today</div>
 					<div class="text-base font-bold font-mono text-blue-600 dark:text-blue-400 mt-0.5">
 						{overview?.todayActiveUsers ?? 0}
 					</div>
@@ -98,7 +95,7 @@
 
 			<!-- Heatmap -->
 			{#if statsStore.stats.heatmap}
-				<div class="pt-1 border-t border-zinc-200/50 dark:border-zinc-800/50 space-y-1.5">
+				<div class="pt-2 border-t border-zinc-100 dark:border-zinc-800/60 space-y-1.5">
 					<div class="flex items-center justify-between text-[10px] text-zinc-400 font-medium">
 						<span>Past year activity</span>
 						<span class="font-mono">{statsStore.stats.heatmap.totalActivities ?? 0} activities</span>
@@ -108,14 +105,14 @@
 			{/if}
 
 			<!-- Bottom link -->
-			<div class="pt-1 flex items-center justify-between text-[11px] text-zinc-400">
+			<div class="pt-2 border-t border-zinc-100 dark:border-zinc-800/60 flex items-center justify-between text-[11px] text-zinc-400">
 				<span>{overview?.totalReactions ?? 0} reactions given</span>
 				<a
 					href="/stats"
-					class="text-xs font-semibold text-emerald-600 dark:text-emerald-400 hover:underline inline-flex items-center gap-0.5"
+					class="text-xs font-semibold text-emerald-600 dark:text-emerald-400 hover:underline inline-flex items-center gap-1 group/explore"
 				>
 					<span>Explore stats</span>
-					<Icon icon="lucide:arrow-up-right" class="h-3.5 w-3.5" />
+					<Icon icon="lucide:arrow-up-right" class="h-3.5 w-3.5 transition-transform duration-200 group-hover/explore:translate-x-0.5 group-hover/explore:-translate-y-0.5" />
 				</a>
 			</div>
 		{/if}

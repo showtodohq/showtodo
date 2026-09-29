@@ -49,4 +49,9 @@ describe('Header rendering test', () => {
 		expect(rendered.body).toContain('popover="auto"');
 		expect(rendered.body).toContain('data-placement="bottom-end"');
 	});
+
+	it('renders navigation tabs with borderless aesthetic', () => {
+		const rendered = render(Header);
+		expect(rendered.body).not.toContain('border border-zinc-200');
+	});
 });

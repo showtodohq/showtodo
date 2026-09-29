@@ -63,7 +63,7 @@
 	});
 </script>
 
-<div class="w-full max-w-5xl mx-auto space-y-6 sm:space-y-8 pb-16">
+<div class="w-full max-w-6xl mx-auto space-y-6 sm:space-y-8 pb-16">
 	<!-- 顶部面包屑导航 -->
 	<BreadcrumbNav
 		backHref="/"

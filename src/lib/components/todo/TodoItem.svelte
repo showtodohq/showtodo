@@ -62,13 +62,13 @@
 			{#if authorProfileUrl}
 				<a
 					href={authorProfileUrl}
-					class="font-semibold text-zinc-900 dark:text-zinc-100 hover:text-zinc-600 dark:hover:text-zinc-300 hover:underline truncate max-w-[140px] sm:max-w-[200px]"
+					class="font-semibold text-zinc-900 dark:text-zinc-100 hover:text-zinc-600 dark:hover:text-zinc-300 hover:underline truncate max-w-[140px] sm:max-w-[200px] md:max-w-[260px]"
 					onclick={(e) => e.stopPropagation()}
 				>
 					{effectiveAuthor?.nickname || 'Anonymous'}
 				</a>
 			{:else}
-				<span class="font-semibold text-zinc-900 dark:text-zinc-100 truncate max-w-[140px] sm:max-w-[200px]">
+				<span class="font-semibold text-zinc-900 dark:text-zinc-100 truncate max-w-[140px] sm:max-w-[200px] md:max-w-[260px]">
 					{effectiveAuthor?.nickname || 'Anonymous'}
 				</span>
 			{/if}
