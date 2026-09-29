@@ -1,0 +1,30 @@
+{
+  "manifest_version": 3,
+  "name": "ShowTodo - Quick Post",
+  "version": "1.0.0",
+  "description": "Quickly post public todos to ShowTodo",
+  "icons": {
+    "16": "icons/icon-16.png",
+    "48": "icons/icon-48.png",
+    "128": "icons/icon-128.png"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "ShowTodo - Quick Post",
+    "default_icon": {
+      "16": "icons/icon-16.png",
+      "48": "icons/icon-48.png",
+      "128": "icons/icon-128.png"
+    }
+  },
+  "permissions": [
+    "cookies",
+    "storage"
+  ],
+  "host_permissions": [
+    "http://localhost:3003/*",
+    "http://127.0.0.1:3003/*",
+    "https://www.showtodo.com/*",
+    "https://showtodo.com/*"
+  ]
+}

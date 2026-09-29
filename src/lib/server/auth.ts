@@ -12,6 +12,13 @@ import { eq } from 'drizzle-orm';
 export const auth = betterAuth({
 	baseURL: env.BETTER_AUTH_URL,
 	secret: env.BETTER_AUTH_SECRET,
+	trustedOrigins: [
+		'chrome-extension://*',
+		'http://localhost:3003',
+		'http://127.0.0.1:3003',
+		'https://showtodo.com',
+		'https://www.showtodo.com'
+	],
 
 	database: drizzleAdapter(db, {
 		provider: 'pg',
