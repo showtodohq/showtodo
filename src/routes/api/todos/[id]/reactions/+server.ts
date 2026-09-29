@@ -2,9 +2,8 @@ import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { db } from '$lib/server/db';
 import * as reactionService from '$lib/server/services/reaction.service';
-import * as userService from '$lib/server/services/user.service';
 import { handleError, AppError } from '$lib/server/errors';
-import { validateEmail, validateEmoji } from '$lib/server/validation';
+import { validateEmoji } from '$lib/server/validation';
 
 export const GET: RequestHandler = async ({ params }) => {
 	try {
@@ -15,8 +14,12 @@ export const GET: RequestHandler = async ({ params }) => {
 	}
 };
 
-export const POST: RequestHandler = async ({ params, request }) => {
+export const POST: RequestHandler = async ({ params, request, locals }) => {
 	try {
+		if (!locals?.user?.id) {
+			throw new AppError('FORBIDDEN', 'Authentication required to react to a todo');
+		}
+
 		let body;
 		try {
 			body = await request.json();
@@ -24,11 +27,8 @@ export const POST: RequestHandler = async ({ params, request }) => {
 			throw new AppError('VALIDATION_ERROR', 'Invalid JSON body');
 		}
 
-		const email = validateEmail(body.email);
 		const emoji = validateEmoji(body.emoji);
-
-		const user = await userService.findOrCreate(db, email);
-		const reaction = await reactionService.add(db, params.id, user.id, emoji);
+		const reaction = await reactionService.add(db, params.id, locals.user.id, emoji);
 
 		return json({ reaction }, { status: 201 });
 	} catch (e) {
@@ -36,8 +36,12 @@ export const POST: RequestHandler = async ({ params, request }) => {
 	}
 };
 
-export const DELETE: RequestHandler = async ({ params, request }) => {
+export const DELETE: RequestHandler = async ({ params, request, locals }) => {
 	try {
+		if (!locals?.user?.id) {
+			throw new AppError('FORBIDDEN', 'Authentication required to remove reaction');
+		}
+
 		let body;
 		try {
 			body = await request.json();
@@ -45,13 +49,8 @@ export const DELETE: RequestHandler = async ({ params, request }) => {
 			throw new AppError('VALIDATION_ERROR', 'Invalid JSON body');
 		}
 
-		const email = validateEmail(body.email);
 		const emoji = body.emoji ? validateEmoji(body.emoji) : undefined;
-
-		const user = await userService.findByEmail(db, email);
-		if (!user) throw new AppError('NOT_FOUND', 'User not found');
-
-		await reactionService.remove(db, params.id, user.id, emoji);
+		await reactionService.remove(db, params.id, locals.user.id, emoji);
 
 		return json({ success: true });
 	} catch (e) {

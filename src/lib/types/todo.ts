@@ -65,7 +65,7 @@ export interface ReactionDetail {
 }
 
 export interface CreateTodoInput {
-	email: string;
+	email?: string;
 	content: string;
 	note?: string | null;
 	isNotePublic?: boolean;
@@ -75,7 +75,7 @@ export interface CreateTodoInput {
 }
 
 export interface UpdateTodoInput {
-	email: string;
+	email?: string;
 	content?: string;
 	note?: string | null;
 	isNotePublic?: boolean;

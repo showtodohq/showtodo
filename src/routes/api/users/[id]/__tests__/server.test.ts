@@ -1,5 +1,5 @@
-import { describe, it, expect, vi } from 'vitest';
-import { GET } from '../+server';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { GET, PATCH } from '../+server';
 import * as userService from '$lib/server/services/user.service';
 
 vi.mock('$lib/server/db', () => ({
@@ -13,6 +13,10 @@ vi.mock('$lib/server/services/user.service', async (importOriginal) => {
 		findByIdOrHandle: vi.fn(),
 		update: vi.fn()
 	};
+});
+
+beforeEach(() => {
+	vi.clearAllMocks();
 });
 
 describe('GET /api/users/[id]', () => {
@@ -128,3 +132,64 @@ describe('GET /api/users/[id]', () => {
 		expect(data.error.code).toBe('NOT_FOUND');
 	});
 });
+
+describe('PATCH /api/users/[id]', () => {
+	it('updates user when authenticated via locals', async () => {
+		const targetUser = {
+			id: 'user-uuid-1',
+			handle: 'test_user',
+			nickname: 'Original Name'
+		};
+		const updatedUser = {
+			...targetUser,
+			nickname: 'Updated Name',
+			email: 'user1@example.com'
+		};
+
+		vi.mocked(userService.findByIdOrHandle).mockResolvedValueOnce(targetUser as any);
+		vi.mocked(userService.update).mockResolvedValueOnce(updatedUser as any);
+
+		const request = new Request('http://localhost/api/users/user-uuid-1', {
+			method: 'PATCH',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({ nickname: 'Updated Name' })
+		});
+
+		const response = await PATCH({
+			params: { id: 'user-uuid-1' },
+			request,
+			locals: { user: { id: 'user-uuid-1' } }
+		} as any);
+
+		expect(response.status).toBe(200);
+		expect(userService.update).toHaveBeenCalledWith(
+			expect.anything(),
+			'user-uuid-1',
+			{ userId: 'user-uuid-1' },
+			{ nickname: 'Updated Name' }
+		);
+	});
+
+	it('rejects with 403 FORBIDDEN when unauthenticated even if email is in body', async () => {
+		const request = new Request('http://localhost/api/users/user-uuid-1', {
+			method: 'PATCH',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({
+				email: 'spoofed@example.com',
+				nickname: 'Hacked Name'
+			})
+		});
+
+		const response = await PATCH({
+			params: { id: 'user-uuid-1' },
+			request,
+			locals: { user: null }
+		} as any);
+
+		expect(response.status).toBe(403);
+		const data = await response.json();
+		expect(data.error.code).toBe('FORBIDDEN');
+		expect(userService.update).not.toHaveBeenCalled();
+	});
+});
+

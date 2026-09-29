@@ -5,7 +5,6 @@ import * as todoService from '$lib/server/services/todo.service';
 import * as userService from '$lib/server/services/user.service';
 import { handleError, AppError } from '$lib/server/errors';
 import {
-	validateEmail,
 	validateContent,
 	validateNote,
 	validateCategory,
@@ -24,25 +23,21 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 			throw new AppError('VALIDATION_ERROR', 'Invalid JSON body');
 		}
 
+		if (!locals?.user?.id) {
+			throw new AppError('FORBIDDEN', 'Authentication required to create a todo');
+		}
+
+		const user = await userService.findById(db, locals.user.id);
+		if (!user) {
+			throw new AppError('NOT_FOUND', 'User not found');
+		}
+
 		const content = validateContent(body.content);
 		const note = validateNote(body.note);
 		const isNotePublic = validateBoolean(body.isNotePublic, true);
 		const category = validateCategory(body.category);
 		const startDate = validateOptionalDateTime(body.startDate) ?? undefined;
 		const dueDate = validateOptionalDateTime(body.dueDate);
-
-		let user: any = null;
-		if (locals?.user?.id) {
-			user = await userService.findById(db, locals.user.id);
-		}
-		if (!user && body.email) {
-			const email = validateEmail(body.email);
-			user = await userService.findOrCreate(db, email);
-		}
-
-		if (!user) {
-			throw new AppError('FORBIDDEN', 'Authentication required to create a todo');
-		}
 
 		const rawTodo = await todoService.create(db, {
 			content,

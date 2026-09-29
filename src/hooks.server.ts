@@ -1,6 +1,8 @@
 import { auth } from '$lib/server/auth';
 import { svelteKitHandler } from 'better-auth/svelte-kit';
 import { building } from '$app/environment';
+import { db } from '$lib/server/db';
+import * as apiKeyService from '$lib/server/services/api-key.service';
 
 export async function handle({ event, resolve }: { event: any; resolve: any }) {
 	const origin = event.request.headers.get('origin') || '';
@@ -43,12 +45,33 @@ export async function handle({ event, resolve }: { event: any; resolve: any }) {
 		event.locals.session = session.session;
 		event.locals.user = {
 			...session.user,
-			nickname: session.user.name,
-			avatar: session.user.image ?? null
+			nickname: (session.user as any).nickname ?? session.user.name,
+			avatar: session.user.image ?? null,
+			handle: (session.user as any).handle
 		};
+		event.locals.apiKey = null;
 	} else {
 		event.locals.session = null;
 		event.locals.user = null;
+		event.locals.apiKey = null;
+
+		const authHeader = event.request.headers.get('authorization') || '';
+		if (authHeader.startsWith('Bearer ')) {
+			const rawToken = authHeader.slice(7).trim();
+			if (rawToken) {
+				const verified = await apiKeyService.verifyApiKey(db, rawToken);
+				if (verified) {
+					event.locals.apiKey = verified.apiKey;
+					event.locals.user = {
+						...verified.user,
+						name: verified.user.nickname,
+						nickname: verified.user.nickname,
+						avatar: verified.user.avatar,
+						image: verified.user.avatar
+					};
+				}
+			}
+		}
 	}
 
 	const response = await svelteKitHandler({ event, resolve, auth, building });

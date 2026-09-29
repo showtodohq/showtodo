@@ -165,14 +165,13 @@ export const api = {
 
 	async deleteTodo(
 		id: string,
-		email: string,
+		_email?: string,
 		customFetch?: typeof fetch
 	): Promise<{ success: boolean; deletedId: string }> {
 		return request<{ success: boolean; deletedId: string }>(
 			`/api/todos/${id}`,
 			{
-				method: 'DELETE',
-				body: JSON.stringify({ email })
+				method: 'DELETE'
 			},
 			customFetch
 		);
@@ -181,14 +180,14 @@ export const api = {
 	async addReaction(
 		todoId: string,
 		emoji: ReactionEmoji,
-		email: string,
+		_email?: string,
 		customFetch?: typeof fetch
 	): Promise<{ reaction: { id: string; todoId: string; userId: string; emoji: string } }> {
 		return request(
 			`/api/todos/${todoId}/reactions`,
 			{
 				method: 'POST',
-				body: JSON.stringify({ emoji, email })
+				body: JSON.stringify({ emoji })
 			},
 			customFetch
 		);
@@ -197,14 +196,14 @@ export const api = {
 	async removeReaction(
 		todoId: string,
 		emoji: ReactionEmoji | undefined,
-		email: string,
+		_email?: string,
 		customFetch?: typeof fetch
 	): Promise<{ success: boolean }> {
 		return request(
 			`/api/todos/${todoId}/reactions`,
 			{
 				method: 'DELETE',
-				body: JSON.stringify({ email, ...(emoji ? { emoji } : {}) })
+				body: JSON.stringify(emoji ? { emoji } : {})
 			},
 			customFetch
 		);

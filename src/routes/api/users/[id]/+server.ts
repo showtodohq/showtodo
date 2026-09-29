@@ -3,15 +3,18 @@ import type { RequestHandler } from './$types';
 import { db } from '$lib/server/db';
 import * as userService from '$lib/server/services/user.service';
 import { handleError, AppError } from '$lib/server/errors';
-import { validateEmail, validateHandle } from '$lib/server/validation';
+import { validateHandle } from '$lib/server/validation';
 
-export const GET: RequestHandler = async ({ params, url, request }) => {
+export const GET: RequestHandler = async ({ params, url, request, locals }) => {
 	try {
 		const user = await userService.findByIdOrHandle(db, params.id);
 		if (!user) throw new AppError('NOT_FOUND', 'User not found');
 
 		const currentUserId =
-			url.searchParams.get('currentUserId') || request.headers.get('x-user-id') || undefined;
+			locals?.user?.id ||
+			url.searchParams.get('currentUserId') ||
+			request.headers.get('x-user-id') ||
+			undefined;
 		const isSelf = Boolean(currentUserId && currentUserId === user.id);
 
 		return json({ user: userService.toUserProfile(user, { isSelf }) });
@@ -29,16 +32,11 @@ export const PATCH: RequestHandler = async ({ params, request, locals }) => {
 			throw new AppError('VALIDATION_ERROR', 'Invalid JSON body');
 		}
 
-		let authIdentifier: { userId?: string; email?: string } | undefined;
-		if (locals?.user?.id) {
-			authIdentifier = { userId: locals.user.id };
-		} else if (body.email) {
-			authIdentifier = { email: validateEmail(body.email) };
-		}
-
-		if (!authIdentifier) {
+		if (!locals?.user?.id) {
 			throw new AppError('FORBIDDEN', 'Authentication required to update profile');
 		}
+
+		const authIdentifier = { userId: locals.user.id };
 
 		const data: { nickname?: string; avatar?: string | null; handle?: string } = {};
 		if (body.nickname !== undefined) {
