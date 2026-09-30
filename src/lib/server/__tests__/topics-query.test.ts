@@ -207,21 +207,22 @@ describe('listTopics unit tests (DDD Service Layer)', () => {
 						first_created_at: '2026-09-01T00:00:00.000Z',
 						last_updated_at: '2026-09-02T00:00:00.000Z',
 						total_participants: 1,
-						done_count: 1, // SQL raw may still count distinct user who was ever done
+						total_todos: 2,
+						done_count: 1,
 						participants: [
-							{
-								todoId: 't-done-yesterday',
-								shortId: 's1',
-								status: 'done',
-								createdAt: '2026-09-01T00:00:00.000Z',
-								isMe: false,
-								user: { id: 'u1', nickname: '自律者', handle: 'disciplined', avatar: null }
-							},
 							{
 								todoId: 't-pending-today',
 								shortId: 's2',
 								status: 'pending',
 								createdAt: '2026-09-02T00:00:00.000Z',
+								isMe: false,
+								user: { id: 'u1', nickname: '自律者', handle: 'disciplined', avatar: null }
+							},
+							{
+								todoId: 't-done-yesterday',
+								shortId: 's1',
+								status: 'done',
+								createdAt: '2026-09-01T00:00:00.000Z',
 								isMe: false,
 								user: { id: 'u1', nickname: '自律者', handle: 'disciplined', avatar: null }
 							}
@@ -237,44 +238,22 @@ describe('listTopics unit tests (DDD Service Layer)', () => {
 
 		expect(result.topics.length).toBe(1);
 		const topic = result.topics[0];
-		// 自然人去重后只保留 1 位
+		// 自然人同行人数：1 位
 		expect(topic.totalParticipants).toBe(1);
-		expect(topic.participants.length).toBe(1);
-		// 状态应取该用户最新的待办状态 (pending)
-		expect(topic.participants[0].status).toBe('pending');
-		// 统计数据：未完成，完成数应为 0，完成率应为 0，isAllDone 应为 false
-		expect(topic.doneCount).toBe(0);
-		expect(topic.completionRate).toBe(0);
+		// 待办条目总数：2 条，已完成 1 条，完成率 50%
+		expect(topic.totalTodos).toBe(2);
+		expect(topic.doneCount).toBe(1);
+		expect(topic.completionRate).toBe(50);
 		expect(topic.isAllDone).toBe(false);
+		// 头像列表自然人去重：1 位
+		expect(topic.participants.length).toBe(1);
 	});
 
-	it('getTopicByHash preserves user latest status when user has multiple check-ins today', async () => {
+	it('getTopicByHash accurately tracks distinct participants and preserves all todo check-ins', async () => {
 		const { getTopicByHash } = await import('../services/todo.service');
 
 		const todayStr = '2026-09-12';
 		const mockResult = [
-			{
-				todos: {
-					id: 't-morning',
-					shortId: 'short1',
-					topicHash: 'hash-today-multi',
-					content: '晨跑打卡',
-					category: 'fitness',
-					status: 'done',
-					note: null,
-					isNotePublic: false,
-					startDate: new Date('2026-09-12T08:00:00.000Z'),
-					dueDate: null,
-					createdAt: new Date('2026-09-12T08:00:00.000Z'),
-					authorId: 'u1'
-				},
-				users: {
-					id: 'u1',
-					nickname: '晨跑者',
-					handle: 'runner',
-					avatar: null
-				}
-			},
 			{
 				todos: {
 					id: 't-afternoon',
@@ -288,6 +267,28 @@ describe('listTopics unit tests (DDD Service Layer)', () => {
 					startDate: new Date('2026-09-12T14:00:00.000Z'),
 					dueDate: null,
 					createdAt: new Date('2026-09-12T14:00:00.000Z'),
+					authorId: 'u1'
+				},
+				users: {
+					id: 'u1',
+					nickname: '晨跑者',
+					handle: 'runner',
+					avatar: null
+				}
+			},
+			{
+				todos: {
+					id: 't-morning',
+					shortId: 'short1',
+					topicHash: 'hash-today-multi',
+					content: '晨跑打卡',
+					category: 'fitness',
+					status: 'done',
+					note: null,
+					isNotePublic: false,
+					startDate: new Date('2026-09-12T08:00:00.000Z'),
+					dueDate: null,
+					createdAt: new Date('2026-09-12T08:00:00.000Z'),
 					authorId: 'u1'
 				},
 				users: {
@@ -324,10 +325,22 @@ describe('listTopics unit tests (DDD Service Layer)', () => {
 		// 今日同行：1 人（自然人去重）
 		expect(topicDetail.todayParticipants).toBe(1);
 		expect(topicDetail.participants.length).toBe(1);
-		// 最新的打卡状态为 in_progress，未全部完成
 		expect(topicDetail.participants[0].status).toBe('in_progress');
-		expect(topicDetail.todayDoneCount).toBe(0);
+		expect(topicDetail.participants[0].totalTodos).toBe(2);
+		expect(topicDetail.participants[0].doneCount).toBe(1);
+		// 今日打卡条目总数与状态统计
+		expect(topicDetail.todayTotalTodos).toBe(2);
+		expect(topicDetail.todayDoneCount).toBe(1);
+		expect(topicDetail.todayInProgressCount).toBe(1);
 		expect(topicDetail.isTodayAllDone).toBe(false);
+
+		// 全周期同行人与打卡条目统计
+		expect(topicDetail.totalParticipants).toBe(1);
+		expect(topicDetail.allParticipants?.length).toBe(1);
+		expect(topicDetail.allParticipants?.[0].totalTodos).toBe(2);
+		expect(topicDetail.allParticipants?.[0].doneCount).toBe(1);
+		expect(topicDetail.totalTodos).toBe(2);
+		expect(topicDetail.allDoneCount).toBe(1);
 	});
 
 	it('findByIdOrShortId returns participantCount reflecting distinct users, not row count', async () => {

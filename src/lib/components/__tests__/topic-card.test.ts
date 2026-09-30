@@ -102,5 +102,130 @@ describe('TopicHeaderCard "Add to my list" Button Style', () => {
 		expect(rendered.body).toContain('px-3');
 		expect(rendered.body).toContain('bg-zinc-900');
 	});
+
+	it('renders "1 person today · 0/1 completed" on Today tab and "1 person, 7/9 total all-time" on All tab', () => {
+		const multiCheckinDetail: TopicDetail = {
+			topicHash: '52e7365a39cd78b1',
+			content: 'Read the taotejing',
+			category: 'study',
+			firstCreatedAt: '2026-09-21T00:00:00.000Z',
+			todayParticipants: 1,
+			todayTotalTodos: 1,
+			todayDoneCount: 0,
+			todayInProgressCount: 0,
+			isTodayAllDone: false,
+			totalParticipants: 1,
+			totalTodos: 9,
+			allDoneCount: 7,
+			doneCount: 0,
+			inProgressCount: 0,
+			isAllDone: false,
+			participants: [
+				{
+					todoId: 't-today',
+					shortId: 'Wy7B5hdF',
+					status: 'pending',
+					createdAt: '2026-09-30T03:00:00.000Z',
+					totalTodos: 1,
+					doneCount: 0,
+					user: { id: 'u1', nickname: 'Archer', handle: 'archer', avatar: null }
+				}
+			],
+			allParticipants: [
+				{
+					todoId: 't-today',
+					shortId: 'Wy7B5hdF',
+					status: 'pending',
+					createdAt: '2026-09-30T03:00:00.000Z',
+					totalTodos: 9,
+					doneCount: 7,
+					user: { id: 'u1', nickname: 'Archer', handle: 'archer', avatar: null }
+				}
+			]
+		};
+
+		// 1. Today Tab
+		const todayRender = render(TopicHeaderCard, {
+			props: {
+				topic: multiCheckinDetail,
+				activeTab: 'today',
+				hasJoined: false
+			}
+		});
+		expect(todayRender.body).toContain('person today');
+		expect(todayRender.body).toContain('0/1');
+		expect(todayRender.body).toContain('completed');
+		expect(todayRender.body).toContain('0% Today');
+
+		// 2. All Tab
+		const allRender = render(TopicHeaderCard, {
+			props: {
+				topic: multiCheckinDetail,
+				activeTab: 'all',
+				hasJoined: false
+			}
+		});
+		expect(allRender.body).toContain('person');
+		expect(allRender.body).toContain('7/9');
+		expect(allRender.body).toContain('total all-time');
+		expect(allRender.body).toContain('78% Total');
+	});
+});
+
+describe('TopicParticipantList Today (1) | All (1) and peer row stats', () => {
+	it('displays Today (1) | All (1) and individual participant completed count', async () => {
+		const { default: TopicParticipantList } = await import('../topic/TopicParticipantList.svelte');
+
+		const todayParticipants = [
+			{
+				todoId: 't-today',
+				shortId: 'Wy7B5hdF',
+				status: 'pending' as const,
+				createdAt: '2026-09-30T03:00:00.000Z',
+				totalTodos: 1,
+				doneCount: 0,
+				user: { id: 'u1', nickname: 'Archer', handle: 'archer', avatar: null }
+			}
+		];
+		const allParticipants = [
+			{
+				todoId: 't-today',
+				shortId: 'Wy7B5hdF',
+				status: 'pending' as const,
+				createdAt: '2026-09-30T03:00:00.000Z',
+				totalTodos: 9,
+				doneCount: 7,
+				user: { id: 'u1', nickname: 'Archer', handle: 'archer', avatar: null }
+			}
+		];
+
+		// Today tab
+		const renderedToday = render(TopicParticipantList, {
+			props: {
+				participants: todayParticipants,
+				allParticipants,
+				activeTab: 'today'
+			}
+		});
+		expect(renderedToday.body).toContain('Today (1)');
+		expect(renderedToday.body).toContain('All (1)');
+		expect(renderedToday.body).toContain('0/1 completed');
+		expect(renderedToday.body).toContain('View activity timeline →');
+		expect(renderedToday.body).toContain('/t/Wy7B5hdF');
+
+		// All tab
+		const renderedAll = render(TopicParticipantList, {
+			props: {
+				participants: todayParticipants,
+				allParticipants,
+				activeTab: 'all'
+			}
+		});
+		expect(renderedAll.body).toContain('Today (1)');
+		expect(renderedAll.body).toContain('All (1)');
+		expect(renderedAll.body).toContain('7/9 completed');
+		expect(renderedAll.body).toContain('View activity timeline →');
+		expect(renderedAll.body).toContain('/t/Wy7B5hdF');
+	});
 });
 

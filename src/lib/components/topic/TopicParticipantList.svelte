@@ -12,6 +12,8 @@
 		allParticipants?: TopicParticipant[];
 		todayParticipantsCount?: number;
 		totalParticipantsCount?: number;
+		activeTab?: 'today' | 'all';
+		ontabchange?: (tab: 'today' | 'all') => void;
 		currentUserId?: string;
 		onstatuschange?: (nextStatus: TodoStatus, e?: MouseEvent) => void;
 	}
@@ -21,11 +23,11 @@
 		allParticipants = [],
 		todayParticipantsCount,
 		totalParticipantsCount,
+		activeTab = $bindable<'today' | 'all'>('today'),
+		ontabchange,
 		currentUserId,
 		onstatuschange
 	}: Props = $props();
-
-	let activeTab = $state<'today' | 'all'>('today');
 
 	const todayCount = $derived(
 		todayParticipantsCount !== undefined ? todayParticipantsCount : participants.length
@@ -43,11 +45,6 @@
 			activeTab = 'all';
 		}
 	});
-
-	const hasHistoryDiff = $derived(
-		totalCount > todayCount ||
-		(allParticipants.length > 0 && allParticipants.length !== participants.length)
-	);
 
 	const participantTabs = $derived([
 		{ id: 'today' as const, label: `Today (${todayCount})` },
@@ -87,16 +84,15 @@
 				People Doing This
 			</h2>
 
-			{#if hasHistoryDiff}
-				<Tabs
-					options={participantTabs}
-					value={activeTab}
-					onchange={(val) => (activeTab = val)}
-					size="xs"
-				/>
-			{:else}
-				<span class="text-xs text-zinc-400 font-mono">({todayCount})</span>
-			{/if}
+			<Tabs
+				options={participantTabs}
+				value={activeTab}
+				onchange={(val) => {
+					activeTab = val as 'today' | 'all';
+					ontabchange?.(val as 'today' | 'all');
+				}}
+				size="xs"
+			/>
 		</div>
 	</div>
 
@@ -156,6 +152,14 @@
 									class="text-[10px] px-1.5 py-0.5 rounded-full bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 font-medium"
 								>
 									You
+								</span>
+							{/if}
+
+							{#if p.totalTodos !== undefined}
+								<span
+									class="text-[11px] font-mono px-2 py-0.5 rounded-md bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 font-medium"
+								>
+									{p.doneCount ?? 0}/{p.totalTodos} completed
 								</span>
 							{/if}
 

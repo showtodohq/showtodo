@@ -346,23 +346,13 @@ export async function getTopTopics(db: Database, limit: number = 5): Promise<Top
 		total_participants: number;
 		done_count: number;
 	}>(sql`
-		with latest_user_todos as (
-			select distinct on (topic_hash, author_id)
-				topic_hash,
-				content,
-				category,
-				author_id,
-				status
-			from todos
-			order by topic_hash, author_id, created_at desc
-		)
 		select 
 			topic_hash,
 			min(content) as content,
 			min(category) as category,
 			count(distinct author_id)::int as total_participants,
 			count(*) filter (where status = 'done')::int as done_count
-		from latest_user_todos
+		from todos
 		group by topic_hash
 		having count(distinct author_id) > 1
 		order by total_participants desc, done_count desc

@@ -20,6 +20,7 @@
 	let { data }: { data: PageData } = $props();
 
 	const topicRes = createTopicDetailResource(page.params.hash, untrack(() => data.topic));
+	let activeTab = $state<'today' | 'all'>('today');
 	let currentLoadedKey = $state<string | null>(
 		page.params.hash ? `${page.params.hash}:${page.url.searchParams.get('date') || getTodayString()}` : null
 	);
@@ -111,6 +112,7 @@
 				<!-- 看板与加入行动栏 -->
 				<TopicHeaderCard
 					topic={topicRes.topic}
+					{activeTab}
 					hasJoined={topicRes.hasJoined}
 					myStatus={topicRes.myParticipant?.status}
 					isJoining={topicRes.isJoining}
@@ -124,6 +126,7 @@
 					allParticipants={topicRes.topic.allParticipants}
 					todayParticipantsCount={topicRes.topic.todayParticipants}
 					totalParticipantsCount={topicRes.topic.totalParticipants}
+					bind:activeTab
 					currentUserId={userStore.id}
 					onstatuschange={topicRes.handleToggleMyStatus}
 				/>

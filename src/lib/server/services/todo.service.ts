@@ -8,7 +8,7 @@ import * as reactionService from './reaction.service';
 import * as activityService from './activity.service';
 import { AppError } from '../errors';
 import { computeTopicHash } from '../topic-hash';
-import type { DailyCardResponse, DailyCard, CardParticipant, TopicDetail, ReactionEmoji, TopicItem, TopicListResponse, ListTopicsOptions } from '$lib/types/todo';
+import type { DailyCardResponse, DailyCard, CardParticipant, TopicDetail, TopicParticipant, ReactionEmoji, TopicItem, TopicListResponse, ListTopicsOptions } from '$lib/types/todo';
 
 export interface CreateTodoData {
 	content: string;
@@ -482,24 +482,6 @@ export async function getTopicByHash(
 		}
 	}));
 
-	// 辅助去重函数：按 user.id 归集自然人伙伴，保留该用户在该切片范围内的最新待办实例 (Latest Todo)
-	function deduplicateParticipants(list: typeof allRawParticipants) {
-		const map = new Map<string, (typeof allRawParticipants)[0]>();
-		for (const item of list) {
-			const existing = map.get(item.user.id);
-			if (!existing) {
-				map.set(item.user.id, item);
-			} else {
-				const itemTime = new Date(item.createdAt).getTime();
-				const existingTime = new Date(existing.createdAt).getTime();
-				if (itemTime >= existingTime) {
-					map.set(item.user.id, item);
-				}
-			}
-		}
-		return Array.from(map.values());
-	}
-
 	const safeTz = isValidTimezone(tz) ? tz : DEFAULT_TIMEZONE;
 	const effectiveDate = targetDate || getTodayInTimezone(safeTz);
 
@@ -520,30 +502,65 @@ export async function getTopicByHash(
 		return dStr === effectiveDate;
 	}
 
-	// 1. 全周期历史去重伙伴列表
-	const allParticipantsList = deduplicateParticipants(allRawParticipants);
+	function aggregateParticipants(list: typeof allRawParticipants): TopicParticipant[] {
+		const userMap = new Map<string, {
+			latest: (typeof allRawParticipants)[0];
+			totalTodos: number;
+			doneCount: number;
+		}>();
+
+		for (const item of list) {
+			const existing = userMap.get(item.user.id);
+			if (!existing) {
+				userMap.set(item.user.id, {
+					latest: item,
+					totalTodos: 1,
+					doneCount: item.status === 'done' ? 1 : 0
+				});
+			} else {
+				existing.totalTodos += 1;
+				if (item.status === 'done') {
+					existing.doneCount += 1;
+				}
+				const itemTime = new Date(item.createdAt).getTime();
+				const existingTime = new Date(existing.latest.createdAt).getTime();
+				if (itemTime > existingTime) {
+					existing.latest = item;
+				}
+			}
+		}
+
+		return Array.from(userMap.values()).map(({ latest, totalTodos, doneCount }) => ({
+			...latest,
+			totalTodos,
+			doneCount
+		}));
+	}
+
+	// 1. 全周期所有打卡条目与统计
+	const allParticipantsList = aggregateParticipants(allRawParticipants);
 	const totalParticipants = allParticipantsList.length;
-	const allDoneCount = allParticipantsList.filter((p) => p.status === 'done').length;
+	const totalTodos = allRawParticipants.length;
+	const allDoneCount = allRawParticipants.filter((p) => p.status === 'done').length;
+	const allInProgressCount = allRawParticipants.filter((p) => p.status === 'in_progress').length;
 
-	// 2. 今日切片去重伙伴列表
+	// 2. 今日切片所有打卡条目与统计
 	const todayRawParticipants = allRawParticipants.filter((p) =>
-		isDateMatch(p.startDate)
+		isDateMatch(p.startDate || p.createdAt)
 	);
-	const todayParticipantsList = deduplicateParticipants(todayRawParticipants);
+	const todayParticipantsList = aggregateParticipants(todayRawParticipants);
 	const todayParticipants = todayParticipantsList.length;
-	const todayDoneCount = todayParticipantsList.filter((p) => p.status === 'done').length;
-	const todayInProgressCount = todayParticipantsList.filter((p) => p.status === 'in_progress').length;
-	const isTodayAllDone = todayParticipants > 0 && todayDoneCount >= todayParticipants;
+	const todayTotalTodos = todayRawParticipants.length;
+	const todayDoneCount = todayRawParticipants.filter((p) => p.status === 'done').length;
+	const todayInProgressCount = todayRawParticipants.filter((p) => p.status === 'in_progress').length;
+	const isTodayAllDone = todayTotalTodos > 0 && todayDoneCount >= todayTotalTodos;
 
-	const doneCount = todayParticipants > 0 ? todayDoneCount : allDoneCount;
-	const inProgressCount =
-		todayParticipants > 0
-			? todayInProgressCount
-			: allParticipantsList.filter((p) => p.status === 'in_progress').length;
+	const doneCount = todayTotalTodos > 0 ? todayDoneCount : allDoneCount;
+	const inProgressCount = todayTotalTodos > 0 ? todayInProgressCount : allInProgressCount;
 	const isAllDone =
-		todayParticipants > 0
+		todayTotalTodos > 0
 			? isTodayAllDone
-			: totalParticipants > 0 && allDoneCount >= totalParticipants;
+			: totalTodos > 0 && allDoneCount >= totalTodos;
 
 	return {
 		topicHash,
@@ -552,10 +569,12 @@ export async function getTopicByHash(
 		firstCreatedAt,
 		targetDate: effectiveDate,
 		todayParticipants,
+		todayTotalTodos,
 		todayDoneCount,
 		todayInProgressCount,
 		isTodayAllDone,
 		totalParticipants,
+		totalTodos,
 		allDoneCount,
 		doneCount,
 		inProgressCount,
@@ -638,7 +657,8 @@ export async function listDailyCards(
 			MAX(t.category) AS category,
 			MIN(t.created_at) AS first_created_at,
 			COUNT(DISTINCT t.author_id)::int AS total_participants,
-			COUNT(DISTINCT CASE WHEN t.status = 'done' THEN t.author_id ELSE NULL END)::int AS done_count,
+			COUNT(*)::int AS total_todos,
+			COUNT(*) FILTER (WHERE t.status = 'done')::int AS done_count,
 			json_agg(
 				json_build_object(
 					'todoId', t.id,
@@ -653,7 +673,7 @@ export async function listDailyCards(
 						'handle', u.handle,
 						'avatar', u.avatar
 					)
-				) ORDER BY ${isMeOrderSql} DESC, t.created_at ASC
+				) ORDER BY ${isMeOrderSql} DESC, t.created_at DESC
 			) AS participants
 		FROM todos t
 		JOIN users u ON t.author_id = u.id
@@ -675,7 +695,7 @@ export async function listDailyCards(
 				? JSON.parse(row.participants)
 				: [];
 
-		// 自然人去重归集，同一用户保留最新打卡状态
+		// 自然人去重归集头像列表（每个自然人保留其最新待办信息供头像展示）
 		const userMap = new Map<string, any>();
 		for (const p of rawParticipants) {
 			const existing = userMap.get(p.user?.id);
@@ -692,7 +712,8 @@ export async function listDailyCards(
 		const uniqueParticipants = Array.from(userMap.values());
 
 		const totalParticipants = Number(row.total_participants || uniqueParticipants.length);
-		const doneCount = uniqueParticipants.filter((p) => p.status === 'done').length;
+		const totalTodos = Number(row.total_todos || rawParticipants.length);
+		const doneCount = Number(row.done_count ?? rawParticipants.filter((p: any) => p.status === 'done').length);
 		const participants: CardParticipant[] = uniqueParticipants.map((p: any) => ({
 			todoId: p.todoId,
 			shortId: p.shortId,
@@ -714,6 +735,7 @@ export async function listDailyCards(
 			category: row.category ?? null,
 			isMultiplayer: totalParticipants > 1,
 			totalParticipants,
+			totalTodos,
 			doneCount,
 			participants
 		};
@@ -838,7 +860,7 @@ export async function listTopics(
 		orderBySql = sql`MAX(t.created_at) DESC, COUNT(DISTINCT t.author_id)::int DESC`;
 	} else if (options.sortBy === 'completion') {
 		orderBySql = sql`COALESCE(
-			COUNT(DISTINCT CASE WHEN t.status = 'done' THEN t.author_id ELSE NULL END)::float / NULLIF(COUNT(DISTINCT t.author_id), 0),
+			COUNT(*) FILTER (WHERE t.status = 'done')::float / NULLIF(COUNT(*), 0),
 			0
 		) DESC, COUNT(DISTINCT t.author_id)::int DESC, MAX(t.created_at) DESC`;
 	}
@@ -880,7 +902,8 @@ export async function listTopics(
 			MIN(t.created_at) AS first_created_at,
 			MAX(t.updated_at) AS last_updated_at,
 			COUNT(DISTINCT t.author_id)::int AS total_participants,
-			COUNT(DISTINCT CASE WHEN t.status = 'done' THEN t.author_id ELSE NULL END)::int AS done_count,
+			COUNT(*)::int AS total_todos,
+			COUNT(*) FILTER (WHERE t.status = 'done')::int AS done_count,
 			json_agg(
 				json_build_object(
 					'todoId', t.id,
@@ -895,7 +918,7 @@ export async function listTopics(
 						'handle', u.handle,
 						'avatar', u.avatar
 					)
-				) ORDER BY ${isMeOrderSql} DESC, t.created_at ASC
+				) ORDER BY ${isMeOrderSql} DESC, t.created_at DESC
 			) AS participants
 		FROM todos t
 		JOIN users u ON t.author_id = u.id
@@ -935,9 +958,10 @@ export async function listTopics(
 		const uniqueParticipants = Array.from(userMap.values());
 
 		const totalParticipants = Number(row.total_participants || uniqueParticipants.length);
-		const doneCount = uniqueParticipants.filter((p) => p.status === 'done').length;
-		const completionRate = totalParticipants > 0 ? Math.round((doneCount / totalParticipants) * 100) : 0;
-		const isAllDone = totalParticipants > 0 && doneCount >= totalParticipants;
+		const totalTodos = Number(row.total_todos || rawParticipants.length);
+		const doneCount = Number(row.done_count ?? rawParticipants.filter((p: any) => p.status === 'done').length);
+		const completionRate = totalTodos > 0 ? Math.round((doneCount / totalTodos) * 100) : 0;
+		const isAllDone = totalTodos > 0 && doneCount >= totalTodos;
 
 		const participants: CardParticipant[] = uniqueParticipants.map((p: any) => ({
 			todoId: p.todoId,
@@ -960,6 +984,7 @@ export async function listTopics(
 			category: row.category ?? null,
 			isMultiplayer: totalParticipants > 1,
 			totalParticipants,
+			totalTodos,
 			doneCount,
 			completionRate,
 			isAllDone,

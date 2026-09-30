@@ -27,9 +27,10 @@ function buildTopicFromCard(cachedCard: DailyCard): TopicDetail {
 		}
 	}));
 
+	const totalTodos = cachedCard.totalTodos ?? cachedCard.totalParticipants;
 	const isAllDone =
-		cachedCard.totalParticipants > 0 &&
-		cachedCard.doneCount >= cachedCard.totalParticipants;
+		totalTodos > 0 &&
+		cachedCard.doneCount >= totalTodos;
 
 	return {
 		topicHash: cachedCard.topicHash,
@@ -37,10 +38,12 @@ function buildTopicFromCard(cachedCard: DailyCard): TopicDetail {
 		category: cachedCard.category,
 		firstCreatedAt: new Date().toISOString(),
 		todayParticipants: 0,
+		todayTotalTodos: 0,
 		todayDoneCount: 0,
 		todayInProgressCount: 0,
 		isTodayAllDone: false,
 		totalParticipants: cachedCard.totalParticipants,
+		totalTodos,
 		allDoneCount: cachedCard.doneCount,
 		doneCount: cachedCard.doneCount,
 		inProgressCount: 0,
@@ -244,8 +247,10 @@ export function createTopicDetailResource(initialHash?: string, initialTopicData
 			topic.doneCount = Math.max(0, topic.doneCount - 1);
 			topic.todayDoneCount = Math.max(0, topic.todayDoneCount - 1);
 		}
-		topic.isTodayAllDone = topic.todayParticipants > 0 && topic.todayDoneCount >= topic.todayParticipants;
-		topic.isAllDone = topic.isTodayAllDone;
+		const totalToday = topic.todayTotalTodos ?? topic.todayParticipants;
+		const totalAll = topic.totalTodos ?? topic.totalParticipants;
+		topic.isTodayAllDone = totalToday > 0 && topic.todayDoneCount >= totalToday;
+		topic.isAllDone = totalAll > 0 && topic.doneCount >= totalAll;
 
 		try {
 			await todoMutations.toggleStatus(myParticipant.todoId, nextStatus, e);
@@ -259,8 +264,8 @@ export function createTopicDetailResource(initialHash?: string, initialTopicData
 				topic.doneCount += 1;
 				topic.todayDoneCount += 1;
 			}
-			topic.isTodayAllDone = topic.todayParticipants > 0 && topic.todayDoneCount >= topic.todayParticipants;
-			topic.isAllDone = topic.isTodayAllDone;
+			topic.isTodayAllDone = totalToday > 0 && topic.todayDoneCount >= totalToday;
+			topic.isAllDone = totalAll > 0 && topic.doneCount >= totalAll;
 		}
 	}
 

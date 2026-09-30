@@ -125,6 +125,7 @@ export interface DailyCard {
 	category: string | null;
 	isMultiplayer: boolean;
 	totalParticipants: number;
+	totalTodos?: number;
 	doneCount: number;
 	participants: CardParticipant[];
 }
@@ -149,6 +150,8 @@ export interface TopicParticipant {
 	dueDate?: string | null;
 	createdAt: string;
 	isMe?: boolean;
+	totalTodos?: number;
+	doneCount?: number;
 	reactions?: Record<string, number>;
 	myReactions?: ReactionEmoji[];
 	user: {
@@ -166,10 +169,12 @@ export interface TopicDetail {
 	firstCreatedAt: string;
 	targetDate?: string;
 	todayParticipants: number;
+	todayTotalTodos?: number;
 	todayDoneCount: number;
 	todayInProgressCount: number;
 	isTodayAllDone: boolean;
 	totalParticipants: number;
+	totalTodos?: number;
 	allDoneCount?: number;
 	doneCount: number;
 	inProgressCount: number;
@@ -188,6 +193,7 @@ export interface TopicItem {
 	category: string | null;
 	isMultiplayer: boolean;
 	totalParticipants: number;
+	totalTodos?: number;
 	doneCount: number;
 	completionRate: number;
 	isAllDone: boolean;

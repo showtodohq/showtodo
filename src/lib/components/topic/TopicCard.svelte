@@ -18,7 +18,7 @@
 		)
 	);
 
-	const isAllDone = $derived(topic.isAllDone || (topic.totalParticipants > 0 && topic.doneCount >= topic.totalParticipants));
+	const isAllDone = $derived(topic.isAllDone || (Boolean(topic.totalTodos) && topic.doneCount >= (topic.totalTodos ?? 0)));
 	const progressPercent = $derived(topic.completionRate);
 </script>
 
@@ -91,14 +91,16 @@
 			<div class="flex items-center gap-1.5 text-zinc-500 dark:text-zinc-400">
 				{#if isAllDone}
 					<Icon icon="lucide:sparkles" class="h-3.5 w-3.5 text-amber-500 shrink-0" />
-					<span class="font-medium text-amber-600 dark:text-amber-400">All {topic.totalParticipants} people completed!</span>
+					<span class="font-medium text-amber-600 dark:text-amber-400">All {topic.doneCount} completed!</span>
 				{:else if topic.totalParticipants > 1}
 					<span class="text-amber-500 font-semibold">{topic.totalParticipants}</span>
 					<span>people</span>
 					<span>·</span>
-					<span>{topic.doneCount} completed</span>
+					<span>{topic.doneCount}/{topic.totalTodos ?? topic.doneCount} completed</span>
 				{:else}
 					<span class="text-zinc-600 dark:text-zinc-300 font-medium">1 person</span>
+					<span>·</span>
+					<span>{topic.doneCount}/{topic.totalTodos ?? 1} completed</span>
 				{/if}
 			</div>
 

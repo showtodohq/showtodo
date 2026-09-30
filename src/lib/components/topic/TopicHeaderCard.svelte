@@ -7,6 +7,7 @@
 
 	interface Props {
 		topic: TopicDetail;
+		activeTab?: 'today' | 'all';
 		hasJoined: boolean;
 		myStatus?: TodoStatus;
 		isJoining?: boolean;
@@ -16,6 +17,7 @@
 
 	let {
 		topic,
+		activeTab = 'today',
 		hasJoined,
 		myStatus,
 		isJoining = false,
@@ -23,11 +25,17 @@
 		onstatuschange
 	}: Props = $props();
 
+	const todayTotal = $derived(topic.todayTotalTodos ?? topic.todayParticipants);
+	const allTotal = $derived(topic.totalTodos ?? topic.totalParticipants);
+	const isTodayTab = $derived(activeTab === 'today');
+
 	const completionRate = $derived(
-		topic.todayParticipants > 0
-			? Math.round((topic.todayDoneCount / topic.todayParticipants) * 100)
-			: topic.totalParticipants > 0
-				? Math.round((topic.doneCount / topic.totalParticipants) * 100)
+		isTodayTab
+			? todayTotal > 0
+				? Math.round((topic.todayDoneCount / todayTotal) * 100)
+				: 0
+			: allTotal > 0
+				? Math.round(((topic.allDoneCount ?? topic.doneCount) / allTotal) * 100)
 				: 0
 	);
 </script>
@@ -38,12 +46,12 @@
 	<!-- 顶部标题与分类标签 -->
 	<div class="space-y-3">
 		<div class="flex items-center gap-2.5 flex-wrap">
-			{#if topic.isTodayAllDone || topic.isAllDone}
+			{#if isTodayTab ? topic.isTodayAllDone : (topic.isTodayAllDone || topic.isAllDone)}
 				<span
 					class="inline-flex items-center gap-1 text-xs font-bold text-amber-900 dark:text-amber-100 bg-gradient-to-r from-amber-300 via-yellow-300 to-amber-400 dark:from-amber-600 dark:via-yellow-600 dark:to-amber-500 px-2.5 py-0.5 rounded-full shadow-xs select-none animate-in zoom-in-95 duration-150"
 				>
 					<Icon icon="lucide:trophy" class="h-3.5 w-3.5 shrink-0" />
-					<span>All Completed Today</span>
+					<span>{isTodayTab ? 'All Completed Today' : 'All Completed'}</span>
 				</span>
 			{/if}
 
@@ -53,7 +61,7 @@
 		</div>
 
 		<h1
-			class="text-2xl sm:text-3xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100 leading-snug {topic.isTodayAllDone || topic.isAllDone
+			class="text-2xl sm:text-3xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100 leading-snug {(isTodayTab ? topic.isTodayAllDone : topic.isAllDone)
 				? 'text-amber-950 dark:text-amber-100'
 				: ''}"
 		>
@@ -68,23 +76,16 @@
 				class="flex items-center gap-1.5 font-medium text-zinc-700 dark:text-zinc-300 flex-wrap"
 			>
 				<Icon icon="lucide:flame" class="h-4 w-4 text-orange-500 shrink-0" />
-				{#if topic.todayParticipants > 0}
-					<span><strong>{topic.todayParticipants}</strong> today</span>
+				{#if isTodayTab}
+					<span><strong>{topic.todayParticipants}</strong> {topic.todayParticipants === 1 ? 'person' : 'people'} today</span>
 					<span>·</span>
-					<span><strong>{topic.todayDoneCount}</strong> {getStatusConfig(TODO_STATUS.DONE).label.toLowerCase()}</span>
-					{#if topic.totalParticipants > topic.todayParticipants}
-						<span class="text-zinc-400 dark:text-zinc-500 font-normal">
-							({topic.totalParticipants} total all-time)
-						</span>
-					{/if}
+					<span><strong>{topic.todayDoneCount}/{todayTotal}</strong> completed</span>
 				{:else}
-					<span><strong>{topic.totalParticipants}</strong> total all-time</span>
-					<span>·</span>
-					<span><strong>{topic.doneCount}</strong> {getStatusConfig(TODO_STATUS.DONE).label.toLowerCase()}</span>
+					<span><strong>{topic.totalParticipants}</strong> {topic.totalParticipants === 1 ? 'person' : 'people'}, <strong>{topic.allDoneCount ?? topic.doneCount}/{allTotal}</strong> total all-time</span>
 				{/if}
 			</div>
 			<div class="font-mono font-semibold text-zinc-900 dark:text-zinc-100">
-				{completionRate}% {topic.todayParticipants > 0 ? 'Today' : 'Total'}
+				{completionRate}% {isTodayTab ? 'Today' : 'Total'}
 			</div>
 		</div>
 
@@ -93,7 +94,7 @@
 			class="w-full h-2.5 bg-zinc-100 dark:bg-zinc-800 rounded-full overflow-hidden"
 		>
 			<div
-				class="h-full transition-all duration-300 rounded-full {topic.isTodayAllDone || topic.isAllDone
+				class="h-full transition-all duration-300 rounded-full {(isTodayTab ? topic.isTodayAllDone : topic.isAllDone)
 					? 'bg-gradient-to-r from-amber-400 to-yellow-400'
 					: 'bg-emerald-500'}"
 				style="width: {completionRate}%;"
