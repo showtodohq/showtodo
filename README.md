@@ -9,48 +9,46 @@ ShowTodo is an open, public-first todo network for creators, learners, and build
 - **Workflow Discovery**: Observers can witness authentic daily todo breakdowns, study practical focus habits, and emulate effective execution patterns from active peers.
 - **Quiet Encouragement**: Peers can cheer progress and celebrate finished todos using distraction-free reaction signals without conversational noise.
 - **Build in Public**: Public todo profiles, chronological milestone feeds, and 365-day activity heatmaps create verifiable proof of consistency.
+- **AI Agent & MCP Native**: Out-of-the-box Model Context Protocol (MCP) server at `/api/mcp` allowing Claude Desktop, Cursor, and AI agents to manage tasks directly.
+- **Ecosystem & Extension**: Official Chrome Extension (Quick Post) for instant text-selection capture, seamless Google OAuth sign-in, and 1:N scoped personal API tokens.
 
 ### Workspace Perspectives
 
 - **Flexible Todo Views**: Manage your personal todo list through a chronological stream, a multi-lane kanban board, or a monthly calendar view.
 - **Fluid Todo Lifecycle**: Seamlessly transition items across pending, in-progress, completed, and abandoned states as priorities evolve.
 
-
 ## Documentation Index
 
-- [RESTful API Specification](docs/api.md): Endpoints, parameters, schemas, and test checklist.
-- [Backend Architecture Guide](docs/architecture.md): Layered architecture, database schema, services, and tests.
-- [Frontend Architecture Guide](docs/frontend-architecture.md): State management, view models, and component library.
+- [RESTful & MCP API Specification](docs/api.md): Endpoints, MCP JSON-RPC schemas, and pointers to the living SSOT ([`llms-full.txt`](static/llms-full.txt)).
+- [Backend Architecture Guide](docs/architecture.md): Layered architecture, database schema dictionary, Better-Auth, and services.
+- [Frontend Architecture Guide](docs/frontend-architecture.md): State management, Svelte 5 Runes view models, and component library.
+- [Chrome Web Store Listing Guide](CHROMEWEBSTORE.md): Extension store copy, permissions justifications, and promo graphics.
 
 ## Repository Structure
 
 ```
 ├── docs/                               # Engineering and architecture manuals
-│   ├── api.md                          # RESTful API specifications
+│   ├── api.md                          # RESTful & MCP API specifications pointer
 │   ├── architecture.md                 # Backend architecture and database dictionary
 │   └── frontend-architecture.md        # Frontend state, views, and UI guidelines
+├── extension/                          # Official ShowTodo Quick Post Chrome Extension (MV3)
+│   ├── manifest.json                   # Extension manifest configuration
+│   ├── popup.html / popup.js           # Lightweight popup composer UI
+│   └── icons/                          # Extension toolbar assets
+├── CHROMEWEBSTORE.md                   # Chrome Web Store listing and compliance guide
 ├── idea/                               # Product concept and RFC proposals
 ├── src/
 │   ├── app.html                        # HTML entry template
 │   ├── app.css                         # Tailwind CSS directives and design tokens
 │   ├── lib/
 │   │   ├── assets/                     # Static assets and icons
-│   │   ├── components/                 # UI components
-│   │   │   ├── layout/                 # Header, Footer, UserPopover
-│   │   │   ├── seo/                    # Open-graph metadata
-│   │   │   ├── skeleton/               # Loading skeleton placeholders
-│   │   │   ├── stats/                  # Heatmaps and charts
-│   │   │   ├── todo/                   # Task list items, views, and modals
-│   │   │   ├── topic/                  # Topic cards and participant lists
-│   │   │   ├── ui/                     # Primitives: buttons, inputs, modals, tabs
-│   │   │   ├── user/                   # Profile cards and stats grids
-│   │   │   └── widgets/                # Dashboard and sidebar widgets
-│   │   ├── constants/                  # Status definitions, categories, and tabs
+│   │   ├── components/                 # UI components (Layout, Todo, Topic, UI, User)
+│   │   ├── constants/                  # Status definitions, categories, and SEO
 │   │   ├── services/                   # HTTP client and API functions
 │   │   ├── stores/                     # Svelte 5 reactive stores and registries
-│   │   ├── server/                     # Backend domain services and database schema
+│   │   ├── server/                     # Domain services, MCP handlers, and DB schema
 │   │   └── utils/                      # Formatting, calendar, and mutation utilities
-│   └── routes/                         # Application routes and API endpoints
+│   └── routes/                         # Application routes, settings, and API endpoints
 ├── static/                             # Public static assets, crawler & LLM discoverability
 │   ├── .well-known/llms.txt            # RFC-compliant LLM discoverability mirror
 │   ├── favicon.svg                     # Site icon
@@ -75,7 +73,16 @@ npm install
 ### 2. Configure Environment Variables
 Create or verify `.env` in the project root:
 ```env
+# Database Connection (Neon Serverless PostgreSQL)
 DATABASE_URL="postgresql://<user>:<password>@<neon-host>/<database>?sslmode=require"
+
+# Better-Auth Configuration
+BETTER_AUTH_SECRET="your-secure-random-secret-here"
+BETTER_AUTH_URL="http://localhost:3003"
+
+# Google OAuth Credentials (Optional for local dev, required for Google Sign-in)
+GOOGLE_CLIENT_ID="your-google-client-id"
+GOOGLE_CLIENT_SECRET="your-google-client-secret"
 ```
 
 ### 3. Synchronize Database Schema
@@ -101,7 +108,7 @@ The application will be accessible at `http://localhost:3003`.
 npm run check
 
 # Run Vitest unit and domain tests
-npx vitest run src/lib/components/ src/lib/stores/ src/lib/utils/
+npx vitest run src/lib/components/ src/lib/stores/ src/lib/utils/ src/lib/constants/
 
 # Launch Drizzle Studio for visual database inspection
 npm run db:studio
@@ -113,5 +120,3 @@ npm run build
 ## License
 
 MIT (c) 2026 ShowTodo. Built in public with accountability.
-
-

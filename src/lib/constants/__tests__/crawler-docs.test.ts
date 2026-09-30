@@ -28,7 +28,8 @@ describe('Crawler and LLM Discoverability Documents Specification', () => {
 			expect(content).toContain('Allow: /');
 		});
 
-		test('disallows crawling backend api endpoints and removes dev artifacts', () => {
+		test('disallows crawling backend api endpoints while allowing /api/mcp and removing dev artifacts', () => {
+			expect(content).toContain('Allow: /api/mcp');
 			expect(content).toContain('Disallow: /api/');
 			expect(content).not.toContain('(dev)');
 		});
@@ -129,6 +130,7 @@ describe('Crawler and LLM Discoverability Documents Specification', () => {
 				`${SITE_BASE_URL}/`,
 				`${SITE_BASE_URL}/about`,
 				`${SITE_BASE_URL}/trending`,
+				`${SITE_BASE_URL}/goals`,
 				`${SITE_BASE_URL}/stats`,
 				`${SITE_BASE_URL}/privacy`,
 				`${SITE_BASE_URL}/llms.txt`,

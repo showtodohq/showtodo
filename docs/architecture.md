@@ -54,6 +54,8 @@ The system adheres strictly to a decoupled **Controller — Service — Data Acc
 │  - users/[id]/+server.ts    : Profile get/patch        │
 │  - users/[id]/heatmap/      : 365-day user activity    │
 │  - mcp/+server.ts           : Model Context Protocol (Streamable HTTP / SSE) │
+│  - auth/[...all]/+server.ts : Better-Auth OAuth (Google) & sessions │
+│  - user/password/+server.ts : Email credentials management │
 │  - health/+server.ts        : Liveness probe           │
 │  - validation.ts            : Pure input assertions    │
 │  - errors.ts                : Centralized AppError     │
@@ -184,6 +186,56 @@ The system adheres strictly to a decoupled **Controller — Service — Data Acc
 | `created_at` | `timestamptz` | `timestamp` | `NOT NULL`, `defaultNow()` | Event creation timestamp |
 
 *Composite Index: `idx_todo_activities_todo_created` on `(todo_id, created_at ASC)` guarantees sub-millisecond timeline assembly.*
+
+#### 5. `api_keys` (1:N Scoped Personal Access Tokens)
+| Column | SQL Type | Drizzle Type | Constraints / Defaults | Business Purpose |
+|---|---|---|---|---|
+| `id` | `uuid` | `uuid` | `PRIMARY KEY`, `defaultRandom()` | Key unique identifier |
+| `user_id` | `uuid` | `uuid` | `NOT NULL`, `FK(users.id ON DELETE CASCADE)` | Owning user account |
+| `name` | `text` | `text` | `NOT NULL` | User-defined label (e.g. `Cursor IDE`) |
+| `key_hash` | `text` | `text` | `NOT NULL`, `UNIQUE` | SHA-256 hash of raw token |
+| `prefix` | `text` | `text` | `NOT NULL` | Display prefix (e.g. `st_live_ab12...`) |
+| `scopes` | `text` | `text` | `NOT NULL`, `default('all')` | Permission scope string |
+| `last_used_at`| `timestamptz` | `timestamp` | `NULL` | Most recent access timestamp |
+| `expires_at` | `timestamptz` | `timestamp` | `NULL` | Token expiration date |
+| `created_at` | `timestamptz` | `timestamp` | `NOT NULL`, `defaultNow()` | Provisioning timestamp |
+
+*Indexes: `idx_api_keys_user_id` on `user_id`, `idx_api_keys_key_hash` on `key_hash`.*
+
+#### 6. `sessions` (Better-Auth Active User Sessions)
+| Column | SQL Type | Drizzle Type | Constraints / Defaults | Business Purpose |
+|---|---|---|---|---|
+| `id` | `text` | `text` | `PRIMARY KEY` | Session nanoid |
+| `token` | `text` | `text` | `NOT NULL`, `UNIQUE` | Secret session token in cookie |
+| `user_id` | `uuid` | `uuid` | `NOT NULL`, `FK(users.id ON DELETE CASCADE)` | Associated user |
+| `expires_at` | `timestamptz` | `timestamp` | `NOT NULL` | Expiration timestamp |
+| `ip_address` | `text` | `text` | `NULL` | Client IP snapshot |
+| `user_agent` | `text` | `text` | `NULL` | Client User-Agent string |
+| `created_at` | `timestamptz` | `timestamp` | `NOT NULL`, `defaultNow()` | Creation timestamp |
+| `updated_at` | `timestamptz` | `timestamp` | `NOT NULL`, `defaultNow()` | Last activity update |
+
+#### 7. `accounts` (Better-Auth Provider Identities & Passwords)
+| Column | SQL Type | Drizzle Type | Constraints / Defaults | Business Purpose |
+|---|---|---|---|---|
+| `id` | `text` | `text` | `PRIMARY KEY` | Account connection nanoid |
+| `user_id` | `uuid` | `uuid` | `NOT NULL`, `FK(users.id ON DELETE CASCADE)` | Owning user |
+| `account_id` | `text` | `text` | `NOT NULL` | Provider account ID (e.g. Google sub) |
+| `provider_id`| `text` | `text` | `NOT NULL` | `google` or `credential` |
+| `password` | `text` | `text` | `NULL` | Scrypt/Argon2 hashed password |
+| `access_token`| `text`| `text` | `NULL` | OAuth provider access token |
+| `refresh_token`|`text`| `text` | `NULL` | OAuth provider refresh token |
+| `created_at` | `timestamptz` | `timestamp` | `NOT NULL`, `defaultNow()` | Link creation timestamp |
+| `updated_at` | `timestamptz` | `timestamp` | `NOT NULL`, `defaultNow()` | Last update timestamp |
+
+#### 8. `verifications` (Better-Auth Challenge Verifications)
+| Column | SQL Type | Drizzle Type | Constraints / Defaults | Business Purpose |
+|---|---|---|---|---|
+| `id` | `text` | `text` | `PRIMARY KEY` | Verification nanoid |
+| `identifier` | `text` | `text` | `NOT NULL` | Target email or context |
+| `value` | `text` | `text` | `NOT NULL` | One-time token / secret |
+| `expires_at` | `timestamptz` | `timestamp` | `NOT NULL` | Challenge expiration |
+| `created_at` | `timestamptz` | `timestamp` | `NOT NULL`, `defaultNow()` | Token generation timestamp |
+| `updated_at` | `timestamptz` | `timestamp` | `NOT NULL`, `defaultNow()` | Last update timestamp |
 
 ---
 

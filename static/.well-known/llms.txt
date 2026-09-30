@@ -2,7 +2,7 @@
 
 > ShowTodo is an open, public-first todo network for creators, learners, and builders to share their daily journey, overcome procrastination through social accountability, and build in public.
 
-ShowTodo transforms isolated personal todo lists into an open stream of real-time progress across the open web. It enables quiet companionship, workflow discovery, and transparent achievement tracking without the toxic vanity metrics of traditional social networks.
+ShowTodo transforms isolated personal todo lists into an open stream of real-time progress across the open web. It enables quiet companionship, workflow discovery, transparent achievement tracking, and seamless integration with AI agents and browser extensions without toxic vanity metrics.
 
 ## Core Value Pillars
 
@@ -11,6 +11,7 @@ ShowTodo transforms isolated personal todo lists into an open stream of real-tim
 - **Workflow Discovery**: Observers can witness authentic daily breakdowns, study practical focus habits, and emulate effective execution patterns from active peers.
 - **Quiet Encouragement**: Peers celebrate finished milestones using distraction-free emoji reaction signals (Cheer, Salute, Fire, Rock, Celebrate, Heart) without noisy comment threads.
 - **Build in Public**: Public todo profiles, chronological milestone feeds, and 365-day activity heatmaps create verifiable proof of consistency.
+- **AI-Agent & Ecosystem Ready**: Native Model Context Protocol (MCP) server, 1:N personal access tokens (API Keys), official Chrome Extension, and Google OAuth.
 
 ## Public Web Pages
 
@@ -21,9 +22,36 @@ ShowTodo transforms isolated personal todo lists into an open stream of real-tim
 - [Stats Dashboard](https://www.showtodo.com/stats): Global platform metrics, activity distributions, and completion velocity.
 - [Privacy Policy](https://www.showtodo.com/privacy): Privacy standards, transparent data handling, GDPR/CCPA rights, and user data ownership policies.
 
+## Ecosystem & Developer Access
+
+- **Model Context Protocol (MCP) Endpoint**: `https://www.showtodo.com/api/mcp`
+  Connect Claude Desktop, Cursor, or autonomous AI agents via Streamable HTTP (POST) or Server-Sent Events (SSE GET).
+- **Personal Access Tokens (API Keys)**: Manage 1:N scoped tokens (`st_live_...`) in account settings (`/settings/apikey`) for MCP agents and automated REST API scripts. Authenticate requests via `Authorization: Bearer <API_KEY>`.
+- **Authentication**: Seamless Google OAuth one-click login, verified email/password security, or frictionless anonymous email auto-provisioning.
+- **Chrome Extension (Quick Post)**: Official browser extension to capture ideas or highlighted web text and publish public todos with keyboard shortcuts (`Cmd/Ctrl+Enter`).
+
+## AI Agent MCP Capabilities (`/api/mcp`)
+
+- **Registered Tools**:
+  - `create_todo`: Create and publish a public task with content-addressable topic indexing.
+  - `list_my_todos`: List authenticated user's active and completed todos.
+  - `update_todo_status`: Transition todo lifecycle status (`pending`, `in_progress`, `done`, `abandoned`).
+  - `add_progress_note`: Append milestone progress logs to a task.
+  - `discover_topics`: Search and explore trending communal goals.
+  - `react_to_todo`: Cheer on peers with authentic Unicode emoji reactions.
+- **Exposed Resources**:
+  - `showtodo://me/overview`: Personal task and status summary.
+  - `showtodo://users/{handle}/todolist`: Markdown representation of public todolists.
+  - `showtodo://topics/{topicHash}`: Activity stream and participants for a shared goal.
+  - `showtodo://stats/summary`: Platform-wide productivity metrics.
+- **Guided Prompts**:
+  - `daily_standup`: Interactive daily plan review and task structuring.
+  - `breakdown_goal`: Decompose monolithic goals into atomic actionable ShowTodo tasks.
+  - `companion_cheer`: Peer encouragement and progress cheering helper.
+
 ## Public REST API Endpoints for Agents
 
-ShowTodo provides clean JSON endpoints for programmatic discovery and AI agents:
+ShowTodo provides clean JSON endpoints for programmatic discovery and AI agents (supports `Authorization: Bearer <API_KEY>` for user actions):
 
 - [Public Daily Feed](https://www.showtodo.com/api/daily): `GET /api/daily?limit=20&cursor=...&category=...` - Returns daily public task cards grouped by date and topic.
 - [Trending Topics](https://www.showtodo.com/api/topics): `GET /api/topics?limit=10` - Returns trending shared goals and participant counts.
@@ -35,5 +63,5 @@ ShowTodo provides clean JSON endpoints for programmatic discovery and AI agents:
 
 ## Full Context & Specifications
 
-- [Full LLM Context](https://www.showtodo.com/llms-full.txt): Complete system manual, schema definitions, domain models, and API parameters for LLM ingestion.
+- [Full LLM Context](https://www.showtodo.com/llms-full.txt): Complete system manual, schema definitions, domain models, MCP protocol specs, and API parameters for LLM ingestion.
 - [Sitemap](https://www.showtodo.com/sitemap.xml): XML index of all canonical public routes.

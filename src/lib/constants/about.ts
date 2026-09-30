@@ -201,6 +201,24 @@ export const ABOUT_CONTENT: AboutContent = {
 			description:
 				'Track your daily cadence on a GitHub-style activity grid. Watch your cumulative momentum compound week over week.',
 			icon: 'lucide:bar-chart-2'
+		},
+		{
+			id: 'chrome-extension',
+			title: 'Quick Post Chrome Extension',
+			subtitle: 'Capture inspiration from any tab',
+			badge: 'Browser Tool',
+			description:
+				'Highlight text on any webpage or hit Cmd+Enter to turn reading into immediate public action without switching contexts.',
+			icon: 'lucide:chrome'
+		},
+		{
+			id: 'ai-mcp-integration',
+			title: 'Native AI & MCP Server',
+			subtitle: 'Manage tasks with Claude & Cursor',
+			badge: 'Agent Ready',
+			description:
+				'Connect your preferred AI assistants via standard Model Context Protocol. Review daily standups and break down monolithic goals programmatically.',
+			icon: 'lucide:bot'
 		}
 	],
 	faqs: [
@@ -228,12 +246,14 @@ export const ABOUT_CONTENT: AboutContent = {
 		},
 		{
 			id: 'do-i-need-account',
-			question: 'Do I need to create an account or set a password to use ShowTodo?',
+			question: 'How does authentication work, and do I need a password?',
 			shortAnswer:
-				'No passwords required. ShowTodo utilizes a frictionless email-identity model.',
+				'Zero mandatory passwords to start. Post instantly with email auto-provisioning, or log in with Google OAuth and custom credentials.',
 			details: [
-				'You can browse, filter, and learn from all public todos without doing anything.',
-				'When posting your first todo, simply enter your email address. An identity is automatically established, and your future todos will link to your personal handle and public profile.'
+				'You can browse, filter, and learn from all public todos completely anonymously without an account.',
+				'When posting your first todo, simply enter your email address—an identity and unique public handle are provisioned automatically.',
+				'For quick login, use one-click Google OAuth sign-in or set a password in Account Settings for traditional email login.',
+				'For AI agents and automated scripts, generate 1:N personal API tokens in Settings > API Keys to authenticate via Bearer token.'
 			]
 		},
 		{
@@ -244,6 +264,16 @@ export const ABOUT_CONTENT: AboutContent = {
 			details: [
 				'You can filter feeds by categories (Dev, Study, Fitness, Finance, Life, or Other) or search trending goals.',
 				'You will see firsthand how seasoned developers schedule their daily goals, how students organize study intervals, and how creators maintain streaks over months.'
+			]
+		},
+		{
+			id: 'can-i-connect-ai-and-extension',
+			question: 'Can I connect AI assistants (like Claude, Cursor) or use a browser extension?',
+			shortAnswer:
+				'Yes! ShowTodo natively supports the Model Context Protocol (MCP) and provides an official Chrome Extension.',
+			details: [
+				'With the ShowTodo Quick Post Chrome Extension, you can highlight text on any webpage and post daily goals in seconds with Cmd+Enter.',
+				'ShowTodo exposes a native MCP server at /api/mcp. Generate an API Key in /settings/apikey to let Claude Desktop, Cursor, or custom AI agents read and manage your todos seamlessly.'
 			]
 		},
 		{

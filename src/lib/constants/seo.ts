@@ -46,7 +46,11 @@ export const SEO_KEYWORDS = {
 		'founder todo list',
 		'developer todo list',
 		'indie hacker daily tasks',
-		'open habit tracker'
+		'open habit tracker',
+		'mcp todo server',
+		'ai agent todo',
+		'chrome extension todo',
+		'model context protocol todo'
 	]
 } as const;
 

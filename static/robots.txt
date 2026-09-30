@@ -7,6 +7,7 @@
 
 User-agent: *
 Allow: /
+Allow: /api/mcp
 Disallow: /api/
 
 Sitemap: https://www.showtodo.com/sitemap.xml

@@ -6,6 +6,7 @@ Canonical URL: https://www.showtodo.com
 Robots Policy: https://www.showtodo.com/robots.txt
 Sitemap: https://www.showtodo.com/sitemap.xml
 Summary LLMs Context: https://www.showtodo.com/llms.txt
+MCP Endpoint: https://www.showtodo.com/api/mcp
 
 ---
 
@@ -16,13 +17,14 @@ Summary LLMs Context: https://www.showtodo.com/llms.txt
 - **Content-Addressable Topic Hashing**: Tasks sharing identical normalized text or topic hashes are clustered into shared goals, allowing peers worldwide to pace each other silently.
 - **Distraction-Free Interaction**: ShowTodo eliminates toxic comment threads, spam, and algorithmic doom-scrolling. Engagement is focused on lightweight emoji reactions (cheer, salute, fire, rock, celebrate, heart).
 - **Verifiable Proof of Consistency**: Profiles feature 365-day heatmaps and milestone feeds that reflect authentic daily execution.
+- **Radical Interoperability & AI Ecosystem**: Seamlessly integrated with AI agents via Model Context Protocol (MCP), browser extensions via official Chrome Extension, and automated developer workflows via Personal Access Tokens.
 
 ### 1.2 Domain Taxonomy & State Lifecycle
 
 #### Todo Status Lifecycle
 - `pending`: Task created and waiting to be started.
 - `in_progress`: Task currently being worked on.
-- `completed`: Task successfully finished.
+- `completed` (or `done`): Task successfully finished.
 - `abandoned`: Task deliberately dropped or deprioritized.
 
 #### Category Taxonomy
@@ -31,6 +33,7 @@ Summary LLMs Context: https://www.showtodo.com/llms.txt
 - `fitness`: Workouts, running, athletics, and physical health milestones.
 - `finance`: Budgeting, investment research, financial planning, and business goals.
 - `life`: Daily life organization, journaling, creative hobbies, and habits.
+- `other`: Unclassified personal commitments.
 
 #### Reaction Types
 - `cheer` (🎉)
@@ -40,6 +43,18 @@ Summary LLMs Context: https://www.showtodo.com/llms.txt
 - `celebrate` (👏)
 - `heart` (❤️)
 
+### 1.3 Authentication & Identity Architecture
+ShowTodo supports three flexible authentication layers:
+1. **Zero-Barrier Email Auto-Provisioning**: Anonymous visitors can create a todo by submitting an email. A unique handle and user profile are automatically provisioned with zero passwords.
+2. **Google OAuth & Verified Credentials (Better-Auth)**: One-click sign-in via Google OAuth or verified email/password credentials managed securely through Better-Auth.
+3. **Personal Access Tokens (API Keys)**: 1:N scoped personal API tokens (`st_live_...`) created and revoked in `/settings/apikey`. Used for programmatic agent authentication via `Authorization: Bearer <API_KEY>`.
+
+### 1.4 Chrome Extension Integration (Quick Post)
+The official ShowTodo Quick Post browser extension (`extension/` directory) allows users to:
+- Instantly capture tasks from any browser tab with keyboard shortcuts (`Cmd/Ctrl+Enter`).
+- Auto-clip highlighted text from active webpages into the task composer.
+- Seamlessly authenticate via browser session cookies (`better-auth.session_token`) with dedicated CORS support (`chrome-extension://*`).
+
 ---
 
 ## 2. Public Routing Structure
@@ -48,19 +63,29 @@ Summary LLMs Context: https://www.showtodo.com/llms.txt
 - `/about`: Philosophy, value pillars, frequently asked questions, and mission statement.
 - `/trending`: Trending public goals and shared ambitions aggregated by topic hash.
 - `/trending/[hash]`: Detailed view of a specific trending goal with participant list.
-- `/goals`: Directory of shared objectives and topics.
+- `/goals`: Directory of shared objectives and topics (canonical alias to `/trending`).
 - `/goals/[hash]`: Shared goal view.
 - `/@{handle}`: Public profile of a creator, including bio, stats, and 365-day activity heatmap.
 - `/@{handle}/todolist`: Interactive workbench for a user's tasks with Stream, Kanban, and Calendar views.
 - `/t/{id}` or `/t/{shortId}`: Dedicated public detail page for an individual task with reaction counts and timeline.
 - `/stats`: Platform-wide productivity metrics and distribution charts.
 - `/privacy`: Official privacy policy, GDPR/CCPA compliance, and user data rights.
+- `/settings`: Authenticated account settings and profile overview.
+- `/settings/password`: Authenticated password setup and security management.
+- `/settings/apikey`: Authenticated API key management for Cursor, Claude Desktop, and AI agents.
 
 ---
 
-## 3. Public REST API Specification for Agents & Integrations
+## 3. Public REST API & Agent Integration Specification
 
 All API responses follow standard JSON formatting.
+
+### 3.0 Global Request Headers & Authentication
+- `Content-Type: application/json`
+- `Accept: application/json`
+- `Authorization: Bearer <API_KEY>` (Optional for read operations; required for authenticated actions or when identifying the acting user via an API key with prefix `st_live_...`).
+- `x-timezone`: Client IANA timezone identifier (e.g. `Asia/Shanghai`, `America/New_York`, `UTC`). Defaults to `Asia/Shanghai`.
+- `x-user-id`: Client UUID for personal state projection when anonymous.
 
 ### 3.1 `GET /api/daily`
 Fetches grouped daily task cards for the public feed.
@@ -207,6 +232,75 @@ Retrieves global platform statistics.
     }
   }
   ```
+
+---
+
+### 3.8 Model Context Protocol (MCP) Interface (`/api/mcp`)
+
+ShowTodo exposes a native Model Context Protocol (MCP) endpoint designed for LLM tools and autonomous agents.
+
+- **Endpoint**: `https://www.showtodo.com/api/mcp`
+- **Supported Transports**:
+  - `POST /api/mcp`: Standard JSON-RPC 2.0 requests.
+  - `GET /api/mcp` (with `Accept: text/event-stream`): Server-Sent Events (SSE) stream.
+- **Authentication**:
+  - Pass `Authorization: Bearer <API_KEY>` (format `st_live_...`).
+  - Read-only operations (`discover_topics`, public resources) allow anonymous access; mutations require a valid API key.
+
+#### Client Configuration Example (Cursor / Claude Desktop)
+```json
+{
+  "mcpServers": {
+    "showtodo": {
+      "url": "https://www.showtodo.com/api/mcp",
+      "headers": {
+        "Authorization": "Bearer st_live_YOUR_API_KEY_HERE"
+      }
+    }
+  }
+}
+```
+
+#### MCP Registered Tools (`tools/list` & `tools/call`)
+1. **`create_todo`**: Create a new public todo with automatic topic hashing.
+   - Parameters:
+     - `content` (string, required): Task description (1-1000 chars).
+     - `category` (string, optional): One of `dev`, `study`, `fitness`, `finance`, `life`, `other`.
+     - `note` (string, optional): Detailed task notes or execution checklist.
+     - `isNotePublic` (boolean, optional, default: true): Public visibility of the note.
+     - `startDate` (string, optional): ISO date or timestamp.
+     - `dueDate` (string, optional): ISO deadline.
+2. **`list_my_todos`**: Query authenticated user's current tasks.
+   - Parameters:
+     - `status` (string, optional): Filter by `pending`, `in_progress`, `done`, `abandoned`.
+     - `limit` (number, optional, default: 20): Max records to return.
+3. **`update_todo_status`**: Change the lifecycle status of a task.
+   - Parameters:
+     - `todoId` (string, required): UUID or shortId of the todo.
+     - `status` (string, required): Target status (`pending`, `in_progress`, `done`, `abandoned`).
+4. **`add_progress_note`**: Append a milestone log or progress note to an ongoing task.
+   - Parameters:
+     - `todoId` (string, required): UUID or shortId of the todo.
+     - `content` (string, required): Milestone note content.
+5. **`discover_topics`**: Discover and search public trending goals and topic hashes.
+   - Parameters:
+     - `query` (string, optional): Search keyword.
+     - `limit` (number, optional, default: 10): Results limit.
+6. **`react_to_todo`**: Cheer on a peer's task with authentic Unicode reactions.
+   - Parameters:
+     - `todoId` (string, required): Target todo UUID or shortId.
+     - `emoji` (string, required): One of `❤️`, `👍`, `🔥`, `💪`, `👏`, `🚀`, `🎉`, `👀`.
+
+#### MCP Registered Resources (`resources/list` & `resources/read`)
+1. `showtodo://me/overview`: Personal active dashboard, streak, and recent todos in JSON format.
+2. `showtodo://users/{handle}/todolist`: Markdown representation of a creator's public todolist.
+3. `showtodo://topics/{topicHash}`: Companion list and recent activity stream for a shared goal.
+4. `showtodo://stats/summary`: Real-time global platform metrics and productivity breakdown.
+
+#### MCP Registered Prompts (`prompts/list` & `prompts/get`)
+1. `daily_standup`: Guided daily standup interview to review past progress and prioritize today's public commitments.
+2. `breakdown_goal`: Deconstructs ambitious monolithic projects into atomic, bite-sized ShowTodo tasks.
+3. `companion_cheer`: Analyzes public activity feeds to generate encouraging peer feedback and reaction suggestions.
 
 ---
 
