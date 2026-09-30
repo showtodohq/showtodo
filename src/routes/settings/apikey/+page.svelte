@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { PageData, ActionData } from './$types';
+	import type { PageData } from './$types';
 	import { enhance } from '$app/forms';
 	import { toast } from '$lib/stores/toast.svelte';
 	import { getSettingsApiKeySeo } from '$lib/constants/seo';
@@ -10,33 +10,16 @@
 	import Modal from '$lib/components/ui/Modal.svelte';
 	import Icon from '@iconify/svelte';
 
-	let { data, form = null }: { data: PageData; form?: ActionData } = $props();
+	let { data }: { data: PageData } = $props();
 
 	let isCreatingKey = $state(false);
+	let revokingId = $state<string | null>(null);
 	let newKeyName = $state('');
 	let showCreateModal = $state(false);
 	let newlyCreatedToken = $state<string | null>(null);
 	let copiedToken = $state(false);
 	let copiedConfig = $state(false);
 	let showGuide = $state(false);
-
-	$effect(() => {
-		if (form?.action === 'created' && form?.rawToken) {
-			newlyCreatedToken = form.rawToken;
-			showCreateModal = false;
-			newKeyName = '';
-			toast.success('API Key created successfully!');
-		}
-		if (form?.action === 'revoked') {
-			toast.success('API Key revoked.');
-		}
-		if (form?.createError) {
-			toast.error(form.createError);
-		}
-		if (form?.revokeError) {
-			toast.error(form.revokeError);
-		}
-	});
 
 	async function copyToClipboard(text: string, type: 'token' | 'config') {
 		try {
@@ -185,7 +168,24 @@
 							use:enhance={({ cancel }) => {
 								if (!confirm(`Are you sure you want to revoke key "${key.name}"?`)) {
 									cancel();
+									return;
 								}
+								revokingId = key.id;
+								return async ({ result, update }) => {
+									try {
+										if (result.type === 'success') {
+											toast.success('API Key revoked.');
+										} else if (result.type === 'failure') {
+											const resData = result.data as { revokeError?: string } | undefined;
+											toast.error(resData?.revokeError || 'Failed to revoke API key');
+										} else if (result.type === 'error') {
+											toast.error(result.error?.message || 'Failed to revoke API key');
+										}
+										await update();
+									} finally {
+										revokingId = null;
+									}
+								};
 							}}
 						>
 							<input type="hidden" name="id" value={key.id} />
@@ -193,6 +193,8 @@
 								type="submit"
 								variant="ghost"
 								size="xs"
+								loading={revokingId === key.id}
+								disabled={revokingId !== null}
 								class="border-0 bg-rose-50/70 text-rose-600 hover:bg-rose-100/80 hover:text-rose-700 dark:bg-rose-950/40 dark:text-rose-400 dark:hover:bg-rose-900/50 text-xs shadow-none transition-all duration-200 ease-out active:scale-[0.96]"
 							>
 								Revoke
@@ -264,9 +266,26 @@
 		action="?/createApiKey"
 		use:enhance={() => {
 			isCreatingKey = true;
-			return async ({ update }) => {
-				isCreatingKey = false;
-				await update();
+			return async ({ result, update }) => {
+				try {
+					if (result.type === 'success') {
+						const resData = result.data as { rawToken?: string; keyName?: string } | undefined;
+						if (resData?.rawToken) {
+							newlyCreatedToken = resData.rawToken;
+							showCreateModal = false;
+							newKeyName = '';
+							toast.success('API Key created successfully!');
+						}
+					} else if (result.type === 'failure') {
+						const resData = result.data as { createError?: string } | undefined;
+						toast.error(resData?.createError || 'Failed to create API key');
+					} else if (result.type === 'error') {
+						toast.error(result.error?.message || 'Failed to create API key');
+					}
+					await update();
+				} finally {
+					isCreatingKey = false;
+				}
 			};
 		}}
 		class="space-y-4"

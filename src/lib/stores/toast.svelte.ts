@@ -1,3 +1,5 @@
+import { untrack } from 'svelte';
+
 export type ToastType = 'success' | 'error' | 'info' | 'warning';
 
 export interface ToastItem {
@@ -13,7 +15,9 @@ class ToastStore {
 	show(message: string, type: ToastType = 'info', duration = 3500) {
 		const id = Math.random().toString(36).substring(2, 9);
 		const item: ToastItem = { id, type, message, duration };
-		this.toasts = [...this.toasts, item];
+		untrack(() => {
+			this.toasts = [...this.toasts, item];
+		});
 
 		if (duration > 0) {
 			setTimeout(() => {
@@ -40,8 +44,17 @@ class ToastStore {
 	}
 
 	dismiss(id: string) {
-		this.toasts = this.toasts.filter((t) => t.id !== id);
+		untrack(() => {
+			this.toasts = this.toasts.filter((t) => t.id !== id);
+		});
+	}
+
+	clear() {
+		untrack(() => {
+			this.toasts = [];
+		});
 	}
 }
 
 export const toast = new ToastStore();
+
