@@ -136,8 +136,13 @@ async function main() {
 		queryCondition = sql`LOWER(email) = ${rawEmail}`;
 	}
 
-	const userRows = await db.execute(
-		sql`SELECT id, email, handle, nickname FROM users WHERE ${queryCondition} LIMIT 1`
+	// 辅助解析行数据（兼容行数组与 Neon HTTP QueryResult 对象的 rows 属性）
+	const getRows = (result) => (Array.isArray(result) ? result : (result?.rows ?? []));
+
+	const userRows = getRows(
+		await db.execute(
+			sql`SELECT id, email, handle, nickname FROM users WHERE ${queryCondition} LIMIT 1`
+		)
 	);
 
 	const user = userRows[0];
@@ -153,8 +158,10 @@ async function main() {
 	const hashedPassword = await hashPassword(newPassword);
 
 	// 检查该用户是否已有 credential 记录
-	const accountRows = await db.execute(
-		sql`SELECT id FROM accounts WHERE user_id = ${user.id}::uuid AND provider_id = 'credential' LIMIT 1`
+	const accountRows = getRows(
+		await db.execute(
+			sql`SELECT id FROM accounts WHERE user_id = ${user.id}::uuid AND provider_id = 'credential' LIMIT 1`
+		)
 	);
 
 	const existingAccount = accountRows[0];
@@ -180,8 +187,10 @@ async function main() {
 	}
 
 	// 清理该用户旧会话（确保密码变更后安全下线其它设备）
-	const deletedSessions = await db.execute(
-		sql`DELETE FROM sessions WHERE user_id = ${user.id}::uuid RETURNING id`
+	const deletedSessions = getRows(
+		await db.execute(
+			sql`DELETE FROM sessions WHERE user_id = ${user.id}::uuid RETURNING id`
+		)
 	);
 	if (deletedSessions.length > 0) {
 		console.log(`\x1b[33m[安全提示] 已作废该用户的 ${deletedSessions.length} 个历史登录会话，需使用新密码重新登录。\x1b[0m`);
