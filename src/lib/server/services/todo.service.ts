@@ -149,7 +149,7 @@ export async function findByIdOrShortId(db: Database, identifier: string, curren
 		activityService.listByTodoId(db, todo.id),
 		todo.topicHash
 			? db
-					.select({ count: sql<number>`count(*)::int` })
+					.select({ count: sql<number>`count(distinct ${todos.authorId})::int` })
 					.from(todos)
 					.where(eq(todos.topicHash, todo.topicHash))
 			: Promise.resolve([]),
@@ -372,7 +372,7 @@ export async function getTopicInfoByTodoId(db: Database, idOrShortId: string) {
 
 	const topicHash = result[0].topicHash;
 	const countResult = await db
-		.select({ count: sql<number>`count(*)::int` })
+		.select({ count: sql<number>`count(distinct ${todos.authorId})::int` })
 		.from(todos)
 		.where(eq(todos.topicHash, topicHash));
 
@@ -482,15 +482,19 @@ export async function getTopicByHash(
 		}
 	}));
 
-	// 辅助去重函数：按 user.id 归集自然人伙伴，优先保留已完成 (done) 状态
+	// 辅助去重函数：按 user.id 归集自然人伙伴，保留该用户在该切片范围内的最新待办实例 (Latest Todo)
 	function deduplicateParticipants(list: typeof allRawParticipants) {
 		const map = new Map<string, (typeof allRawParticipants)[0]>();
 		for (const item of list) {
 			const existing = map.get(item.user.id);
 			if (!existing) {
 				map.set(item.user.id, item);
-			} else if (item.status === 'done' && existing.status !== 'done') {
-				map.set(item.user.id, item);
+			} else {
+				const itemTime = new Date(item.createdAt).getTime();
+				const existingTime = new Date(existing.createdAt).getTime();
+				if (itemTime >= existingTime) {
+					map.set(item.user.id, item);
+				}
 			}
 		}
 		return Array.from(map.values());
@@ -671,19 +675,24 @@ export async function listDailyCards(
 				? JSON.parse(row.participants)
 				: [];
 
-		// 自然人去重归集，同一用户保留最优状态
+		// 自然人去重归集，同一用户保留最新打卡状态
 		const userMap = new Map<string, any>();
 		for (const p of rawParticipants) {
 			const existing = userMap.get(p.user?.id);
 			if (!existing) {
 				userMap.set(p.user?.id, p);
-			} else if (p.status === 'done' && existing.status !== 'done') {
-				userMap.set(p.user?.id, p);
+			} else {
+				const pTime = new Date(p.createdAt).getTime();
+				const existingTime = new Date(existing.createdAt).getTime();
+				if (pTime >= existingTime) {
+					userMap.set(p.user?.id, p);
+				}
 			}
 		}
 		const uniqueParticipants = Array.from(userMap.values());
 
 		const totalParticipants = Number(row.total_participants || uniqueParticipants.length);
+		const doneCount = uniqueParticipants.filter((p) => p.status === 'done').length;
 		const participants: CardParticipant[] = uniqueParticipants.map((p: any) => ({
 			todoId: p.todoId,
 			shortId: p.shortId,
@@ -705,7 +714,7 @@ export async function listDailyCards(
 			category: row.category ?? null,
 			isMultiplayer: totalParticipants > 1,
 			totalParticipants,
-			doneCount: Number(row.done_count || 0),
+			doneCount,
 			participants
 		};
 	});
@@ -915,14 +924,18 @@ export async function listTopics(
 			const existing = userMap.get(p.user?.id);
 			if (!existing) {
 				userMap.set(p.user?.id, p);
-			} else if (p.status === 'done' && existing.status !== 'done') {
-				userMap.set(p.user?.id, p);
+			} else {
+				const pTime = new Date(p.createdAt).getTime();
+				const existingTime = new Date(existing.createdAt).getTime();
+				if (pTime >= existingTime) {
+					userMap.set(p.user?.id, p);
+				}
 			}
 		}
 		const uniqueParticipants = Array.from(userMap.values());
 
 		const totalParticipants = Number(row.total_participants || uniqueParticipants.length);
-		const doneCount = Number(row.done_count || 0);
+		const doneCount = uniqueParticipants.filter((p) => p.status === 'done').length;
 		const completionRate = totalParticipants > 0 ? Math.round((doneCount / totalParticipants) * 100) : 0;
 		const isAllDone = totalParticipants > 0 && doneCount >= totalParticipants;
 

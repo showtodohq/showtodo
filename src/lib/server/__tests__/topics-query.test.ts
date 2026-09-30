@@ -193,4 +193,226 @@ describe('listTopics unit tests (DDD Service Layer)', () => {
 		expect(topicDetail.allParticipants?.length).toBe(1);
 		expect(topicDetail.allParticipants?.[0].user.id).toBe('u1');
 	});
+
+	it('listTopics correctly computes completion stats when user has an older done todo and a newer pending todo', async () => {
+		const mockDb = {
+			execute: vi
+				.fn()
+				.mockResolvedValueOnce([{ total: 1 }])
+				.mockResolvedValueOnce([
+					{
+						topic_hash: 'hash-multiday',
+						content: '早睡早起',
+						category: 'life',
+						first_created_at: '2026-09-01T00:00:00.000Z',
+						last_updated_at: '2026-09-02T00:00:00.000Z',
+						total_participants: 1,
+						done_count: 1, // SQL raw may still count distinct user who was ever done
+						participants: [
+							{
+								todoId: 't-done-yesterday',
+								shortId: 's1',
+								status: 'done',
+								createdAt: '2026-09-01T00:00:00.000Z',
+								isMe: false,
+								user: { id: 'u1', nickname: '自律者', handle: 'disciplined', avatar: null }
+							},
+							{
+								todoId: 't-pending-today',
+								shortId: 's2',
+								status: 'pending',
+								createdAt: '2026-09-02T00:00:00.000Z',
+								isMe: false,
+								user: { id: 'u1', nickname: '自律者', handle: 'disciplined', avatar: null }
+							}
+						]
+					}
+				])
+		} as unknown as Database;
+
+		const result = await listTopics(mockDb, {
+			limit: 10,
+			offset: 0
+		});
+
+		expect(result.topics.length).toBe(1);
+		const topic = result.topics[0];
+		// 自然人去重后只保留 1 位
+		expect(topic.totalParticipants).toBe(1);
+		expect(topic.participants.length).toBe(1);
+		// 状态应取该用户最新的待办状态 (pending)
+		expect(topic.participants[0].status).toBe('pending');
+		// 统计数据：未完成，完成数应为 0，完成率应为 0，isAllDone 应为 false
+		expect(topic.doneCount).toBe(0);
+		expect(topic.completionRate).toBe(0);
+		expect(topic.isAllDone).toBe(false);
+	});
+
+	it('getTopicByHash preserves user latest status when user has multiple check-ins today', async () => {
+		const { getTopicByHash } = await import('../services/todo.service');
+
+		const todayStr = '2026-09-12';
+		const mockResult = [
+			{
+				todos: {
+					id: 't-morning',
+					shortId: 'short1',
+					topicHash: 'hash-today-multi',
+					content: '晨跑打卡',
+					category: 'fitness',
+					status: 'done',
+					note: null,
+					isNotePublic: false,
+					startDate: new Date('2026-09-12T08:00:00.000Z'),
+					dueDate: null,
+					createdAt: new Date('2026-09-12T08:00:00.000Z'),
+					authorId: 'u1'
+				},
+				users: {
+					id: 'u1',
+					nickname: '晨跑者',
+					handle: 'runner',
+					avatar: null
+				}
+			},
+			{
+				todos: {
+					id: 't-afternoon',
+					shortId: 'short2',
+					topicHash: 'hash-today-multi',
+					content: '晨跑打卡',
+					category: 'fitness',
+					status: 'in_progress',
+					note: '下午再跑一次',
+					isNotePublic: false,
+					startDate: new Date('2026-09-12T14:00:00.000Z'),
+					dueDate: null,
+					createdAt: new Date('2026-09-12T14:00:00.000Z'),
+					authorId: 'u1'
+				},
+				users: {
+					id: 'u1',
+					nickname: '晨跑者',
+					handle: 'runner',
+					avatar: null
+				}
+			}
+		];
+
+		const mockDb = {
+			select: vi.fn().mockReturnValue({
+				from: vi.fn().mockReturnValue({
+					innerJoin: vi.fn().mockReturnValue({
+						where: vi.fn().mockReturnValue({
+							orderBy: vi.fn().mockResolvedValue(mockResult)
+						})
+					})
+				})
+			})
+		} as unknown as Database;
+
+		const topicDetail = await getTopicByHash(
+			mockDb,
+			'hash-today-multi',
+			undefined,
+			todayStr,
+			undefined,
+			undefined,
+			'Asia/Shanghai'
+		);
+
+		// 今日同行：1 人（自然人去重）
+		expect(topicDetail.todayParticipants).toBe(1);
+		expect(topicDetail.participants.length).toBe(1);
+		// 最新的打卡状态为 in_progress，未全部完成
+		expect(topicDetail.participants[0].status).toBe('in_progress');
+		expect(topicDetail.todayDoneCount).toBe(0);
+		expect(topicDetail.isTodayAllDone).toBe(false);
+	});
+
+	it('findByIdOrShortId returns participantCount reflecting distinct users, not row count', async () => {
+		const { findByIdOrShortId } = await import('../services/todo.service');
+
+		const mockTodo = {
+			todos: {
+				id: '00000000-0000-0000-0000-000000000001',
+				shortId: 'short-test',
+				content: '读英语',
+				topicHash: 'hash-distinct',
+				authorId: '00000000-0000-0000-0000-000000000002',
+				status: 'todo',
+				category: 'study',
+				isNotePublic: false,
+				note: null,
+				startDate: new Date('2026-09-12T08:00:00.000Z'),
+				dueDate: null,
+				createdAt: new Date('2026-09-12T08:00:00.000Z'),
+				updatedAt: new Date('2026-09-12T08:00:00.000Z')
+			},
+			users: {
+				id: '00000000-0000-0000-0000-000000000002',
+				nickname: '学习者',
+				handle: 'learner',
+				avatar: null
+			}
+		};
+
+		const reactionService = await import('../services/reaction.service');
+		const activityService = await import('../services/activity.service');
+		vi.spyOn(reactionService, 'getCountsByTodoIds').mockResolvedValue({});
+		vi.spyOn(activityService, 'listByTodoId').mockResolvedValue([]);
+
+		// 假设数据库中同一人发送了 5 次相同待办，但只有 1 位自然人参与者
+		const mockDb = {
+			select: vi
+				.fn()
+				// 1. 查询待办本身
+				.mockReturnValueOnce({
+					from: vi.fn().mockReturnValue({
+						innerJoin: vi.fn().mockReturnValue({
+							where: vi.fn().mockReturnValue({
+								limit: vi.fn().mockResolvedValue([mockTodo])
+							})
+						})
+					})
+				})
+				// 2. 统计参与人数 count(distinct authorId) => 返回 1（即使有 5 条相同的 todo）
+				.mockReturnValueOnce({
+					from: vi.fn().mockReturnValue({
+						where: vi.fn().mockResolvedValue([{ count: 1 }])
+					})
+				})
+		} as unknown as Database;
+
+		const result = await findByIdOrShortId(mockDb, '00000000-0000-0000-0000-000000000001');
+		expect(result).toBeDefined();
+		expect(result?.topicParticipantCount).toBe(1);
+	});
+
+	it('getTopicInfoByTodoId returns participantCount reflecting distinct users', async () => {
+		const { getTopicInfoByTodoId } = await import('../services/todo.service');
+
+		const mockDb = {
+			select: vi
+				.fn()
+				// 1. 查询待办 topicHash
+				.mockReturnValueOnce({
+					from: vi.fn().mockReturnValue({
+						where: vi.fn().mockReturnValue({
+							limit: vi.fn().mockResolvedValue([{ topicHash: 'hash-distinct' }])
+						})
+					})
+				})
+				// 2. 统计参与人数 count(distinct authorId) => 返回 1
+				.mockReturnValueOnce({
+					from: vi.fn().mockReturnValue({
+						where: vi.fn().mockResolvedValue([{ count: 1 }])
+					})
+				})
+		} as unknown as Database;
+
+		const result = await getTopicInfoByTodoId(mockDb, '00000000-0000-0000-0000-000000000001');
+		expect(result).toBeDefined();
+		expect(result.participantCount).toBe(1);
+	});
 });
