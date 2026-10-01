@@ -21,6 +21,15 @@ class TodoMutations {
 		category?: CategoryId | string | null;
 		startDate?: string | null;
 		dueDate?: string | null;
+		isRecurring?: boolean;
+		frequency?: import('$lib/constants/recurrence').RecurrenceFrequency;
+		interval?: number;
+		daysOfWeek?: number[];
+		dayOfMonth?: number;
+		endCondition?: import('$lib/constants/recurrence').RecurrenceEndCondition;
+		endAfterOccurrences?: number;
+		endDate?: string;
+		timezone?: string;
 	}): Promise<Todo | undefined> {
 		const email = userStore.email;
 		if (!email) {
@@ -87,7 +96,16 @@ class TodoMutations {
 						isNotePublic,
 						category: data.category ?? undefined,
 						startDate: startDateIso,
-						dueDate: data.dueDate ? new Date(data.dueDate).toISOString() : undefined
+						dueDate: data.dueDate ? new Date(data.dueDate).toISOString() : undefined,
+						isRecurring: data.isRecurring,
+						frequency: data.frequency,
+						interval: data.interval,
+						daysOfWeek: data.daysOfWeek,
+						dayOfMonth: data.dayOfMonth,
+						endCondition: data.endCondition,
+						endAfterOccurrences: data.endAfterOccurrences,
+						endDate: data.endDate,
+						timezone: data.timezone
 					});
 
 					const authorData = res.author || {

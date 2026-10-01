@@ -9,6 +9,8 @@
 	import { api } from '$lib/services/api';
 	import { todoMutations } from '$lib/stores/mutations.svelte';
 	import { createTodoModalStore } from '$lib/stores/create-todo-modal.svelte';
+	import RecurrenceConfigSection from '$lib/components/todo/recurrence/RecurrenceConfigSection.svelte';
+	import type { RecurrenceFrequency, RecurrenceEndCondition } from '$lib/constants/recurrence';
 	import Icon from '@iconify/svelte';
 
 	let content = $state(createTodoModalStore.initialContent || '');
@@ -25,6 +27,16 @@
 	let isComposing = $state(false);
 	let submitting = $state(false);
 	let textareaRef = $state<HTMLTextAreaElement | null>(null);
+
+	// 周期性重复任务状态
+	let isRecurring = $state(false);
+	let recurrenceFrequency = $state<RecurrenceFrequency>('daily');
+	let recurrenceInterval = $state(1);
+	let recurrenceDaysOfWeek = $state([1, 2, 3, 4, 5]);
+	let recurrenceDayOfMonth = $state(1);
+	let recurrenceEndCondition = $state<RecurrenceEndCondition>('never');
+	let recurrenceEndAfterOccurrences = $state(30);
+	let recurrenceEndDate = $state('');
 
 	// 使用 wasOpen 追踪，只在弹窗从关闭变为打开的那一刻初始化一次，避免用户输入时被 effect 意外重置
 	let wasOpen = false;
@@ -44,6 +56,14 @@
 				isNotePublic = true;
 				inlineEmail = '';
 				isTimePlanningOpen = Boolean(startDate || dueDate);
+				isRecurring = false;
+				recurrenceFrequency = 'daily';
+				recurrenceInterval = 1;
+				recurrenceDaysOfWeek = [1, 2, 3, 4, 5];
+				recurrenceDayOfMonth = 1;
+				recurrenceEndCondition = 'never';
+				recurrenceEndAfterOccurrences = 30;
+				recurrenceEndDate = '';
 
 				setTimeout(() => {
 					textareaRef?.focus();
@@ -195,14 +215,27 @@
 
 		submitting = true;
 		try {
-			const res = await todoMutations.createTodo({
+			const createPayload: any = {
 				content: clean,
 				note: note.trim() || null,
 				isNotePublic,
 				category: selectedCategory,
 				startDate: startDate ? new Date(startDate).toISOString() : null,
 				dueDate: dueDate ? new Date(dueDate).toISOString() : null
-			});
+			};
+
+			if (isRecurring) {
+				createPayload.isRecurring = true;
+				createPayload.frequency = recurrenceFrequency;
+				createPayload.interval = recurrenceInterval;
+				createPayload.daysOfWeek = recurrenceDaysOfWeek;
+				createPayload.dayOfMonth = recurrenceDayOfMonth;
+				createPayload.endCondition = recurrenceEndCondition;
+				createPayload.endAfterOccurrences = recurrenceEndAfterOccurrences;
+				createPayload.endDate = recurrenceEndDate ? new Date(recurrenceEndDate).toISOString() : undefined;
+			}
+
+			const res = await todoMutations.createTodo(createPayload);
 
 			if (res) {
 				handleClose();
@@ -532,6 +565,18 @@
 				{/if}
 			</div>
 		{/if}
+
+		<!-- 周期性习惯设置组件 -->
+		<RecurrenceConfigSection
+			bind:isRecurring
+			bind:frequency={recurrenceFrequency}
+			bind:interval={recurrenceInterval}
+			bind:daysOfWeek={recurrenceDaysOfWeek}
+			bind:dayOfMonth={recurrenceDayOfMonth}
+			bind:endCondition={recurrenceEndCondition}
+			bind:endAfterOccurrences={recurrenceEndAfterOccurrences}
+			bind:endDate={recurrenceEndDate}
+		/>
 
 		<!-- 分类药丸组与触发工具栏 (响应式空间布局) -->
 		<div class="pt-2 border-t border-zinc-100 dark:border-zinc-900 space-y-2.5">

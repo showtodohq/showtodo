@@ -10,7 +10,10 @@ import type {
 	TopicDetailResponse,
 	TopicListResponse,
 	ListTopicsOptions,
-	UpdateTodoInput
+	UpdateTodoInput,
+	RecurrenceStatus,
+	RecurringRule,
+	CreateRecurringRuleInput
 } from '$lib/types/todo';
 import type { UpdateUserInput, UserProfile } from '$lib/types/user';
 import type { GlobalStatsData, HeatmapData } from '$lib/types/stats';
@@ -384,6 +387,50 @@ export const api = {
 			{
 				method: 'POST',
 				body: JSON.stringify({ newPassword })
+			},
+			customFetch
+		);
+	},
+
+	async updateRecurringRuleStatus(
+		ruleId: string,
+		status: RecurrenceStatus,
+		customFetch?: typeof fetch
+	): Promise<{ rule: RecurringRule }> {
+		return request<{ rule: RecurringRule }>(
+			`/api/recurring-rules/${ruleId}`,
+			{
+				method: 'PATCH',
+				body: JSON.stringify({ status })
+			},
+			customFetch
+		);
+	},
+
+	async createRecurringRule(
+		input: CreateRecurringRuleInput,
+		customFetch?: typeof fetch
+	): Promise<{ rule: RecurringRule }> {
+		return request<{ rule: RecurringRule }>(
+			'/api/recurring-rules',
+			{
+				method: 'POST',
+				body: JSON.stringify(input)
+			},
+			customFetch
+		);
+	},
+
+	async deleteRecurringRule(
+		ruleId: string,
+		options?: { deleteHistory?: boolean },
+		customFetch?: typeof fetch
+	): Promise<{ success: boolean; ruleId: string }> {
+		const query = options?.deleteHistory ? '?deleteHistory=true' : '';
+		return request<{ success: boolean; ruleId: string }>(
+			`/api/recurring-rules/${ruleId}${query}`,
+			{
+				method: 'DELETE'
 			},
 			customFetch
 		);

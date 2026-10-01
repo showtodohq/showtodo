@@ -2,6 +2,7 @@ import type { Database } from '../db';
 import * as todoService from '../services/todo.service';
 import * as reactionService from '../services/reaction.service';
 import * as activityService from '../services/activity.service';
+import * as recurrenceService from '../services/recurrence.service';
 import {
 	validateContent,
 	validateNote,
@@ -15,6 +16,7 @@ import {
 	VALID_STATUSES,
 	VALID_EMOJIS
 } from '../validation';
+import { ALL_RECURRENCE_FREQUENCIES, ALL_RECURRENCE_STATUSES } from '$lib/constants/recurrence';
 import { AppError } from '../errors';
 
 export interface McpToolDefinition {
@@ -181,6 +183,98 @@ export function getToolDefinitions(): McpToolDefinition[] {
 					}
 				},
 				required: ['todoId', 'emoji']
+			}
+		},
+		{
+			name: 'create_recurring_rule',
+			description:
+				'Create a recurring habit or autonomous routine inspection rule template. Automatically materializes current cycle todo.',
+			inputSchema: {
+				type: 'object',
+				properties: {
+					content: {
+						type: 'string',
+						description: 'The recurring task title or goal (e.g. Daily E2E smoke tests, Weekly dependency audit).'
+					},
+					frequency: {
+						type: 'string',
+						enum: [...ALL_RECURRENCE_FREQUENCIES],
+						description: 'Frequency: daily, weekdays, weekly, monthly, custom_cron.'
+					},
+					interval: {
+						type: 'integer',
+						default: 1,
+						description: 'Interval step (e.g. 1 for every day, 2 for every 2 weeks).'
+					},
+					category: {
+						type: 'string',
+						enum: [...VALID_CATEGORIES],
+						description: 'Task category.'
+					},
+					note: {
+						type: 'string',
+						description: 'Optional task details or checklist.'
+					},
+					daysOfWeek: {
+						type: 'array',
+						items: { type: 'integer' },
+						description: 'For weekly: array of days of week (0=Sun, 1=Mon, ..., 6=Sat).'
+					}
+				},
+				required: ['content', 'frequency']
+			}
+		},
+		{
+			name: 'list_my_recurring_rules',
+			description: 'Retrieve the authenticated user or agent’s recurring task rules and streak metrics.',
+			inputSchema: {
+				type: 'object',
+				properties: {
+					status: {
+						type: 'string',
+						enum: [...ALL_RECURRENCE_STATUSES],
+						description: 'Optional filter by rule status (active, paused, dormant, completed, archived).'
+					}
+				}
+			}
+		},
+		{
+			name: 'update_recurring_rule_status',
+			description: 'Update the operational status of a recurring rule (e.g. active, paused, archived).',
+			inputSchema: {
+				type: 'object',
+				properties: {
+					ruleId: {
+						type: 'string',
+						description: 'Target recurring rule UUID.'
+					},
+					status: {
+						type: 'string',
+						enum: ['active', 'paused', 'archived'],
+						description: 'Target status: active, paused, archived.'
+					}
+				},
+				required: ['ruleId', 'status']
+			}
+		},
+		{
+			name: 'delete_recurring_rule',
+			description:
+				'Permanently delete a recurring rule. Stops future todo materialization and virtual calendar projection. Optionally cascades to delete historical completed todos.',
+			inputSchema: {
+				type: 'object',
+				properties: {
+					ruleId: {
+						type: 'string',
+						description: 'Target recurring rule UUID.'
+					},
+					deleteHistory: {
+						type: 'boolean',
+						default: false,
+						description: 'Whether to also delete all past materialized todos belonging to this rule.'
+					}
+				},
+				required: ['ruleId']
 			}
 		}
 	];
@@ -447,6 +541,126 @@ export async function handleToolCall(
 						{
 							type: 'text',
 							text: `✨ Reacted with ${emoji} to todo "${todo.content}"!`
+						}
+					]
+				};
+			}
+
+			case 'create_recurring_rule': {
+				if (!currentUser?.id) {
+					return {
+						isError: true,
+						content: [{ type: 'text', text: 'Authentication required. Please configure your API key.' }]
+					};
+				}
+
+				const rule = await recurrenceService.createRule(db, {
+					authorId: currentUser.id,
+					content: args?.content,
+					frequency: args?.frequency,
+					interval: args?.interval,
+					category: args?.category,
+					note: args?.note,
+					daysOfWeek: args?.daysOfWeek
+				});
+
+				const summary = [
+					`🔁 **Recurring Rule Created Successfully!**`,
+					`- **ID**: \`${rule.id}\``,
+					`- **Content**: ${rule.content}`,
+					`- **Frequency**: \`${rule.frequency}\` (every ${rule.interval})`,
+					`- **Topic Hash**: \`${rule.topicHash}\``,
+					`- **Status**: \`${rule.status}\``,
+					`- **Next Run**: ${rule.nextRunAt.toISOString()}`,
+					`\n💡 Current cycle todo was automatically materialized on your public timeline.`
+				].join('\n');
+
+				return {
+					isError: false,
+					content: [{ type: 'text', text: summary }]
+				};
+			}
+
+			case 'list_my_recurring_rules': {
+				if (!currentUser?.id) {
+					return {
+						isError: true,
+						content: [{ type: 'text', text: 'Authentication required. Please configure your API key.' }]
+					};
+				}
+
+				const rules = await recurrenceService.listByAuthor(db, currentUser.id, args?.status);
+				if (rules.length === 0) {
+					return {
+						isError: false,
+						content: [{ type: 'text', text: 'No recurring rules found for this account.' }]
+					};
+				}
+
+				const lines = [
+					`# 🔁 My Recurring Rules (${rules.length})`,
+					'',
+					'| ID | Content | Frequency | Status | Current Streak | Completed |',
+					'|---|---|---|---|---|---|',
+					...rules.map(
+						(r) =>
+							`| \`${r.id.slice(0, 8)}\` | ${r.content} | \`${r.frequency}\` | \`${r.status}\` | 🔥 ${r.currentStreak} | ${r.completedCycles}/${r.totalCycles} |`
+					)
+				];
+
+				return {
+					isError: false,
+					content: [{ type: 'text', text: lines.join('\n') }]
+				};
+			}
+
+			case 'update_recurring_rule_status': {
+				if (!currentUser?.id) {
+					return {
+						isError: true,
+						content: [{ type: 'text', text: 'Authentication required. Please configure your API key.' }]
+					};
+				}
+
+				const updated = await recurrenceService.updateStatus(
+					db,
+					args.ruleId,
+					currentUser.id,
+					args.status
+				);
+
+				return {
+					isError: false,
+					content: [
+						{
+							type: 'text',
+							text: `✅ Recurring rule \`${updated.id.slice(0, 8)}\` status updated to \`${updated.status}\`.`
+						}
+					]
+				};
+			}
+
+			case 'delete_recurring_rule': {
+				if (!currentUser?.id) {
+					return {
+						isError: true,
+						content: [{ type: 'text', text: 'Authentication required. Please configure your API key.' }]
+					};
+				}
+
+				const result = await recurrenceService.deleteRule(
+					db,
+					args.ruleId,
+					currentUser.id,
+					{ deleteHistory: Boolean(args.deleteHistory) }
+				);
+
+				return {
+					isError: false,
+					content: [
+						{
+							type: 'text',
+							text: `🗑️ Recurring rule \`${result.ruleId.slice(0, 8)}\` deleted permanently. Future todos will no longer materialize.`
 						}
 					]
 				};

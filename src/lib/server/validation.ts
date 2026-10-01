@@ -1,4 +1,10 @@
 import { AppError } from './errors';
+import {
+	ALL_RECURRENCE_FREQUENCIES,
+	ALL_RECURRENCE_STATUSES,
+	type RecurrenceFrequency,
+	type RecurrenceStatus
+} from '$lib/constants/recurrence';
 
 export const VALID_CATEGORIES = ['study', 'fitness', 'finance', 'dev', 'life', 'other'] as const;
 export type Category = (typeof VALID_CATEGORIES)[number];
@@ -231,4 +237,51 @@ export function validateBoolean(value: unknown, defaultValue: boolean): boolean 
 	if (value === 'true') return true;
 	if (value === 'false') return false;
 	throw new AppError('VALIDATION_ERROR', 'Invalid boolean value');
+}
+
+export function validateRecurrenceFrequency(value: unknown): RecurrenceFrequency {
+	if (typeof value !== 'string' || !ALL_RECURRENCE_FREQUENCIES.includes(value as any)) {
+		throw new AppError('VALIDATION_ERROR', 'Invalid recurrence frequency');
+	}
+	return value as RecurrenceFrequency;
+}
+
+export function validateRecurrenceStatus(value: unknown): RecurrenceStatus {
+	if (typeof value !== 'string' || !ALL_RECURRENCE_STATUSES.includes(value as any)) {
+		throw new AppError('VALIDATION_ERROR', 'Invalid recurrence status');
+	}
+	return value as RecurrenceStatus;
+}
+
+export function validateDaysOfWeek(value: unknown): number[] | undefined {
+	if (value === null || value === undefined) return undefined;
+	if (!Array.isArray(value)) {
+		throw new AppError('VALIDATION_ERROR', 'daysOfWeek must be an array of numbers');
+	}
+	const days = value.map((d) => {
+		const num = typeof d === 'string' ? parseInt(d, 10) : d;
+		if (typeof num !== 'number' || isNaN(num) || num < 0 || num > 6) {
+			throw new AppError('VALIDATION_ERROR', 'daysOfWeek items must be between 0 (Sun) and 6 (Sat)');
+		}
+		return num;
+	});
+	return [...new Set(days)].sort((a, b) => a - b);
+}
+
+export function validateDayOfMonth(value: unknown): number | undefined {
+	if (value === null || value === undefined) return undefined;
+	const num = typeof value === 'string' ? parseInt(value, 10) : value;
+	if (typeof num !== 'number' || isNaN(num) || num < 1 || num > 31) {
+		throw new AppError('VALIDATION_ERROR', 'dayOfMonth must be between 1 and 31');
+	}
+	return num;
+}
+
+export function validateInterval(value: unknown, defaultVal = 1): number {
+	if (value === null || value === undefined) return defaultVal;
+	const num = typeof value === 'string' ? parseInt(value, 10) : value;
+	if (typeof num !== 'number' || isNaN(num) || num < 1 || num > 365) {
+		throw new AppError('VALIDATION_ERROR', 'interval must be between 1 and 365');
+	}
+	return num;
 }

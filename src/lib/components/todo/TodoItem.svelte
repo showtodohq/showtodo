@@ -6,6 +6,7 @@
 	import CategoryBadge from '$lib/components/todo/CategoryBadge.svelte';
 	import TodoCheckbox from '$lib/components/todo/TodoCheckbox.svelte';
 	import TodoContent from '$lib/components/todo/TodoContent.svelte';
+	import StreakBadge from '$lib/components/todo/recurrence/StreakBadge.svelte';
 	import { userStore } from '$lib/stores/user.svelte';
 
 	interface Props {
@@ -109,8 +110,22 @@
 			</a>
 		{/if}
 
-		<!-- 第四行：分类徽标 · 发布相对时间 · 轻量表态互动 -->
+		<!-- 第四行：分类徽标 · 周期连胜 · 发布相对时间 · 轻量表态互动 -->
 		<div class="flex items-center flex-wrap gap-2 pt-1 text-xs text-zinc-400 select-none">
+			<!-- 周期打卡与连击勋章 -->
+			{#if (todo as any).recurringRule || (todo as any).isVirtual}
+				<StreakBadge
+					frequency={(todo as any).recurringRule?.frequency}
+					cycleIndex={(todo as any).cycleIndex}
+					currentStreak={(todo as any).recurringRule?.currentStreak}
+					maxStreak={(todo as any).recurringRule?.maxStreak}
+					slotKey={(todo as any).slotKey}
+					isVirtual={(todo as any).isVirtual}
+					size="sm"
+				/>
+				<span>·</span>
+			{/if}
+
 			<!-- 分类胶囊 (统一组件，支持点击筛选) -->
 			{#if todo.category}
 				<CategoryBadge

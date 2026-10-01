@@ -6,6 +6,8 @@ import { validateStatusTransition, generateShortId, isUUID } from '../validation
 import { DEFAULT_TIMEZONE, isValidTimezone, getTodayInTimezone, formatDateInTimezone } from '../utils/timezone';
 import * as reactionService from './reaction.service';
 import * as activityService from './activity.service';
+import * as recurrenceService from './recurrence.service';
+import { generateUniqueShortId } from './short-id';
 import { AppError } from '../errors';
 import { computeTopicHash } from '../topic-hash';
 import type { DailyCardResponse, DailyCard, CardParticipant, TopicDetail, TopicParticipant, ReactionEmoji, TopicItem, TopicListResponse, ListTopicsOptions } from '$lib/types/todo';
@@ -64,16 +66,7 @@ function sanitizeNote(todo: typeof todos.$inferSelect) {
 	return todo;
 }
 
-async function generateUniqueShortId(db: Database): Promise<string> {
-	for (let i = 0; i < 10; i++) {
-		const shortId = generateShortId(8);
-		const existing = await db.select().from(todos).where(eq(todos.shortId, shortId)).limit(1);
-		if (!existing[0]) {
-			return shortId;
-		}
-	}
-	return `${generateShortId(6)}${Date.now().toString(36).slice(-2)}`;
-}
+export { generateUniqueShortId };
 
 export async function create(db: Database, data: CreateTodoData) {
 	const shortId = await generateUniqueShortId(db);
@@ -176,13 +169,29 @@ export async function findByIdOrShortId(db: Database, identifier: string, curren
 			}
 		: null;
 
+	let recurringRule = null;
+	if (todo.recurringRuleId) {
+		const rule = await recurrenceService.findById(db, todo.recurringRuleId);
+		if (rule) {
+			recurringRule = {
+				id: rule.id,
+				frequency: rule.frequency,
+				interval: rule.interval,
+				currentStreak: rule.currentStreak,
+				maxStreak: rule.maxStreak,
+				status: rule.status
+			};
+		}
+	}
+
 	return {
 		...sanitizeNote(todo),
 		author: { id: author.id, nickname: author.nickname, handle: author.handle, avatar: author.avatar },
 		reactions: reactionCounts[todo.id] ?? { '❤️': 0, '👍': 0, '🔥': 0, '💪': 0, '👏': 0, '🚀': 0, '🎉': 0, '👀': 0 },
 		activities,
 		topicParticipantCount: participantCount,
-		myJoinedTodo
+		myJoinedTodo,
+		recurringRule
 	};
 }
 
@@ -334,6 +343,14 @@ export async function update(
 			toStatus: data.status!,
 			content: data.activityNote ?? null
 		});
+
+		// 联动更新关联周期规则的 Streak 与履约统计
+		await recurrenceService.onTodoStatusChanged(
+			db,
+			todo.id,
+			todo.status as TodoStatus,
+			data.status!
+		);
 	} else if (data.activityNote && data.activityNote.trim().length > 0) {
 		await activityService.recordActivity(db, {
 			todoId: todo.id,
@@ -396,6 +413,14 @@ export async function getTopicByHash(
 	if (!topicHash) {
 		throw new AppError('VALIDATION_ERROR', 'topicHash is required');
 	}
+
+	// 触发基于话题作用域的即时预物化，消除可见性裂痕
+	await recurrenceService.ensureTopicRecurringTodosMaterialized(
+		db,
+		topicHash,
+		targetDate,
+		tz
+	);
 
 	const orderByClauses =
 		currentUserId && isUUID(currentUserId)
@@ -778,6 +803,10 @@ export async function listForCalendar(
 		conditions.push(eq(todos.category, options.category));
 	}
 
+	if (options.authorIds.length === 1) {
+		await recurrenceService.ensureActiveTodosMaterialized(db, options.authorIds[0]);
+	}
+
 	const result = await db
 		.select()
 		.from(todos)
@@ -789,11 +818,51 @@ export async function listForCalendar(
 	const allReactionCounts =
 		todoIds.length > 0 ? await reactionService.getCountsByTodoIds(db, todoIds) : {};
 
-	return result.map(({ todos: todo, users: author }) => ({
+	const mappedResults: any[] = result.map(({ todos: todo, users: author }) => ({
 		...sanitizeNote(todo),
 		author: { id: author.id, nickname: author.nickname, handle: author.handle, avatar: author.avatar },
 		reactions: allReactionCounts[todo.id] ?? { '❤️': 0, '👍': 0, '🔥': 0, '💪': 0, '👏': 0, '🚀': 0, '🎉': 0, '👀': 0 }
 	}));
+
+	// 若为单人日历查询，在内存中动态展开未来虚拟投影 (Virtual Todos)，数据库 0 行垃圾
+	if (options.authorIds.length === 1 && result[0]) {
+		const author = result[0].users;
+		const virtuals = await recurrenceService.getVirtualOccurrencesForCalendar(
+			db,
+			options.authorIds[0],
+			fromDate,
+			toDate
+		);
+
+		const existingSlotKeys = new Set(result.map((r) => r.todos.slotKey).filter(Boolean));
+		for (const v of virtuals) {
+			if (!existingSlotKeys.has(v.slotKey)) {
+				mappedResults.push({
+					id: `virtual-${v.ruleId}-${v.slotKey}`,
+					shortId: `v-${v.slotKey}`,
+					topicHash: v.topicHash,
+					content: v.content,
+					note: null,
+					isNotePublic: true,
+					category: v.category,
+					authorId: author.id,
+					status: 'pending',
+					startDate: v.startDate,
+					dueDate: v.dueDate,
+					createdAt: v.startDate,
+					updatedAt: v.startDate,
+					recurringRuleId: v.ruleId,
+					slotKey: v.slotKey,
+					cycleIndex: null,
+					isVirtual: true,
+					author: { id: author.id, nickname: author.nickname, handle: author.handle, avatar: author.avatar },
+					reactions: { '❤️': 0, '👍': 0, '🔥': 0, '💪': 0, '👏': 0, '🚀': 0, '🎉': 0, '👀': 0 }
+				});
+			}
+		}
+	}
+
+	return mappedResults;
 }
 
 export async function listTopics(

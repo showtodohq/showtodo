@@ -1,6 +1,11 @@
 import type { TodoStatus } from '$lib/constants/status';
+import type {
+	RecurrenceFrequency,
+	RecurrenceStatus,
+	RecurrenceEndCondition
+} from '$lib/constants/recurrence';
 
-export type { TodoStatus };
+export type { TodoStatus, RecurrenceFrequency, RecurrenceStatus, RecurrenceEndCondition };
 
 export type CategoryId = 'study' | 'fitness' | 'finance' | 'dev' | 'life' | 'other';
 
@@ -27,6 +32,44 @@ export interface Author {
 	email?: string;
 }
 
+export interface RecurringRuleSummary {
+	id: string;
+	frequency: RecurrenceFrequency;
+	interval: number;
+	currentStreak: number;
+	maxStreak: number;
+	status: RecurrenceStatus;
+}
+
+export interface RecurringRule {
+	id: string;
+	authorId: string;
+	content: string;
+	topicHash: string;
+	note: string | null;
+	isNotePublic: boolean;
+	category: string | null;
+	frequency: RecurrenceFrequency;
+	interval: number;
+	daysOfWeek?: number[] | null;
+	dayOfMonth?: number | null;
+	cronExpression?: string | null;
+	status: RecurrenceStatus;
+	currentStreak: number;
+	maxStreak: number;
+	totalCycles: number;
+	completedCycles: number;
+	consecutiveMisses: number;
+	endCondition: RecurrenceEndCondition;
+	endAfterOccurrences?: number | null;
+	endDate?: string | null;
+	nextRunAt: string;
+	lastRunAt?: string | null;
+	timezone: string;
+	createdAt: string;
+	updatedAt: string;
+}
+
 export interface Todo {
 	id: string;
 	shortId: string;
@@ -36,12 +79,16 @@ export interface Todo {
 	isNotePublic: boolean;
 	category: CategoryId | string | null;
 	authorId: string;
+	recurringRuleId?: string | null;
+	slotKey?: string | null;
+	cycleIndex?: number | null;
 	status: TodoStatus;
 	startDate: string;
 	dueDate: string | null;
 	createdAt: string;
 	updatedAt: string;
 	author?: Author;
+	recurringRule?: RecurringRuleSummary | null;
 	reactions?: Record<string, number>;
 	myReactions?: ReactionEmoji[];
 	activities?: TodoActivity[];
@@ -72,6 +119,47 @@ export interface CreateTodoInput {
 	category?: string | null;
 	startDate?: string;
 	dueDate?: string | null;
+	isRecurring?: boolean;
+	frequency?: RecurrenceFrequency;
+	interval?: number;
+	daysOfWeek?: number[];
+	dayOfMonth?: number;
+	cronExpression?: string;
+	endCondition?: RecurrenceEndCondition;
+	endAfterOccurrences?: number;
+	endDate?: string;
+	timezone?: string;
+}
+
+export interface CreateRecurringRuleInput {
+	content: string;
+	note?: string | null;
+	isNotePublic?: boolean;
+	category?: string | null;
+	startDate?: string | null;
+	dueDate?: string | null;
+	frequency: RecurrenceFrequency;
+	interval?: number;
+	daysOfWeek?: number[];
+	dayOfMonth?: number;
+	cronExpression?: string;
+	endCondition?: RecurrenceEndCondition;
+	endAfterOccurrences?: number;
+	endDate?: string;
+	timezone?: string;
+}
+
+export interface VirtualTodoItem {
+	id?: string;
+	ruleId: string;
+	slotKey: string;
+	content: string;
+	topicHash: string;
+	category: string | null;
+	isVirtual: true;
+	startDate: string;
+	dueDate: string | null;
+	status: 'pending';
 }
 
 export interface UpdateTodoInput {

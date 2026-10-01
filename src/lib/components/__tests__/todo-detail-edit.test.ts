@@ -54,4 +54,60 @@ describe('TodoDetailCard Category Display & In-Place Editing', () => {
 
 		expect(rendered.body).toContain('No category');
 	});
+
+	it('renders StreakBadge and pause button when todo is recurring in browse mode', () => {
+		const recurringTodo: Todo = {
+			...mockDetailTodo,
+			recurringRuleId: 'rule-abc',
+			cycleIndex: 3,
+			recurringRule: {
+				id: 'rule-abc',
+				frequency: 'daily',
+				interval: 1,
+				currentStreak: 5,
+				maxStreak: 10,
+				status: 'active'
+			}
+		};
+
+		const rendered = render(TodoDetailCard, {
+			props: {
+				todo: recurringTodo,
+				isMine: true
+			}
+		});
+
+		expect(rendered.body).toContain('#3');
+		expect(rendered.body).toContain('5');
+		expect(rendered.body).toContain('streak');
+		expect(rendered.body).toContain('Pause');
+	});
+
+	it('renders recurring deletion scope options in delete modal when todo is recurring', () => {
+		const recurringTodo: Todo = {
+			...mockDetailTodo,
+			recurringRuleId: 'rule-abc',
+			cycleIndex: 3,
+			recurringRule: {
+				id: 'rule-abc',
+				frequency: 'daily',
+				interval: 1,
+				currentStreak: 5,
+				maxStreak: 10,
+				status: 'active'
+			}
+		};
+
+		const rendered = render(TodoDetailCard, {
+			props: {
+				todo: recurringTodo,
+				isMine: true,
+				initialShowDeleteModal: true
+			}
+		});
+
+		expect(rendered.body).toContain('This todo belongs to a recurring series');
+		expect(rendered.body).toContain('This occurrence only');
+		expect(rendered.body).toContain('Entire recurring series');
+	});
 });

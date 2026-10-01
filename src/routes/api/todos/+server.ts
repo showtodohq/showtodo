@@ -1,8 +1,11 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { db } from '$lib/server/db';
+import { todos } from '$lib/server/db/schema';
+import { eq, desc } from 'drizzle-orm';
 import * as todoService from '$lib/server/services/todo.service';
 import * as userService from '$lib/server/services/user.service';
+import * as recurrenceService from '$lib/server/services/recurrence.service';
 import { handleError, AppError } from '$lib/server/errors';
 import {
 	validateContent,
@@ -36,6 +39,61 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 		const note = validateNote(body.note);
 		const isNotePublic = validateBoolean(body.isNotePublic, true);
 		const category = validateCategory(body.category);
+
+		const author = {
+			id: user.id,
+			nickname: user.nickname,
+			handle: user.handle,
+			avatar: user.avatar,
+			email: user.email
+		};
+
+		// 周期性任务立项分支
+		if (body.isRecurring) {
+			const rule = await recurrenceService.createRule(db, {
+				authorId: user.id,
+				content,
+				note,
+				isNotePublic,
+				category,
+				startDate: body.startDate ? new Date(body.startDate).toISOString() : undefined,
+				dueDate: body.dueDate ? new Date(body.dueDate).toISOString() : undefined,
+				frequency: body.frequency,
+				interval: body.interval,
+				daysOfWeek: body.daysOfWeek,
+				dayOfMonth: body.dayOfMonth,
+				cronExpression: body.cronExpression,
+				endCondition: body.endCondition,
+				endAfterOccurrences: body.endAfterOccurrences,
+				endDate: body.endDate,
+				timezone: body.timezone
+			});
+
+			const [todayTodo] = await db
+				.select()
+				.from(todos)
+				.where(eq(todos.recurringRuleId, rule.id))
+				.orderBy(desc(todos.createdAt))
+				.limit(1);
+
+			const todo = {
+				...(todayTodo || {}),
+				author,
+				recurringRule: {
+					id: rule.id,
+					frequency: rule.frequency,
+					interval: rule.interval,
+					currentStreak: rule.currentStreak,
+					maxStreak: rule.maxStreak,
+					status: rule.status
+				},
+				reactions: { '❤️': 0, '👍': 0, '🔥': 0, '💪': 0, '👏': 0, '🚀': 0, '🎉': 0, '👀': 0 },
+				myReactions: []
+			};
+
+			return json({ todo, author: user, recurringRule: rule }, { status: 201 });
+		}
+
 		const startDate = validateOptionalDateTime(body.startDate) ?? undefined;
 		const dueDate = validateOptionalDateTime(body.dueDate);
 
@@ -48,14 +106,6 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 			startDate,
 			dueDate
 		});
-
-		const author = {
-			id: user.id,
-			nickname: user.nickname,
-			handle: user.handle,
-			avatar: user.avatar,
-			email: user.email
-		};
 
 		const todo = {
 			...rawTodo,

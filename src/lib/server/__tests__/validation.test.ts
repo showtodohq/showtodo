@@ -17,7 +17,12 @@ import {
 	validateBoolean,
 	validateHandle,
 	sanitizeHandle,
-	generateShortId
+	generateShortId,
+	validateRecurrenceFrequency,
+	validateRecurrenceStatus,
+	validateDaysOfWeek,
+	validateDayOfMonth,
+	validateInterval
 } from '../validation';
 import { AppError } from '../errors';
 
@@ -394,3 +399,80 @@ describe('validateBoolean', () => {
 		expect(() => validateBoolean('yes', true)).toThrow(AppError);
 	});
 });
+
+describe('validateRecurrenceFrequency', () => {
+	test('accepts valid frequencies', () => {
+		expect(validateRecurrenceFrequency('daily')).toBe('daily');
+		expect(validateRecurrenceFrequency('weekdays')).toBe('weekdays');
+		expect(validateRecurrenceFrequency('weekly')).toBe('weekly');
+		expect(validateRecurrenceFrequency('monthly')).toBe('monthly');
+		expect(validateRecurrenceFrequency('custom_cron')).toBe('custom_cron');
+	});
+
+	test('rejects invalid frequency', () => {
+		expect(() => validateRecurrenceFrequency('yearly')).toThrow(AppError);
+		expect(() => validateRecurrenceFrequency(123)).toThrow(AppError);
+	});
+});
+
+describe('validateRecurrenceStatus', () => {
+	test('accepts valid statuses', () => {
+		expect(validateRecurrenceStatus('active')).toBe('active');
+		expect(validateRecurrenceStatus('paused')).toBe('paused');
+		expect(validateRecurrenceStatus('dormant')).toBe('dormant');
+		expect(validateRecurrenceStatus('completed')).toBe('completed');
+		expect(validateRecurrenceStatus('archived')).toBe('archived');
+	});
+
+	test('rejects invalid status', () => {
+		expect(() => validateRecurrenceStatus('deleted')).toThrow(AppError);
+	});
+});
+
+describe('validateDaysOfWeek', () => {
+	test('accepts valid day arrays', () => {
+		expect(validateDaysOfWeek([1, 2, 3])).toEqual([1, 2, 3]);
+		expect(validateDaysOfWeek(['1', '5'])).toEqual([1, 5]);
+		expect(validateDaysOfWeek([5, 1, 5])).toEqual([1, 5]); // deduplicates & sorts
+	});
+
+	test('returns undefined for null/undefined', () => {
+		expect(validateDaysOfWeek(null)).toBeUndefined();
+		expect(validateDaysOfWeek(undefined)).toBeUndefined();
+	});
+
+	test('rejects invalid values', () => {
+		expect(() => validateDaysOfWeek('not-array')).toThrow(AppError);
+		expect(() => validateDaysOfWeek([7])).toThrow(AppError); // > 6
+		expect(() => validateDaysOfWeek([-1])).toThrow(AppError); // < 0
+	});
+});
+
+describe('validateDayOfMonth', () => {
+	test('accepts 1..31', () => {
+		expect(validateDayOfMonth(1)).toBe(1);
+		expect(validateDayOfMonth(31)).toBe(31);
+		expect(validateDayOfMonth('15')).toBe(15);
+	});
+
+	test('returns undefined for null/undefined', () => {
+		expect(validateDayOfMonth(null)).toBeUndefined();
+	});
+
+	test('rejects out of range', () => {
+		expect(() => validateDayOfMonth(0)).toThrow(AppError);
+		expect(() => validateDayOfMonth(32)).toThrow(AppError);
+	});
+});
+
+describe('validateInterval', () => {
+	test('accepts positive integer', () => {
+		expect(validateInterval(2)).toBe(2);
+		expect(validateInterval(undefined, 1)).toBe(1);
+	});
+
+	test('rejects <= 0', () => {
+		expect(() => validateInterval(0)).toThrow(AppError);
+	});
+});
+
