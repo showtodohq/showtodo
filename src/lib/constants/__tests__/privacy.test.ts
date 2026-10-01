@@ -4,7 +4,7 @@ import { PRIVACY_POLICY } from '../privacy';
 describe('privacy.ts constants', () => {
 	it('contains valid policy metadata', () => {
 		expect(PRIVACY_POLICY.meta.title).toContain('Privacy Policy');
-		expect(PRIVACY_POLICY.meta.version).toBe('1.0.0');
+		expect(PRIVACY_POLICY.meta.version).toMatch(/^\d+\.\d+\.\d+$/);
 		expect(PRIVACY_POLICY.meta.contactEmail).toBe('privacy@showtodo.com');
 		expect(PRIVACY_POLICY.meta.effectiveDate).toBeTruthy();
 	});
@@ -38,5 +38,39 @@ describe('privacy.ts constants', () => {
 		expect(fullText).toContain('GDPR');
 		expect(fullText).toContain('CCPA');
 		expect(fullText).toContain('sell');
+	});
+
+	it('fully complies with Google OAuth Brand Verification & Limited Use requirements', () => {
+		const fullText = JSON.stringify(PRIVACY_POLICY);
+
+		// 1. Google OAuth & API Services references
+		expect(fullText).toContain('Google OAuth');
+		expect(fullText).toContain('Google API Services User Data Policy');
+		expect(fullText).toContain('Limited Use requirements');
+
+		// 2. Disclose what Google user data is accessed
+		expect(fullText).toContain('openid');
+		expect(fullText).toContain('email');
+		expect(fullText).toContain('profile');
+
+		// 3. Disclose how Google user data is used
+		expect(fullText).toContain('authenticate');
+
+		// 4. Affirm no sale, no ad targeting
+		expect(fullText).toContain('advertising');
+
+		// 5. Explicitly affirm Google user data is not used for AI/ML training
+		expect(fullText).toContain('train');
+
+		// 6. Provide data retention, deletion, and Google Account permission revocation link
+		expect(fullText).toContain('https://myaccount.google.com/permissions');
+		expect(fullText).toContain('privacy@showtodo.com');
+
+		// 7. Verify dedicated section exists
+		const googleSection = PRIVACY_POLICY.sections.find(
+			(s) => s.id === 'google-api-disclosure' || s.id === 'google-user-data'
+		);
+		expect(googleSection).toBeDefined();
+		expect(googleSection?.content.some((c) => c.includes('Limited Use'))).toBe(true);
 	});
 });

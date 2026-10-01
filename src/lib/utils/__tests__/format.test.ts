@@ -6,7 +6,8 @@ import {
 	formatScheduleRange,
 	truncate,
 	getLocalDayAsUtcRange,
-	parseLocalDate
+	parseLocalDate,
+	parseMarkdownLinks
 } from '../format';
 
 describe('format utilities', () => {
@@ -92,5 +93,43 @@ describe('format utilities', () => {
 
 		expect(toDate.getDate()).toBe(7);
 		expect(toDate.getHours()).toBe(23);
+	});
+
+	describe('parseMarkdownLinks', () => {
+		it('returns empty array or empty text part for empty input', () => {
+			expect(parseMarkdownLinks('')).toEqual([]);
+		});
+
+		it('returns single text part when no markdown links exist', () => {
+			expect(parseMarkdownLinks('Hello world without links')).toEqual([
+				{ text: 'Hello world without links' }
+			]);
+		});
+
+		it('parses single markdown link correctly', () => {
+			expect(parseMarkdownLinks('Visit [Google](https://google.com) today')).toEqual([
+				{ text: 'Visit ' },
+				{ text: 'Google', href: 'https://google.com' },
+				{ text: ' today' }
+			]);
+		});
+
+		it('parses multiple markdown links correctly', () => {
+			const input =
+				'See [Terms](https://example.com/terms) and [Privacy](https://example.com/privacy).';
+			expect(parseMarkdownLinks(input)).toEqual([
+				{ text: 'See ' },
+				{ text: 'Terms', href: 'https://example.com/terms' },
+				{ text: ' and ' },
+				{ text: 'Privacy', href: 'https://example.com/privacy' },
+				{ text: '.' }
+			]);
+		});
+
+		it('handles string starting or ending with a link', () => {
+			expect(parseMarkdownLinks('[Link](https://test.com)')).toEqual([
+				{ text: 'Link', href: 'https://test.com' }
+			]);
+		});
 	});
 });

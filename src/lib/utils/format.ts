@@ -112,3 +112,34 @@ export function getLocalDayAsUtcRange(dateInput: Date | string | number = new Da
 	};
 }
 
+export interface MarkdownLinkPart {
+	text: string;
+	href?: string;
+}
+
+/**
+ * 将包含 Markdown 链接 (如 [Title](https://...)) 的纯文本解析为结构化文本与链接片段数组
+ */
+export function parseMarkdownLinks(text: string): MarkdownLinkPart[] {
+	if (!text) return [];
+
+	const regex = /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g;
+	const parts: MarkdownLinkPart[] = [];
+	let lastIndex = 0;
+	let match: RegExpExecArray | null;
+
+	while ((match = regex.exec(text)) !== null) {
+		if (match.index > lastIndex) {
+			parts.push({ text: text.slice(lastIndex, match.index) });
+		}
+		parts.push({ text: match[1], href: match[2] });
+		lastIndex = regex.lastIndex;
+	}
+
+	if (lastIndex < text.length) {
+		parts.push({ text: text.slice(lastIndex) });
+	}
+
+	return parts.length > 0 ? parts : [{ text }];
+}
+

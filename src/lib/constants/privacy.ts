@@ -37,10 +37,10 @@ export const PRIVACY_POLICY: PrivacyPolicyData = {
 	meta: {
 		title: 'Privacy Policy · ShowTodo',
 		description:
-			'Official Privacy Policy for ShowTodo. Learn how we protect your personal data, handle public task records, and uphold strict data ownership standards.',
+			'Official Privacy Policy for ShowTodo. Learn how we protect your personal data, handle public task records, Google OAuth user data, and uphold strict data ownership standards.',
 		effectiveDate: 'September 1, 2026',
-		lastUpdated: 'September 19, 2026',
-		version: '1.0.0',
+		lastUpdated: 'October 1, 2026',
+		version: '1.1.0',
 		contactEmail: 'privacy@showtodo.com'
 	},
 	quickHighlights: [
@@ -83,7 +83,7 @@ export const PRIVACY_POLICY: PrivacyPolicyData = {
 				'We collect information in three transparent ways: information you provide directly, public activity you generate, and minimal automated telemetry required for platform reliability.'
 			],
 			listItems: [
-				'Account Credentials: Your email address, chosen nickname, and avatar preference (or algorithmically generated avatar).',
+				'Account Credentials & Google OAuth Data: When you sign in with Google OAuth, we receive your email address, display name, and avatar URL. If you authenticate directly, we collect your email address and generated handle.',
 				'Task & Content Data: The titles of todos you post, planned start and due dates, completion statuses, category tags, and optional notes.',
 				'Interaction Data: Emoji reactions you send or receive to encourage fellow builders.',
 				'Technical & Device Telemetry: IP addresses (anonymized for security logs), browser user-agent, operating system, and timestamp logs used strictly for DDoS mitigation, rate limiting, and spam defense.',
@@ -95,8 +95,34 @@ export const PRIVACY_POLICY: PrivacyPolicyData = {
 			}
 		},
 		{
+			id: 'google-api-disclosure',
+			title: '3. Google API Services & OAuth User Data',
+			plainTakeaway:
+				'When you authenticate with Google OAuth, we access only basic profile information (email, name, avatar) to log you in. We never sell your data, use it for ads, or train AI models.',
+			content: [
+				'ShowTodo integrates with Google OAuth 2.0 to offer a secure, passwordless authentication experience. When you choose to authenticate via Google, ShowTodo requests access strictly to standard, non-sensitive identity scopes: "openid", "https://www.googleapis.com/auth/userinfo.email", and "https://www.googleapis.com/auth/userinfo.profile". ShowTodo does NOT request access to or process data from any other Google APIs (such as Gmail, Google Drive, Google Contacts, or Google Calendar).',
+				'How We Access & Use Google User Data: ShowTodo accesses and uses your Google user data (specifically your verified email address, display name, and profile photo URL) solely to provide and support core user-facing features: (1) authenticating your identity and securely logging you into ShowTodo; (2) creating and maintaining your profile, displaying your nickname and avatar in the application interface; (3) associating your published todos, progress milestones, and activity streaks with your account; and (4) managing active session state.',
+				'No Sharing, Sale, or Commercial Disclosure: ShowTodo does NOT sell, rent, license, or disclose your Google user data to data brokers, advertising networks, information resellers, or third parties under any circumstances. We do not use Google user data for targeted advertising, personalized marketing, creditworthiness determinations, or lending purposes. Your data is stored strictly in our audited cloud database (Neon PostgreSQL) for hosting your account.',
+				'Data Protection & Security: All data received through Google APIs is protected with industry-standard technical and operational safeguards, including HTTPS with TLS 1.3 in transit and AES-256 encryption at rest.',
+				'Data Retention & Deletion: We retain your Google user data only for as long as your ShowTodo account remains active. You may request permanent deletion of your account and all associated Google user data at any time by contacting privacy@showtodo.com. Upon request, your account and records are permanently purged within 14 business days.',
+				'Revoking Access: You can revoke ShowTodo\'s access to your Google account at any time via your [Google Account Permissions](https://myaccount.google.com/permissions). Once revoked, ShowTodo will no longer receive updates or data from your Google profile.',
+				'Prohibition on AI/ML Model Training: ShowTodo explicitly affirms that Google user data and information received from Google APIs are not used to develop, improve, or train generalized or non-personalized artificial intelligence (AI) and/or machine learning (ML) models.',
+				'Limited Use Disclosure: ShowTodo\'s use and transfer of information received from Google APIs to any other app will adhere to Google API Services User Data Policy, including the Limited Use requirements.'
+			],
+			listItems: [
+				'Google OAuth Scopes Requested: openid (identity verification), email (primary email address), profile (display name and profile avatar photo).',
+				'Specific Google Data Accessed: Google account identifier, primary email address, verified display name, and avatar picture URL.',
+				'Strict Purpose Limitation: User authentication, profile display, and task association only. No advertising or commercial profiling.',
+				'Revocation: Revoke access anytime through Google Account Security Settings at https://myaccount.google.com/permissions.'
+			],
+			callout: {
+				type: 'important',
+				text: 'Limited Use Commitment: ShowTodo\'s use and transfer of information received from Google APIs to any other app will adhere to Google API Services User Data Policy, including the Limited Use requirements.'
+			}
+		},
+		{
 			id: 'how-we-use-information',
-			title: '3. How We Use Your Information',
+			title: '4. How We Use Your Information',
 			plainTakeaway:
 				'Your information is used solely to operate the platform, generate your streak heatmap, prevent abuse, and keep your tasks synced.',
 			content: [
@@ -104,6 +130,7 @@ export const PRIVACY_POLICY: PrivacyPolicyData = {
 			],
 			listItems: [
 				'Delivering the core ShowTodo service: Displaying your public feed, generating profile pages, and maintaining your activity streaks.',
+				'Authenticating user identity and managing secure sessions via Google OAuth or verified credentials.',
 				'Generating aggregated, non-personally identifiable community statistics (such as global task completion rates on the /stats dashboard).',
 				'Detecting and preventing automated bot spam, abuse, scraping, and unauthorized system penetration.',
 				'Communicating critical account security updates, system changes, or responses to customer support requests.'
@@ -111,7 +138,7 @@ export const PRIVACY_POLICY: PrivacyPolicyData = {
 		},
 		{
 			id: 'data-sharing',
-			title: '4. Data Sharing & Third-Party Processors',
+			title: '5. Data Sharing & Third-Party Processors',
 			plainTakeaway:
 				'We never sell your data. We only share necessary technical information with audited infrastructure providers who adhere to strict data protection standards.',
 			content: [
@@ -120,13 +147,14 @@ export const PRIVACY_POLICY: PrivacyPolicyData = {
 			],
 			listItems: [
 				'Database & Cloud Hosting: Neon (Serverless Postgres) and modern serverless edge hosting providers running encrypted databases.',
+				'Identity & Authentication: Google OAuth 2.0 (used strictly for secure authentication; ShowTodo does not share your todo data back with Google or sell your Google user profile).',
 				'Avatar Services: DiceBear open avatar API (only your non-reversible nickname seed is passed; no email or personal identifiers are ever transmitted).',
 				'Legal Compliance: We may disclose data only if required by a valid court order, subpoena, or binding legal process by law enforcement.'
 			]
 		},
 		{
 			id: 'user-rights',
-			title: '5. Your Rights & Data Ownership (GDPR & CCPA)',
+			title: '6. Your Rights & Data Ownership (GDPR & CCPA)',
 			plainTakeaway:
 				'You retain complete ownership of everything you post. You have the full right to access, edit, download, or permanently wipe your data.',
 			content: [
@@ -136,7 +164,8 @@ export const PRIVACY_POLICY: PrivacyPolicyData = {
 				'Right to Access & Portability: You may request a complete machine-readable copy (JSON) of all tasks, activities, and reactions associated with your account.',
 				'Right to Rectification: You can update your nickname, avatar, or edit existing task details at any time.',
 				'Right to Erasure (The Right to be Forgotten): You can request permanent deletion of your account and all associated todos from our active databases.',
-				'Right to Object or Restrict Processing: You have the right to withdraw consent for non-essential processing at any time.'
+				'Right to Object or Restrict Processing: You have the right to withdraw consent for non-essential processing at any time.',
+				'Right to Revoke OAuth Permissions: If you use Google OAuth, you can disconnect ShowTodo from your account at any time at https://myaccount.google.com/permissions.'
 			],
 			callout: {
 				type: 'important',
@@ -145,7 +174,7 @@ export const PRIVACY_POLICY: PrivacyPolicyData = {
 		},
 		{
 			id: 'security-and-retention',
-			title: '6. Security Standards & Retention',
+			title: '7. Security Standards & Retention',
 			plainTakeaway:
 				'All data is encrypted in transit and at rest. We retain your public history until you delete it or request account removal.',
 			content: [
@@ -156,7 +185,7 @@ export const PRIVACY_POLICY: PrivacyPolicyData = {
 		},
 		{
 			id: 'children-privacy',
-			title: "7. Children's Privacy (COPPA & GDPR-K)",
+			title: "8. Children's Privacy (COPPA & GDPR-K)",
 			plainTakeaway:
 				'ShowTodo is designed for individuals aged 13 and older (or 16 in the European Economic Area). We do not knowingly collect data from children.',
 			content: [
@@ -165,7 +194,7 @@ export const PRIVACY_POLICY: PrivacyPolicyData = {
 		},
 		{
 			id: 'updates-and-contact',
-			title: '8. Policy Updates & Contact Channels',
+			title: '9. Policy Updates & Contact Channels',
 			plainTakeaway:
 				'We will notify users of any material changes to this policy. Questions or concerns can be sent directly to our privacy desk.',
 			content: [

@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { PRIVACY_POLICY } from '$lib/constants/privacy';
 	import { SITE_BASE_URL } from '$lib/constants/seo';
+	import { parseMarkdownLinks } from '$lib/utils/format';
 	import Icon from '@iconify/svelte';
 
 	let activeSectionId = $state<string>(PRIVACY_POLICY.sections[0].id);
@@ -127,7 +128,7 @@
 					<!-- Section Prose Paragraphs -->
 					<div class="space-y-3 text-[15px] leading-relaxed text-zinc-600 dark:text-zinc-400">
 						{#each section.content as para}
-							<p>{para}</p>
+							<p>{@render renderFormattedText(para)}</p>
 						{/each}
 					</div>
 
@@ -137,7 +138,7 @@
 							{#each section.listItems as item}
 								<li class="flex items-start gap-2.5">
 									<span class="h-1.5 w-1.5 rounded-full bg-zinc-400 dark:bg-zinc-600 mt-2 shrink-0"></span>
-									<span>{item}</span>
+									<span>{@render renderFormattedText(item)}</span>
 								</li>
 							{/each}
 						</ul>
@@ -149,12 +150,29 @@
 							<Icon icon="lucide:check-circle" class="h-4 w-4 text-zinc-700 dark:text-zinc-300 mt-0.5 shrink-0" />
 							<div>
 								<span class="font-semibold text-zinc-800 dark:text-zinc-200">Important Note:</span>{' '}
-								{section.callout.text}
+								{@render renderFormattedText(section.callout.text)}
 							</div>
 						</div>
 					{/if}
 				</article>
 			{/each}
+
+			{#snippet renderFormattedText(text: string)}
+				{#each parseMarkdownLinks(text) as part}
+					{#if part.href}
+						<a
+							href={part.href}
+							target="_blank"
+							rel="noopener noreferrer"
+							class="text-zinc-900 dark:text-zinc-100 underline underline-offset-2 hover:text-zinc-600 dark:hover:text-zinc-300 transition-colors"
+						>
+							{part.text}
+						</a>
+					{:else}
+						{part.text}
+					{/if}
+				{/each}
+			{/snippet}
 
 			<!-- Contact Footer Box -->
 			<div class="rounded-2xl bg-zinc-50/80 dark:bg-zinc-900/50 p-6 sm:p-8 space-y-3">
