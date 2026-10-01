@@ -89,3 +89,50 @@ export function getPastDaysList(
 	}
 	return result;
 }
+
+/**
+ * 获取指定 Date 在指定时区下的本地时差毫秒数 (local - utc)
+ */
+function getTimezoneOffsetMs(date: Date, timeZone: string): number {
+	const formatter = new Intl.DateTimeFormat('en-US', {
+		timeZone,
+		year: 'numeric',
+		month: 'numeric',
+		day: 'numeric',
+		hour: 'numeric',
+		minute: 'numeric',
+		second: 'numeric',
+		hour12: false
+	});
+	const parts = formatter.formatToParts(date);
+	const map: Record<string, string> = {};
+	for (const p of parts) map[p.type] = p.value;
+	const h = map.hour === '24' ? 0 : Number(map.hour || 0);
+	const asUtc = Date.UTC(
+		Number(map.year),
+		Number(map.month) - 1,
+		Number(map.day),
+		h,
+		Number(map.minute || 0),
+		Number(map.second || 0)
+	);
+	return asUtc - date.getTime();
+}
+
+/**
+ * 根据指定时区的年月日时分秒，精确构造对应的绝对 UTC Date 对象
+ */
+export function createDateInTimezone(
+	year: number,
+	month: number, // 1-12
+	day: number,   // 1-31
+	hour = 0,
+	minute = 0,
+	second = 0,
+	tz: string = DEFAULT_TIMEZONE
+): Date {
+	const validTz = isValidTimezone(tz) ? tz : DEFAULT_TIMEZONE;
+	const targetUtcEstimate = new Date(Date.UTC(year, month - 1, day, hour, minute, second));
+	const offset = getTimezoneOffsetMs(targetUtcEstimate, validTz);
+	return new Date(targetUtcEstimate.getTime() - offset);
+}

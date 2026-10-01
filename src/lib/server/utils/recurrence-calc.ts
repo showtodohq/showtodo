@@ -5,7 +5,7 @@
  */
 
 import type { RecurrenceFrequency } from '$lib/constants/recurrence';
-import { DEFAULT_TIMEZONE, isValidTimezone, formatDateInTimezone } from './timezone';
+import { DEFAULT_TIMEZONE, isValidTimezone, formatDateInTimezone, createDateInTimezone } from './timezone';
 
 export interface RecurrenceScheduleConfig {
 	frequency: RecurrenceFrequency;
@@ -152,21 +152,27 @@ export function calculateNextOccurrence(
 
 	switch (frequency) {
 		case 'daily': {
-			// 直接增加 interval 天
-			const nextDate = new Date(currentRun.getTime() + interval * 86400000);
-			return nextDate;
+			// 将当前日期增加 interval 天，并严格对齐到该时区的 00:00:00 自然日开始时刻
+			const curDate = new Date(Date.UTC(parts.year, parts.month - 1, parts.day));
+			curDate.setUTCDate(curDate.getUTCDate() + interval);
+			const targetYear = curDate.getUTCFullYear();
+			const targetMonth = curDate.getUTCMonth() + 1;
+			const targetDay = curDate.getUTCDate();
+			return createDateInTimezone(targetYear, targetMonth, targetDay, 0, 0, 0, safeTz);
 		}
 
 		case 'weekdays': {
-			// 下一个工作日 (周一至周五)
-			let d = new Date(currentRun.getTime() + 86400000);
+			// 下一个工作日 (周一至周五)，对齐到该时区的 00:00:00
+			const curDate = new Date(Date.UTC(parts.year, parts.month - 1, parts.day));
 			while (true) {
-				const curParts = getPartsInTimezone(d, safeTz);
-				// 1=Mon, 2=Tue, 3=Wed, 4=Thu, 5=Fri
-				if (curParts.dayOfWeek >= 1 && curParts.dayOfWeek <= 5) {
-					return d;
+				curDate.setUTCDate(curDate.getUTCDate() + 1);
+				const dow = curDate.getUTCDay(); // 0=Sun, 1=Mon, ..., 5=Fri, 6=Sat
+				if (dow >= 1 && dow <= 5) {
+					const targetYear = curDate.getUTCFullYear();
+					const targetMonth = curDate.getUTCMonth() + 1;
+					const targetDay = curDate.getUTCDate();
+					return createDateInTimezone(targetYear, targetMonth, targetDay, 0, 0, 0, safeTz);
 				}
-				d = new Date(d.getTime() + 86400000);
 			}
 		}
 
@@ -176,20 +182,23 @@ export function calculateNextOccurrence(
 				? [...new Set(daysOfWeek)].sort((a, b) => a - b)
 				: [parts.dayOfWeek];
 
-			// 尝试在未来 1~7 天寻找匹配的星期
-			let candidate = new Date(currentRun.getTime() + 86400000);
+			// 从当前自然日开始往后寻找下一个匹配的星期几
+			const curDate = new Date(Date.UTC(parts.year, parts.month - 1, parts.day));
 			for (let step = 1; step <= 7 * Math.max(1, interval); step++) {
-				const cParts = getPartsInTimezone(candidate, safeTz);
-				if (sortedDays.includes(cParts.dayOfWeek)) {
-					return candidate;
+				curDate.setUTCDate(curDate.getUTCDate() + 1);
+				const dow = curDate.getUTCDay();
+				if (sortedDays.includes(dow)) {
+					const targetYear = curDate.getUTCFullYear();
+					const targetMonth = curDate.getUTCMonth() + 1;
+					const targetDay = curDate.getUTCDate();
+					return createDateInTimezone(targetYear, targetMonth, targetDay, 0, 0, 0, safeTz);
 				}
-				candidate = new Date(candidate.getTime() + 86400000);
 			}
-			return candidate;
+			return curDate;
 		}
 
 		case 'monthly': {
-			// 增加 interval 个月，并对齐 dayOfMonth
+			// 增加 interval 个月，并对齐 dayOfMonth，时间对齐到 00:00:00
 			let nextMonth = parts.month + interval;
 			let nextYear = parts.year;
 			while (nextMonth > 12) {
@@ -199,24 +208,17 @@ export function calculateNextOccurrence(
 			const maxDays = getDaysInMonth(nextYear, nextMonth);
 			const targetDay = Math.min(dayOfMonth, maxDays);
 
-			// 保留原本的小时/分钟/秒
-			// 转换为 UTC 时间点
-			// 先构造目标时区本地 ISO 串，然后求差
-			const mStr = String(nextMonth).padStart(2, '0');
-			const dStr = String(targetDay).padStart(2, '0');
-			const hStr = String(parts.hour).padStart(2, '0');
-			const minStr = String(parts.minute).padStart(2, '0');
-			const sStr = String(parts.second).padStart(2, '0');
-
-			// 利用 Date.UTC 模拟目标时间
-			const approx = new Date(Date.UTC(nextYear, nextMonth - 1, targetDay, parts.hour, parts.minute, parts.second));
-			return approx;
+			return createDateInTimezone(nextYear, nextMonth, targetDay, 0, 0, 0, safeTz);
 		}
 
 		case 'custom_cron':
 		default: {
-			// 默认步进 24 小时
-			return new Date(currentRun.getTime() + interval * 86400000);
+			const curDate = new Date(Date.UTC(parts.year, parts.month - 1, parts.day));
+			curDate.setUTCDate(curDate.getUTCDate() + interval);
+			const targetYear = curDate.getUTCFullYear();
+			const targetMonth = curDate.getUTCMonth() + 1;
+			const targetDay = curDate.getUTCDate();
+			return createDateInTimezone(targetYear, targetMonth, targetDay, 0, 0, 0, safeTz);
 		}
 	}
 }

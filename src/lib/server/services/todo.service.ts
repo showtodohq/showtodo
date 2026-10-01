@@ -196,6 +196,29 @@ export async function findByIdOrShortId(db: Database, identifier: string, curren
 }
 
 export async function list(db: Database, filters: ListTodosFilters) {
+	// JIT 即时物化：若指定了作者或当前用户，在执行待办查询前确保其活跃周期性任务落地
+	let targetAuthorId = filters.authorId;
+	if (targetAuthorId && !isUUID(targetAuthorId)) {
+		const cleanHandle = targetAuthorId.startsWith('@')
+			? targetAuthorId.slice(1)
+			: targetAuthorId;
+		const userRecord = await db
+			.select({ id: users.id })
+			.from(users)
+			.where(eq(users.handle, cleanHandle.toLowerCase()))
+			.limit(1);
+		if (userRecord[0]) {
+			targetAuthorId = userRecord[0].id;
+		}
+	}
+
+	if (targetAuthorId && isUUID(targetAuthorId)) {
+		await recurrenceService.ensureActiveTodosMaterialized(db, targetAuthorId);
+	}
+	if (filters.currentUserId && isUUID(filters.currentUserId) && filters.currentUserId !== targetAuthorId) {
+		await recurrenceService.ensureActiveTodosMaterialized(db, filters.currentUserId);
+	}
+
 	const limit = filters.limit ?? 20;
 	const conditions = [];
 
@@ -620,6 +643,10 @@ export async function listDailyCards(
 	const tz = options.tz || DEFAULT_TIMEZONE;
 	const safeTz = isValidTimezone(tz) ? tz : DEFAULT_TIMEZONE;
 	const targetDate = options.targetDate || getTodayInTimezone(safeTz);
+
+	if (currentUserId) {
+		await recurrenceService.ensureActiveTodosMaterialized(db, currentUserId, safeTz);
+	}
 
 	const categoryFilter =
 		options.category && options.category !== 'all'

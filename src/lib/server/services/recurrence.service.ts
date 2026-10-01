@@ -29,7 +29,7 @@ import {
 	isUUID
 } from '../validation';
 import { computeTopicHash } from '../topic-hash';
-import { DEFAULT_TIMEZONE, isValidTimezone, resolveTimezone } from '../utils/timezone';
+import { DEFAULT_TIMEZONE, isValidTimezone, resolveTimezone, formatDateInTimezone, createDateInTimezone } from '../utils/timezone';
 import {
 	formatSlotKey,
 	calculateNextOccurrence,
@@ -260,8 +260,16 @@ async function materializeSingleRuleSlot(
 	}
 
 	const shortId = await generateUniqueShortId(db);
-	const targetStartDate = customTime?.startDate || slotTimestamp;
-	const targetDueDate = customTime?.dueDate || new Date(slotTimestamp.getTime() + 86400000 - 1000); // 默认当天 23:59:59
+	const safeTz = isValidTimezone(rule.timezone) ? rule.timezone : DEFAULT_TIMEZONE;
+	const slotDayStr = formatDateInTimezone(slotTimestamp, safeTz);
+	const [sYear, sMonth, sDay] = slotDayStr.split('-').map(Number);
+	const defaultDayStart = createDateInTimezone(sYear, sMonth, sDay, 0, 0, 0, safeTz);
+	const defaultDayEnd = new Date(
+		createDateInTimezone(sYear, sMonth, sDay, 23, 59, 59, safeTz).getTime() + 999
+	);
+
+	const targetStartDate = customTime?.startDate || defaultDayStart;
+	const targetDueDate = customTime?.dueDate || defaultDayEnd;
 
 	const [insertedTodo] = await db
 		.insert(todos)
@@ -337,7 +345,12 @@ export async function ensureActiveTodosMaterialized(
 		.where(and(eq(recurringRules.authorId, authorId), eq(recurringRules.status, 'active')));
 
 	for (const rule of activeRules) {
-		if (rule.nextRunAt.getTime() > now.getTime()) {
+		const ruleTz = isValidTimezone(rule.timezone) ? rule.timezone : DEFAULT_TIMEZONE;
+		const todayStr = formatDateInTimezone(now, ruleTz);
+		const nextRunDayStr = formatDateInTimezone(rule.nextRunAt, ruleTz);
+
+		// 若未到下一次执行日期且绝对时间戳也未到，安全跳过
+		if (todayStr < nextRunDayStr && rule.nextRunAt.getTime() > now.getTime()) {
 			continue; // 未到下一次执行时间
 		}
 

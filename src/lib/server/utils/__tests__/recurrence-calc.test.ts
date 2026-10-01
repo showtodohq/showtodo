@@ -40,7 +40,7 @@ describe('Recurrence Calculation Utilities (TDD)', () => {
 	});
 
 	describe('calculateNextOccurrence', () => {
-		it('advances daily schedule by interval days', () => {
+		it('advances daily schedule by interval days and aligns to start of day in timezone', () => {
 			const current = new Date('2026-10-01T00:00:00.000Z');
 			const config: RecurrenceScheduleConfig = {
 				frequency: 'daily',
@@ -49,6 +49,19 @@ describe('Recurrence Calculation Utilities (TDD)', () => {
 			};
 			const next = calculateNextOccurrence(current, config);
 			expect(next.toISOString()).toBe('2026-10-02T00:00:00.000Z');
+		});
+
+		it('advances daily schedule created at random time (e.g. 21:00) to start of next day (00:00:00) in author timezone', () => {
+			// 2026-09-30 13:00:38.944 UTC = 2026-09-30 21:00:38 in Asia/Shanghai
+			const currentNight = new Date('2026-09-30T13:00:38.944Z');
+			const config: RecurrenceScheduleConfig = {
+				frequency: 'daily',
+				interval: 1,
+				timezone: TZ_SHANGHAI
+			};
+			const next = calculateNextOccurrence(currentNight, config);
+			// Next daily occurrence MUST be 2026-10-01 00:00:00 in Asia/Shanghai -> 2026-09-30T16:00:00.000Z!
+			expect(next.toISOString()).toBe('2026-09-30T16:00:00.000Z');
 		});
 
 		it('advances weekdays schedule over weekend (Friday -> Monday)', () => {
@@ -60,8 +73,8 @@ describe('Recurrence Calculation Utilities (TDD)', () => {
 				timezone: 'UTC'
 			};
 			const next = calculateNextOccurrence(friday, config);
-			// Next should be 2026-10-05 (Monday)
-			expect(next.toISOString()).toBe('2026-10-05T01:00:00.000Z');
+			// Next should be 2026-10-05 (Monday) 00:00:00 UTC
+			expect(next.toISOString()).toBe('2026-10-05T00:00:00.000Z');
 		});
 
 		it('advances weekly schedule through specified days_of_week', () => {

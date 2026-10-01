@@ -4,7 +4,8 @@ import {
 	resolveTimezone,
 	formatDateInTimezone,
 	getTodayInTimezone,
-	getPastDaysList
+	getPastDaysList,
+	createDateInTimezone
 } from '../timezone';
 
 describe('Timezone Utility (TDD)', () => {
@@ -77,6 +78,22 @@ describe('Timezone Utility (TDD)', () => {
 
 			const listUtc = getPastDaysList(3, fixedDate, 'UTC');
 			expect(listUtc).toEqual(['2026-09-08', '2026-09-09', '2026-09-10']);
+		});
+	});
+
+	describe('createDateInTimezone', () => {
+		it('creates exact UTC Date from local year, month, day, hour, min, sec in given timezone', () => {
+			// 2026-10-01 00:00:00 in Asia/Shanghai (UTC+8) -> 2026-09-30 16:00:00 UTC
+			const dShanghai = createDateInTimezone(2026, 10, 1, 0, 0, 0, 'Asia/Shanghai');
+			expect(dShanghai.toISOString()).toBe('2026-09-30T16:00:00.000Z');
+
+			// 2026-10-01 00:00:00 in UTC -> 2026-10-01 00:00:00 UTC
+			const dUtc = createDateInTimezone(2026, 10, 1, 0, 0, 0, 'UTC');
+			expect(dUtc.toISOString()).toBe('2026-10-01T00:00:00.000Z');
+
+			// 2026-10-01 00:00:00 in America/New_York (EDT, UTC-4) -> 2026-10-01 04:00:00 UTC
+			const dNy = createDateInTimezone(2026, 10, 1, 0, 0, 0, 'America/New_York');
+			expect(dNy.toISOString()).toBe('2026-10-01T04:00:00.000Z');
 		});
 	});
 });
