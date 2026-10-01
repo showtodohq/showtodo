@@ -177,6 +177,12 @@ export async function findByIdOrShortId(db: Database, identifier: string, curren
 				id: rule.id,
 				frequency: rule.frequency,
 				interval: rule.interval,
+				daysOfWeek: rule.daysOfWeek,
+				dayOfMonth: rule.dayOfMonth,
+				cronExpression: rule.cronExpression,
+				endCondition: rule.endCondition,
+				endAfterOccurrences: rule.endAfterOccurrences,
+				endDate: rule.endDate instanceof Date ? rule.endDate.toISOString() : (rule.endDate ? String(rule.endDate) : null),
 				currentStreak: rule.currentStreak,
 				maxStreak: rule.maxStreak,
 				status: rule.status

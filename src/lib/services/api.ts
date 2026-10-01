@@ -13,7 +13,8 @@ import type {
 	UpdateTodoInput,
 	RecurrenceStatus,
 	RecurringRule,
-	CreateRecurringRuleInput
+	CreateRecurringRuleInput,
+	UpdateRecurringRuleInput
 } from '$lib/types/todo';
 import type { UpdateUserInput, UserProfile } from '$lib/types/user';
 import type { GlobalStatsData, HeatmapData } from '$lib/types/stats';
@@ -402,6 +403,21 @@ export const api = {
 			{
 				method: 'PATCH',
 				body: JSON.stringify({ status })
+			},
+			customFetch
+		);
+	},
+
+	async updateRecurringRule(
+		ruleId: string,
+		input: UpdateRecurringRuleInput,
+		customFetch?: typeof fetch
+	): Promise<{ rule: RecurringRule }> {
+		return request<{ rule: RecurringRule }>(
+			`/api/recurring-rules/${ruleId}`,
+			{
+				method: 'PATCH',
+				body: JSON.stringify(input)
 			},
 			customFetch
 		);

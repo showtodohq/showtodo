@@ -53,6 +53,12 @@ export const RECURRENCE_END_CONDITIONS = {
 export type RecurrenceEndCondition =
 	(typeof RECURRENCE_END_CONDITIONS)[keyof typeof RECURRENCE_END_CONDITIONS];
 
+export const ALL_RECURRENCE_END_CONDITIONS: readonly RecurrenceEndCondition[] = [
+	RECURRENCE_END_CONDITIONS.NEVER,
+	RECURRENCE_END_CONDITIONS.BY_COUNT,
+	RECURRENCE_END_CONDITIONS.BY_DATE
+] as const;
+
 // 4. 业务阈值配置 (单一信源)
 export const RECURRENCE_CONFIG = {
 	/** 连续未完成触发冷休眠的缺席期数阈值 */

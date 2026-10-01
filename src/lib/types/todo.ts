@@ -36,6 +36,12 @@ export interface RecurringRuleSummary {
 	id: string;
 	frequency: RecurrenceFrequency;
 	interval: number;
+	daysOfWeek?: number[] | null;
+	dayOfMonth?: number | null;
+	cronExpression?: string | null;
+	endCondition?: RecurrenceEndCondition;
+	endAfterOccurrences?: number | null;
+	endDate?: string | null;
 	currentStreak: number;
 	maxStreak: number;
 	status: RecurrenceStatus;
@@ -147,6 +153,23 @@ export interface CreateRecurringRuleInput {
 	endAfterOccurrences?: number;
 	endDate?: string;
 	timezone?: string;
+}
+
+export interface UpdateRecurringRuleInput {
+	content?: string;
+	note?: string | null;
+	isNotePublic?: boolean;
+	category?: string | null;
+	frequency?: RecurrenceFrequency;
+	interval?: number;
+	daysOfWeek?: number[];
+	dayOfMonth?: number;
+	cronExpression?: string;
+	endCondition?: RecurrenceEndCondition;
+	endAfterOccurrences?: number;
+	endDate?: string;
+	timezone?: string;
+	status?: RecurrenceStatus;
 }
 
 export interface VirtualTodoItem {

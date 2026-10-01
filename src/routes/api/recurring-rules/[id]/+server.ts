@@ -39,15 +39,15 @@ export const PATCH: RequestHandler = async ({ params, request, locals }) => {
 			throw new AppError('VALIDATION_ERROR', 'Invalid JSON body');
 		}
 
-		if (!body.status) {
-			throw new AppError('VALIDATION_ERROR', 'status is required');
+		if (!body || typeof body !== 'object' || Object.keys(body).length === 0) {
+			throw new AppError('VALIDATION_ERROR', 'Request body cannot be empty');
 		}
 
-		const updated = await recurrenceService.updateStatus(
+		const updated = await recurrenceService.updateRule(
 			db,
 			params.id,
 			locals.user.id,
-			body.status as RecurrenceStatus
+			body
 		);
 
 		return json({ rule: updated });

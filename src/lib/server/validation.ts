@@ -2,8 +2,10 @@ import { AppError } from './errors';
 import {
 	ALL_RECURRENCE_FREQUENCIES,
 	ALL_RECURRENCE_STATUSES,
+	ALL_RECURRENCE_END_CONDITIONS,
 	type RecurrenceFrequency,
-	type RecurrenceStatus
+	type RecurrenceStatus,
+	type RecurrenceEndCondition
 } from '$lib/constants/recurrence';
 
 export const VALID_CATEGORIES = ['study', 'fitness', 'finance', 'dev', 'life', 'other'] as const;
@@ -284,4 +286,11 @@ export function validateInterval(value: unknown, defaultVal = 1): number {
 		throw new AppError('VALIDATION_ERROR', 'interval must be between 1 and 365');
 	}
 	return num;
+}
+
+export function validateEndCondition(value: unknown): RecurrenceEndCondition {
+	if (typeof value !== 'string' || !ALL_RECURRENCE_END_CONDITIONS.includes(value as any)) {
+		throw new AppError('VALIDATION_ERROR', 'Invalid recurrence end condition');
+	}
+	return value as RecurrenceEndCondition;
 }

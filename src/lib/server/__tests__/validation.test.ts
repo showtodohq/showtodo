@@ -22,7 +22,8 @@ import {
 	validateRecurrenceStatus,
 	validateDaysOfWeek,
 	validateDayOfMonth,
-	validateInterval
+	validateInterval,
+	validateEndCondition
 } from '../validation';
 import { AppError } from '../errors';
 
@@ -473,6 +474,21 @@ describe('validateInterval', () => {
 
 	test('rejects <= 0', () => {
 		expect(() => validateInterval(0)).toThrow(AppError);
+	});
+});
+
+describe('validateEndCondition', () => {
+	test('accepts valid end conditions', () => {
+		expect(validateEndCondition('never')).toBe('never');
+		expect(validateEndCondition('by_count')).toBe('by_count');
+		expect(validateEndCondition('by_date')).toBe('by_date');
+	});
+
+	test('rejects invalid end conditions', () => {
+		expect(() => validateEndCondition('invalid')).toThrow(AppError);
+		expect(() => validateEndCondition('')).toThrow(AppError);
+		expect(() => validateEndCondition(123)).toThrow(AppError);
+		expect(() => validateEndCondition(null)).toThrow(AppError);
 	});
 });
 

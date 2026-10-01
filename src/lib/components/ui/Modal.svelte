@@ -43,6 +43,7 @@
 		closeOnClickOutside?: boolean;
 		closeOnEsc?: boolean;
 		class?: string;
+		bodyClass?: string;
 		header?: Snippet;
 		children?: Snippet;
 		footer?: Snippet;
@@ -57,6 +58,7 @@
 		closeOnClickOutside = true,
 		closeOnEsc = true,
 		class: className = '',
+		bodyClass = '',
 		header,
 		children,
 		footer,
@@ -97,74 +99,93 @@
 <svelte:window onkeydown={handleKeydown} />
 
 {#if open}
-	<!-- 背景遮罩 (配置 overscroll-contain 彻底隔离滚动链向底层穿透) -->
+	<!-- 背景遮罩与全屏视口滚动上下文 (无 flex-center 冲突，彻底根治高弹窗上下溢出截断) -->
 	<!-- svelte-ignore a11y_click_events_have_key_events -->
 	<div
 		role="dialog"
 		aria-modal="true"
 		tabindex="-1"
-		class="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto overscroll-contain bg-black/50 backdrop-blur-xs animate-in fade-in duration-200"
+		class="fixed inset-0 z-50 overflow-y-auto overscroll-contain bg-black/50 backdrop-blur-xs animate-in fade-in duration-200"
 		onclick={(e) => {
 			if (closeOnClickOutside && e.target === e.currentTarget) {
 				handleClose();
 			}
 		}}
 	>
-		<!-- 弹窗本体 (自包含滚动容器) -->
+		<!-- 居中定位包装层：min-h-full 保证内容较矮时垂直居中；内容超高时自然由内容撑高，从顶部安全起始排列，绝不产生负向视口裁切 -->
+		<!-- svelte-ignore a11y_click_events_have_key_events -->
+		<!-- svelte-ignore a11y_no_static_element_interactions -->
 		<div
-			class={cn(
-				'w-full rounded-2xl border border-zinc-200/90 bg-white dark:border-zinc-800 dark:bg-zinc-900 shadow-2xl overflow-hidden my-8 animate-in zoom-in-95 duration-150 text-left overscroll-contain',
-				sizeClasses[size],
-				className
-			)}
+			class="flex min-h-full items-center justify-center p-3 sm:p-4 text-center"
+			onclick={(e) => {
+				if (closeOnClickOutside && e.target === e.currentTarget) {
+					handleClose();
+				}
+			}}
 		>
-			<!-- 弹窗头部 -->
-			{#if header}
-				{@render header()}
-			{:else if title || description}
-				<div class="flex items-start justify-between border-b border-zinc-100 dark:border-zinc-800/80 px-6 py-4">
-					<div>
-						{#if title}
-							<h3 class="text-base font-bold text-zinc-900 dark:text-zinc-100 tracking-tight">
-								{title}
-							</h3>
-						{/if}
-						{#if description}
-							<p class="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
-								{description}
-							</p>
-						{/if}
+			<!-- 弹窗卡片本体 (限制视口最大高度，内部弹性伸缩与平滑自滚动双保险) -->
+			<div
+				class={cn(
+					'w-full max-h-[calc(100dvh-1.5rem)] sm:max-h-[calc(100dvh-2.5rem)] flex flex-col rounded-2xl border border-zinc-200/90 bg-white dark:border-zinc-800 dark:bg-zinc-900 shadow-2xl overflow-hidden my-auto animate-in zoom-in-95 duration-150 text-left overscroll-contain',
+					sizeClasses[size],
+					className
+				)}
+			>
+				<!-- 弹窗头部 (吸顶固定，内容滚动时不被滚走) -->
+				{#if header}
+					<div class="shrink-0">
+						{@render header()}
 					</div>
+				{:else if title || description}
+					<div class="shrink-0 flex items-start justify-between border-b border-zinc-100 dark:border-zinc-800/80 px-6 py-4">
+						<div>
+							{#if title}
+								<h3 class="text-base font-bold text-zinc-900 dark:text-zinc-100 tracking-tight">
+									{title}
+								</h3>
+							{/if}
+							{#if description}
+								<p class="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
+									{description}
+								</p>
+							{/if}
+						</div>
 
-					<Button
-						variant="ghost"
-						size="xs"
-						iconOnly
-						touchExpanded
-						onclick={handleClose}
-						ariaLabel="Close modal"
-						class="text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200"
+						<Button
+							variant="ghost"
+							size="xs"
+							iconOnly
+							touchExpanded
+							onclick={handleClose}
+							ariaLabel="Close modal"
+							class="text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200"
+						>
+							<svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+							</svg>
+						</Button>
+					</div>
+				{/if}
+
+				<!-- 弹窗内容主体 (自适应内部滚动容器) -->
+				{#if children}
+					<div
+						class={cn(
+							'flex-1 overflow-y-auto overscroll-contain min-h-0',
+							bodyClass || (className.includes('p-0') ? '' : 'px-6 py-5')
+						)}
 					>
-						<svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-						</svg>
-					</Button>
-				</div>
-			{/if}
+						{@render children()}
+					</div>
+				{/if}
 
-			<!-- 弹窗内容主体 -->
-			{#if children}
-				<div class="px-6 py-5">
-					{@render children()}
-				</div>
-			{/if}
-
-			<!-- 弹窗底部操作区 -->
-			{#if footer}
-				<div class="flex items-center justify-end gap-3 border-t border-zinc-100 dark:border-zinc-800/80 bg-zinc-50/50 dark:bg-zinc-900/50 px-6 py-3.5">
-					{@render footer()}
-				</div>
-			{/if}
+				<!-- 弹窗底部操作区 (吸底固定，重要操作按钮永久常驻可见) -->
+				{#if footer}
+					<div class="shrink-0 flex items-center justify-end gap-3 border-t border-zinc-100 dark:border-zinc-800/80 bg-zinc-50/50 dark:bg-zinc-900/50 px-6 py-3.5">
+						{@render footer()}
+					</div>
+				{/if}
+			</div>
 		</div>
 	</div>
 {/if}

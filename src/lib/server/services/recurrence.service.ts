@@ -26,6 +26,8 @@ import {
 	validateDaysOfWeek,
 	validateDayOfMonth,
 	validateInterval,
+	validateEndCondition,
+	validateBoolean,
 	isUUID
 } from '../validation';
 import { computeTopicHash } from '../topic-hash';
@@ -171,18 +173,40 @@ export async function listByAuthor(
 		.orderBy(desc(recurringRules.createdAt));
 }
 
+export interface UpdateRecurringRuleData {
+	content?: string;
+	note?: string | null;
+	isNotePublic?: boolean;
+	category?: string | null;
+	frequency?: RecurrenceFrequency;
+	interval?: number;
+	daysOfWeek?: number[];
+	dayOfMonth?: number;
+	cronExpression?: string | null;
+	endCondition?: RecurrenceEndCondition;
+	endAfterOccurrences?: number | null;
+	endDate?: string | null;
+	timezone?: string;
+	status?: RecurrenceStatus;
+}
+
 /**
- * 更新周期规则状态 (支持 active, paused, archived, dormant 唤醒)
+ * 更新周期规则属性 (支持全量与增量修改排程、内容、分类及状态)
  */
-export async function updateStatus(
+export async function updateRule(
 	db: Database,
 	ruleId: string,
 	authorId: string,
-	newStatus: RecurrenceStatus
+	data: UpdateRecurringRuleData
 ): Promise<RecurringRuleRecord> {
-	const validStatus = validateRecurrenceStatus(newStatus);
-	const rule = await findById(db, ruleId);
+	if (!isUUID(ruleId)) {
+		throw new AppError('NOT_FOUND', 'Recurring rule not found');
+	}
+	if (!isUUID(authorId)) {
+		throw new AppError('FORBIDDEN', 'Authentication required');
+	}
 
+	const rule = await findById(db, ruleId);
 	if (!rule) {
 		throw new AppError('NOT_FOUND', 'Recurring rule not found');
 	}
@@ -191,14 +215,84 @@ export async function updateStatus(
 	}
 
 	const updatePayload: Partial<typeof recurringRules.$inferInsert> = {
-		status: validStatus,
 		updatedAt: new Date()
 	};
 
-	// 若从休眠/暂停唤醒为 active，清零连续缺席计数并重置调度起点
-	if (validStatus === 'active' && (rule.status === 'dormant' || rule.status === 'paused')) {
-		updatePayload.consecutiveMisses = 0;
-		updatePayload.nextRunAt = new Date();
+	if (data.content !== undefined) {
+		updatePayload.content = validateContent(data.content);
+		updatePayload.topicHash = computeTopicHash(updatePayload.content);
+	}
+	if (data.note !== undefined) {
+		updatePayload.note = validateNote(data.note);
+	}
+	if (data.isNotePublic !== undefined) {
+		updatePayload.isNotePublic = validateBoolean(data.isNotePublic, true);
+	}
+	if (data.category !== undefined) {
+		updatePayload.category = validateCategory(data.category);
+	}
+	if (data.frequency !== undefined) {
+		updatePayload.frequency = validateRecurrenceFrequency(data.frequency);
+	}
+	if (data.interval !== undefined) {
+		updatePayload.interval = validateInterval(data.interval);
+	}
+	if (data.daysOfWeek !== undefined) {
+		updatePayload.daysOfWeek = validateDaysOfWeek(data.daysOfWeek) ?? null;
+	}
+	if (data.dayOfMonth !== undefined) {
+		updatePayload.dayOfMonth = validateDayOfMonth(data.dayOfMonth) ?? null;
+	}
+	if (data.cronExpression !== undefined) {
+		updatePayload.cronExpression = data.cronExpression ?? null;
+	}
+	if (data.endCondition !== undefined) {
+		updatePayload.endCondition = validateEndCondition(data.endCondition);
+	}
+	if (data.endAfterOccurrences !== undefined) {
+		updatePayload.endAfterOccurrences = data.endAfterOccurrences ?? null;
+	}
+	if (data.endDate !== undefined) {
+		updatePayload.endDate = data.endDate ? new Date(data.endDate) : null;
+	}
+	if (data.timezone !== undefined) {
+		updatePayload.timezone = resolveTimezone(data.timezone, null, DEFAULT_TIMEZONE);
+	}
+	if (data.status !== undefined) {
+		const validStatus = validateRecurrenceStatus(data.status);
+		updatePayload.status = validStatus;
+		if (validStatus === 'active' && (rule.status === 'dormant' || rule.status === 'paused')) {
+			updatePayload.consecutiveMisses = 0;
+			updatePayload.nextRunAt = new Date();
+		}
+	}
+
+	// 若修改了排程相关属性且处于 active 状态，重新对齐下一次触发时间 nextRunAt
+	const isScheduleModified =
+		data.frequency !== undefined ||
+		data.interval !== undefined ||
+		data.daysOfWeek !== undefined ||
+		data.dayOfMonth !== undefined ||
+		data.cronExpression !== undefined;
+
+	const targetStatus = updatePayload.status ?? rule.status;
+	if (isScheduleModified && targetStatus === 'active' && !updatePayload.nextRunAt) {
+		const effectiveFrequency = updatePayload.frequency ?? rule.frequency;
+		const effectiveInterval = updatePayload.interval ?? rule.interval;
+		const effectiveDaysOfWeek = updatePayload.daysOfWeek !== undefined ? updatePayload.daysOfWeek : rule.daysOfWeek;
+		const effectiveDayOfMonth = updatePayload.dayOfMonth !== undefined ? updatePayload.dayOfMonth : rule.dayOfMonth;
+		const effectiveCron = updatePayload.cronExpression !== undefined ? updatePayload.cronExpression : rule.cronExpression;
+		const effectiveTz = updatePayload.timezone ?? rule.timezone;
+
+		const baseTime = rule.lastRunAt || new Date();
+		updatePayload.nextRunAt = calculateNextOccurrence(baseTime, {
+			frequency: effectiveFrequency,
+			interval: effectiveInterval,
+			daysOfWeek: effectiveDaysOfWeek ?? undefined,
+			dayOfMonth: effectiveDayOfMonth ?? undefined,
+			cronExpression: effectiveCron ?? undefined,
+			timezone: effectiveTz
+		});
 	}
 
 	const [updated] = await db
@@ -208,6 +302,18 @@ export async function updateStatus(
 		.returning();
 
 	return updated;
+}
+
+/**
+ * 更新周期规则状态 (支持 active, paused, archived, dormant 唤醒)
+ */
+export async function updateStatus(
+	db: Database,
+	ruleId: string,
+	authorId: string,
+	newStatus: RecurrenceStatus
+): Promise<RecurringRuleRecord> {
+	return updateRule(db, ruleId, authorId, { status: newStatus });
 }
 
 /**

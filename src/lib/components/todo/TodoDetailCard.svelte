@@ -42,6 +42,7 @@
 		onmystatuschange?: (nextStatus: TodoStatus, e?: MouseEvent) => void;
 		onlogprogress?: (data: { status: TodoStatus; note: string }) => Promise<void> | void;
 		initialShowDeleteModal?: boolean;
+		initialEditing?: boolean;
 	}
 
 	let {
@@ -53,6 +54,7 @@
 		myJoinedStatus,
 		isJoining = false,
 		initialShowDeleteModal = false,
+		initialEditing = false,
 		onstatuschange,
 		onreaction,
 		onsaveedit,
@@ -63,7 +65,8 @@
 		onlogprogress
 	}: Props = $props();
 
-	let isEditing = $state(false);
+	// svelte-ignore state_referenced_locally
+	let isEditing = $state(initialEditing);
 	let editContent = $state('');
 	let editNote = $state('');
 	let editCategory = $state<CategoryId | null>(null);
@@ -151,7 +154,17 @@
 		isRecurring = Boolean(todo.recurringRuleId);
 		recurrenceFrequency = todo.recurringRule?.frequency || 'daily';
 		recurrenceInterval = todo.recurringRule?.interval || 1;
+		recurrenceDaysOfWeek =
+			todo.recurringRule?.daysOfWeek && todo.recurringRule.daysOfWeek.length > 0
+				? [...todo.recurringRule.daysOfWeek]
+				: [1, 2, 3, 4, 5];
+		recurrenceDayOfMonth = todo.recurringRule?.dayOfMonth || 1;
+		recurrenceEndCondition = todo.recurringRule?.endCondition || 'never';
+		recurrenceEndAfterOccurrences = todo.recurringRule?.endAfterOccurrences || 30;
+		recurrenceEndDate = todo.recurringRule?.endDate ? todo.recurringRule.endDate.split('T')[0] : '';
 	}
+
+	syncFromTodo();
 
 	$effect(() => {
 		if (!isEditing) {
@@ -274,6 +287,12 @@
 						id: rule.id,
 						frequency: rule.frequency,
 						interval: rule.interval,
+						daysOfWeek: rule.daysOfWeek,
+						dayOfMonth: rule.dayOfMonth,
+						cronExpression: rule.cronExpression,
+						endCondition: rule.endCondition,
+						endAfterOccurrences: rule.endAfterOccurrences,
+						endDate: rule.endDate,
 						currentStreak: rule.currentStreak,
 						maxStreak: rule.maxStreak ?? rule.currentStreak ?? 0,
 						status: rule.status
@@ -283,6 +302,39 @@
 				} catch (err) {
 					console.error('Failed to create recurring rule:', err);
 					toast.error('Todo updated, but failed to create recurring rule');
+				}
+			} else if (todo.recurringRuleId && isRecurring) {
+				try {
+					const { rule } = await api.updateRecurringRule(todo.recurringRuleId, {
+						content: clean,
+						note: editNote.trim() || undefined,
+						category: editCategory || undefined,
+						frequency: recurrenceFrequency,
+						interval: recurrenceInterval,
+						daysOfWeek: recurrenceFrequency === 'weekly' ? recurrenceDaysOfWeek : undefined,
+						dayOfMonth: recurrenceFrequency === 'monthly' ? recurrenceDayOfMonth : undefined,
+						endCondition: recurrenceEndCondition,
+						endAfterOccurrences: recurrenceEndCondition === 'by_count' ? recurrenceEndAfterOccurrences : undefined,
+						endDate: recurrenceEndCondition === 'by_date' && recurrenceEndDate ? new Date(recurrenceEndDate).toISOString() : undefined
+					});
+					todo.recurringRule = {
+						id: rule.id,
+						frequency: rule.frequency,
+						interval: rule.interval,
+						daysOfWeek: rule.daysOfWeek,
+						dayOfMonth: rule.dayOfMonth,
+						cronExpression: rule.cronExpression,
+						endCondition: rule.endCondition,
+						endAfterOccurrences: rule.endAfterOccurrences,
+						endDate: rule.endDate,
+						currentStreak: rule.currentStreak,
+						maxStreak: rule.maxStreak ?? rule.currentStreak ?? 0,
+						status: rule.status
+					};
+					currentRuleStatus = rule.status;
+				} catch (err) {
+					console.error('Failed to update recurring rule:', err);
+					toast.error('Todo updated, but failed to update recurring rule');
 				}
 			}
 
@@ -606,45 +658,47 @@
 			</div>
 
 			<!-- 4.5. 周期规则设置 (Recurrence Configuration) -->
-			{#if todo.recurringRuleId}
-				<div class="p-3 rounded-xl border border-indigo-200/80 dark:border-indigo-800/60 bg-indigo-50/50 dark:bg-indigo-950/30 space-y-2">
-					<div class="flex items-center justify-between flex-wrap gap-2">
-						<div class="flex items-center gap-2">
-							<StreakBadge
-								frequency={todo.recurringRule?.frequency || 'daily'}
-								currentStreak={todo.recurringRule?.currentStreak ?? 0}
-								maxStreak={todo.recurringRule?.maxStreak ?? 0}
-								cycleIndex={todo.cycleIndex}
-								size="sm"
-							/>
-							<span class="text-xs font-semibold text-zinc-800 dark:text-zinc-200">
-								Recurring Habit Linked
-							</span>
-						</div>
-						{#if isMine}
-							{@const isRuleActive = (currentRuleStatus ?? todo.recurringRule?.status ?? 'active') === 'active'}
-							<button
-								type="button"
-								onclick={toggleRecurringRuleStatus}
-								disabled={isTogglingRuleStatus}
-								class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium cursor-pointer transition-colors {isRuleActive
-									? 'bg-amber-100 hover:bg-amber-200 text-amber-800 dark:bg-amber-950/50 dark:hover:bg-amber-900/60 dark:text-amber-300'
-									: 'bg-emerald-100 hover:bg-emerald-200 text-emerald-800 dark:bg-emerald-950/50 dark:hover:bg-emerald-900/60 dark:text-emerald-300'}"
-							>
-								<Icon
-									icon={isRuleActive ? 'lucide:pause-circle' : 'lucide:play-circle'}
-									class="w-3.5 h-3.5"
+			<div class="space-y-3 pt-1">
+				{#if todo.recurringRuleId}
+					<div class="p-3 rounded-xl border border-indigo-200/80 dark:border-indigo-800/60 bg-indigo-50/50 dark:bg-indigo-950/30 space-y-2">
+						<div class="flex items-center justify-between flex-wrap gap-2">
+							<div class="flex items-center gap-2">
+								<StreakBadge
+									frequency={todo.recurringRule?.frequency || 'daily'}
+									currentStreak={todo.recurringRule?.currentStreak ?? 0}
+									maxStreak={todo.recurringRule?.maxStreak ?? 0}
+									cycleIndex={todo.cycleIndex}
+									size="sm"
 								/>
-								<span>{isRuleActive ? 'Pause Rule' : 'Resume Rule'}</span>
-							</button>
-						{/if}
+								<span class="text-xs font-semibold text-zinc-800 dark:text-zinc-200">
+									Recurring Habit Linked
+								</span>
+							</div>
+							{#if isMine}
+								{@const isRuleActive = (currentRuleStatus ?? todo.recurringRule?.status ?? 'active') === 'active'}
+								<button
+									type="button"
+									onclick={toggleRecurringRuleStatus}
+									disabled={isTogglingRuleStatus}
+									class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium cursor-pointer transition-colors {isRuleActive
+										? 'bg-amber-100 hover:bg-amber-200 text-amber-800 dark:bg-amber-950/50 dark:hover:bg-amber-900/60 dark:text-amber-300'
+										: 'bg-emerald-100 hover:bg-emerald-200 text-emerald-800 dark:bg-emerald-950/50 dark:hover:bg-emerald-900/60 dark:text-emerald-300'}"
+								>
+									<Icon
+										icon={isRuleActive ? 'lucide:pause-circle' : 'lucide:play-circle'}
+										class="w-3.5 h-3.5"
+									/>
+									<span>{isRuleActive ? 'Pause Rule' : 'Resume Rule'}</span>
+								</button>
+							{/if}
+						</div>
+						<p class="text-[11px] text-zinc-500 dark:text-zinc-400 leading-normal">
+							Materialized from a {todo.recurringRule?.frequency || 'daily'} recurring rule. Updating the recurrence rules below will apply to future scheduled occurrences of this habit.
+						</p>
 					</div>
-					<p class="text-[11px] text-zinc-500 dark:text-zinc-400 leading-normal">
-						Materialized from a {todo.recurringRule?.frequency || 'daily'} recurring rule. Editing text or schedule only affects this occurrence; pausing the rule prevents future instances.
-					</p>
-				</div>
-			{:else}
-				<div class="pt-2 border-t border-zinc-100 dark:border-zinc-800">
+				{/if}
+
+				<div class={todo.recurringRuleId ? '' : 'pt-2 border-t border-zinc-100 dark:border-zinc-800'}>
 					<RecurrenceConfigSection
 						bind:isRecurring
 						bind:frequency={recurrenceFrequency}
@@ -656,7 +710,7 @@
 						bind:endDate={recurrenceEndDate}
 					/>
 				</div>
-			{/if}
+			</div>
 
 			<!-- 5. 编辑操作栏 (取消 / 保存 / 删除) -->
 			<div class="flex items-center justify-between pt-2">
