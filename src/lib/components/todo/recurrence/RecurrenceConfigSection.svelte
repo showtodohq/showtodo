@@ -4,9 +4,12 @@
 		RECURRENCE_FREQUENCY_LABELS,
 		DAYS_OF_WEEK_CONFIG,
 		RECURRENCE_END_CONDITIONS,
+		RECURRENCE_HELP_TEXTS,
 		type RecurrenceFrequency,
 		type RecurrenceEndCondition
 	} from '$lib/constants/recurrence';
+	import HelpTooltip from '$lib/components/ui/HelpTooltip.svelte';
+	import { POPOVER_PLACEMENT } from '$lib/constants/popover';
 	import Icon from '@iconify/svelte';
 
 	interface Props {
@@ -45,9 +48,25 @@
 <div class="rounded-xl border border-zinc-200/80 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/40 p-3 sm:p-3.5 space-y-3">
 	<!-- 顶部开关 -->
 	<div class="flex items-center justify-between">
-		<div class="flex items-center gap-2">
+		<div class="flex items-center gap-1.5">
 			<Icon icon="lucide:repeat" class="w-4 h-4 text-zinc-600 dark:text-zinc-300 shrink-0" />
 			<span class="text-xs font-semibold text-zinc-900 dark:text-zinc-100">Repeat (Recurring Habit)</span>
+			<HelpTooltip
+				title={RECURRENCE_HELP_TEXTS.INTERACTION_TITLE}
+				placement={POPOVER_PLACEMENT.BOTTOM_START}
+				ariaLabel="Learn how schedule and recurrence interact"
+			>
+				{#snippet content()}
+					<ul class="list-disc list-inside space-y-1.5 pl-0.5 leading-relaxed text-[11px] text-zinc-600 dark:text-zinc-300">
+						<li>
+							<strong class="text-zinc-800 dark:text-zinc-200">Schedule:</strong> {RECURRENCE_HELP_TEXTS.SCHEDULE_EXPLANATION}
+						</li>
+						<li>
+							<strong class="text-zinc-800 dark:text-zinc-200">End condition:</strong> {RECURRENCE_HELP_TEXTS.END_CONDITION_EXPLANATION}
+						</li>
+					</ul>
+				{/snippet}
+			</HelpTooltip>
 		</div>
 		<label class="relative inline-flex items-center cursor-pointer">
 			<input
@@ -169,18 +188,6 @@
 						/>
 					</label>
 				</div>
-			</div>
-
-			<!-- 友好提示：起止时间与周期规则关系 -->
-			<div class="p-2.5 rounded-lg bg-zinc-100/70 dark:bg-zinc-800/50 text-[11px] text-zinc-500 dark:text-zinc-400 space-y-1 border border-zinc-200/50 dark:border-zinc-800/60">
-				<div class="flex items-center gap-1.5 font-medium text-zinc-700 dark:text-zinc-300">
-					<Icon icon="lucide:info" class="w-3.5 h-3.5 text-zinc-500 shrink-0" />
-					<span>Schedule & Recurrence interaction:</span>
-				</div>
-				<ul class="list-disc list-inside space-y-0.5 pl-1 leading-relaxed">
-					<li><strong>Schedule (Start & Due Date)</strong> sets each cycle's daily time window (e.g. 09:00 ~ 18:00). If start date is in the future, the rule starts on that date.</li>
-					<li><strong>End Condition</strong> limits the overall lifetime of the recurring series.</li>
-				</ul>
 			</div>
 		</div>
 	{/if}

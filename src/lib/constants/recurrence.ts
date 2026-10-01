@@ -129,3 +129,16 @@ export const isRecurrencePaused = (status?: RecurrenceStatus | string | null): b
 	status === RECURRENCE_STATUSES.PAUSED;
 export const isRecurrenceDormant = (status?: RecurrenceStatus | string | null): boolean =>
 	status === RECURRENCE_STATUSES.DORMANT;
+
+// 8. 周期规则帮助与引导文案 (单一信源，用于 Tooltip 悬浮或点击说明)
+export const RECURRENCE_HELP_TEXTS = {
+	INTERACTION_TITLE: 'Schedule & Recurrence Interaction',
+	SCHEDULE_EXPLANATION:
+		"Schedule (Start & Due Date) sets each cycle's daily time window (e.g. 09:00 ~ 18:00). If start date is in the future, the rule starts on that date.",
+	END_CONDITION_EXPLANATION:
+		'End Condition limits the overall lifetime of the recurring series.',
+	MATERIALIZED_TITLE: 'Recurring Habit Linked',
+	MATERIALIZED_EXPLANATION: (frequency: string = 'daily') =>
+		`Materialized from a ${frequency} recurring rule. Updating the recurrence rules below will apply to future scheduled occurrences of this habit.`
+} as const;
+

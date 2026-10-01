@@ -195,4 +195,35 @@ describe('TodoDetailCard Category Display & In-Place Editing', () => {
 		expect(rendered.body).toContain('Repeat (Recurring Habit)');
 		expect(rendered.body).not.toContain('Recurring Habit Linked');
 	});
+
+	it('renders contextual HelpTooltip icon for recurring habit in edit mode', () => {
+		const recurringTodo: Todo = {
+			...mockDetailTodo,
+			recurringRuleId: 'rule-test-tip',
+			cycleIndex: 1,
+			recurringRule: {
+				id: 'rule-test-tip',
+				frequency: 'daily',
+				interval: 1,
+				daysOfWeek: [],
+				currentStreak: 1,
+				maxStreak: 1,
+				status: 'active',
+				endCondition: 'never'
+			}
+		};
+
+		const rendered = render(TodoDetailCard, {
+			props: {
+				todo: recurringTodo,
+				isMine: true,
+				initialEditing: true
+			}
+		});
+
+		expect(rendered.body).toContain('Recurring Habit Linked');
+		expect(rendered.body).toContain('aria-label="Recurring habit details"');
+		expect(rendered.body).toContain('aria-label="Learn how schedule and recurrence interact"');
+	});
 });
+

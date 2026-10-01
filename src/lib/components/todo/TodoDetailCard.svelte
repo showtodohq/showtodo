@@ -14,8 +14,14 @@
 	import TodoStatusDropdown from '$lib/components/todo/TodoStatusDropdown.svelte';
 	import StreakBadge from '$lib/components/todo/recurrence/StreakBadge.svelte';
 	import RecurrenceConfigSection from '$lib/components/todo/recurrence/RecurrenceConfigSection.svelte';
+	import HelpTooltip from '$lib/components/ui/HelpTooltip.svelte';
 	import { api } from '$lib/services/api';
-	import type { RecurrenceFrequency, RecurrenceStatus, RecurrenceEndCondition } from '$lib/constants/recurrence';
+	import {
+		RECURRENCE_HELP_TEXTS,
+		type RecurrenceFrequency,
+		type RecurrenceStatus,
+		type RecurrenceEndCondition
+	} from '$lib/constants/recurrence';
 	import { POPOVER_PLACEMENT } from '$lib/constants/popover';
 	import Icon from '@iconify/svelte';
 
@@ -660,41 +666,42 @@
 			<!-- 4.5. 周期规则设置 (Recurrence Configuration) -->
 			<div class="space-y-3 pt-1">
 				{#if todo.recurringRuleId}
-					<div class="p-3 rounded-xl border border-indigo-200/80 dark:border-indigo-800/60 bg-indigo-50/50 dark:bg-indigo-950/30 space-y-2">
-						<div class="flex items-center justify-between flex-wrap gap-2">
-							<div class="flex items-center gap-2">
-								<StreakBadge
-									frequency={todo.recurringRule?.frequency || 'daily'}
-									currentStreak={todo.recurringRule?.currentStreak ?? 0}
-									maxStreak={todo.recurringRule?.maxStreak ?? 0}
-									cycleIndex={todo.cycleIndex}
-									size="sm"
-								/>
-								<span class="text-xs font-semibold text-zinc-800 dark:text-zinc-200">
-									Recurring Habit Linked
-								</span>
-							</div>
-							{#if isMine}
-								{@const isRuleActive = (currentRuleStatus ?? todo.recurringRule?.status ?? 'active') === 'active'}
-								<button
-									type="button"
-									onclick={toggleRecurringRuleStatus}
-									disabled={isTogglingRuleStatus}
-									class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium cursor-pointer transition-colors {isRuleActive
-										? 'bg-amber-100 hover:bg-amber-200 text-amber-800 dark:bg-amber-950/50 dark:hover:bg-amber-900/60 dark:text-amber-300'
-										: 'bg-emerald-100 hover:bg-emerald-200 text-emerald-800 dark:bg-emerald-950/50 dark:hover:bg-emerald-900/60 dark:text-emerald-300'}"
-								>
-									<Icon
-										icon={isRuleActive ? 'lucide:pause-circle' : 'lucide:play-circle'}
-										class="w-3.5 h-3.5"
-									/>
-									<span>{isRuleActive ? 'Pause Rule' : 'Resume Rule'}</span>
-								</button>
-							{/if}
+					<div class="p-2.5 rounded-xl border border-indigo-200/80 dark:border-indigo-800/60 bg-indigo-50/50 dark:bg-indigo-950/30 flex items-center justify-between flex-wrap gap-2">
+						<div class="flex items-center gap-2">
+							<StreakBadge
+								frequency={todo.recurringRule?.frequency || 'daily'}
+								currentStreak={todo.recurringRule?.currentStreak ?? 0}
+								maxStreak={todo.recurringRule?.maxStreak ?? 0}
+								cycleIndex={todo.cycleIndex}
+								size="sm"
+							/>
+							<span class="text-xs font-semibold text-zinc-800 dark:text-zinc-200">
+								Recurring Habit Linked
+							</span>
+							<HelpTooltip
+								title={RECURRENCE_HELP_TEXTS.MATERIALIZED_TITLE}
+								text={RECURRENCE_HELP_TEXTS.MATERIALIZED_EXPLANATION(todo.recurringRule?.frequency || 'daily')}
+								placement={POPOVER_PLACEMENT.BOTTOM_START}
+								ariaLabel="Recurring habit details"
+							/>
 						</div>
-						<p class="text-[11px] text-zinc-500 dark:text-zinc-400 leading-normal">
-							Materialized from a {todo.recurringRule?.frequency || 'daily'} recurring rule. Updating the recurrence rules below will apply to future scheduled occurrences of this habit.
-						</p>
+						{#if isMine}
+							{@const isRuleActive = (currentRuleStatus ?? todo.recurringRule?.status ?? 'active') === 'active'}
+							<button
+								type="button"
+								onclick={toggleRecurringRuleStatus}
+								disabled={isTogglingRuleStatus}
+								class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium cursor-pointer transition-colors {isRuleActive
+									? 'bg-amber-100 hover:bg-amber-200 text-amber-800 dark:bg-amber-950/50 dark:hover:bg-amber-900/60 dark:text-amber-300'
+									: 'bg-emerald-100 hover:bg-emerald-200 text-emerald-800 dark:bg-emerald-950/50 dark:hover:bg-emerald-900/60 dark:text-emerald-300'}"
+							>
+								<Icon
+									icon={isRuleActive ? 'lucide:pause-circle' : 'lucide:play-circle'}
+									class="w-3.5 h-3.5"
+								/>
+								<span>{isRuleActive ? 'Pause Rule' : 'Resume Rule'}</span>
+							</button>
+						{/if}
 					</div>
 				{/if}
 
